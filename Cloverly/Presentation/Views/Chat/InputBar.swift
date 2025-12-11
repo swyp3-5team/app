@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
 
 class InputBar: UIView {
     private let viewModel: ChatViewModel
@@ -21,7 +23,14 @@ class InputBar: UIView {
         let sendButton = UIButton(type: .system)
         sendButton.setTitle("전송", for: .normal)
         sendButton.addAction(UIAction { [weak self] _ in
-
+            guard let self = self else { return }
+            
+            let inputText = self.textView.text ?? ""
+            let message = Message(textBody: inputText, chatType: .send)
+            self.viewModel.messages.accept(self.viewModel.messages.value + [message])
+            
+            textView.text = ""
+            print("\(message) 전송!")
         }, for: .touchUpInside)
         return sendButton
     }()

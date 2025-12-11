@@ -6,10 +6,20 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
 
 class ChatViewController: UIViewController {
+    private let disposeBag = DisposeBag()
     private let viewModel = ChatViewModel()
     
+    var isAtBottom: Bool {
+        let offsetY = collectionView.contentOffset.y
+        let contentHeight = collectionView.contentSize.height
+        let frameHeight = collectionView.frame.size.height
+        return offsetY >= contentHeight - frameHeight - 10
+    }
+
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
@@ -28,10 +38,27 @@ class ChatViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configure()
+        bind()
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tap.cancelsTouchesInView = false
         view.addGestureRecognizer(tap)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillChangeFrame),
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil
+        )
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        scrollToBottom(animated: false)
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -61,6 +88,57 @@ class ChatViewController: UIViewController {
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+    }
+    
+    func bind() {
+        viewModel.messages
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] _ in
+                guard let self = self else { return }
+                
+                // 버벅임 이슈 수정 필요
+                self.collectionView.reloadData()
+                self.scrollToBottom(animated: false)
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    @objc func keyboardWillChangeFrame(_ notification: Notification) {
+        guard
+            let userInfo = notification.userInfo,
+            let frame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
+            let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        else { return }
+
+        let keyboardHeight = frame.height
+
+        let bottomInset: CGFloat
+
+        if keyboardHeight > 0 {
+            bottomInset = keyboardHeight /*- 간격 없이 딱 view.safeAreaInsets.bottom*/
+        } else {
+            bottomInset = inputBar.frame.height
+        }
+        
+        UIView.animate(withDuration: duration) {
+            self.collectionView.contentInset.bottom = bottomInset
+            self.collectionView.verticalScrollIndicatorInsets.bottom = bottomInset
+
+            if self.isAtBottom {
+                self.scrollToBottom(animated: false)
+            }
+        }
+    }
+
+    func scrollToBottom(animated: Bool = true) {
+        let section = 0
+        let itemCount = collectionView.numberOfItems(inSection: section)
+        guard itemCount > 0 else { return }
+
+        let indexPath = IndexPath(item: itemCount - 1, section: section)
+
+        collectionView.layoutIfNeeded()
+        collectionView.scrollToItem(at: indexPath, at: .bottom, animated: animated)
     }
 }
 
