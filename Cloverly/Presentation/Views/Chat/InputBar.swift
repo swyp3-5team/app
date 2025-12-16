@@ -8,39 +8,87 @@
 import UIKit
 import RxSwift
 import RxCocoa
+import SnapKit
 
 class InputBar: UIView {
     private let viewModel: ChatViewModel
+    private let disposeBag = DisposeBag()
+    
+    let heightUpdateNeeded = PublishRelay<Void>()
     
     lazy var textView: UITextView = {
         let textView = UITextView()
+        textView.font = .systemFont(ofSize: 14)
         textView.isScrollEnabled = false
         textView.delegate = self
+        textView.pasteDelegate = self
         return textView
+    }()
+    
+    lazy var placeholderLabel: UILabel = {
+        let label = UILabel()
+        label.text = "텍스트를 입력하세요"
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = UIColor.lightGray
+        label.sizeToFit()
+        label.isHidden = !textView.text.isEmpty
+        return label
+    }()
+    
+    fileprivate lazy var cameraButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("카메라", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        button.layer.cornerRadius = 12
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.gray.cgColor
+        return button
+    }()
+    
+    fileprivate lazy var galleryButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("사진", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        button.layer.cornerRadius = 12
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.gray.cgColor
+        return button
+    }()
+    
+    fileprivate lazy var pasteButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("붙여넣기", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        button.layer.cornerRadius = 12
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.gray.cgColor
+        button.addAction(UIAction { [weak self] _ in
+            guard let self = self else { return }
+            
+            textView.becomeFirstResponder()
+            textView.paste(nil)
+        }, for: .touchUpInside)
+        return button
     }()
     
     lazy var sendButton: UIButton = {
         let sendButton = UIButton(type: .system)
         sendButton.setTitle("전송", for: .normal)
-        sendButton.addAction(UIAction { [weak self] _ in
-            guard let self = self else { return }
-            
-            let inputText = self.textView.text ?? ""
-            let message = Message(textBody: inputText, chatType: .send)
-            self.viewModel.messages.accept(self.viewModel.messages.value + [message])
-            
-            textView.text = ""
-            print("\(message) 전송!")
-        }, for: .touchUpInside)
         return sendButton
     }()
     
     init(viewModel: ChatViewModel) {
         self.viewModel = viewModel
         super.init(frame: .zero)
-        backgroundColor = .secondarySystemBackground
+        backgroundColor = .white
         autoresizingMask = .flexibleHeight
         configureUI()
+        setupBinding()
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        applyTopShadow()
     }
     
     required init?(coder: NSCoder) {
@@ -48,26 +96,117 @@ class InputBar: UIView {
     }
     
     private func configureUI() {
+        textView.addSubview(placeholderLabel)
         addSubview(textView)
+        addSubview(cameraButton)
+        addSubview(galleryButton)
+        addSubview(pasteButton)
         addSubview(sendButton)
-        textView.translatesAutoresizingMaskIntoConstraints = false
-        sendButton.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            textView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            textView.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            textView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -8),
-            
-            sendButton.leadingAnchor.constraint(equalTo: textView.trailingAnchor, constant: 8),
-            sendButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            sendButton.centerYAnchor.constraint(equalTo: textView.centerYAnchor),
-            sendButton.widthAnchor.constraint(equalToConstant: 48)
-        ])
+        
+        textView.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(12)
+            $0.trailing.equalToSuperview().offset(-12)
+            $0.top.equalToSuperview().offset(8)
+        }
+        
+        placeholderLabel.snp.makeConstraints {
+            $0.leading.equalTo(textView.snp.leading).offset(textView.textContainerInset.left + textView.textContainer.lineFragmentPadding)
+            $0.top.equalTo(textView.snp.top).offset(textView.textContainerInset.top)
+        }
+        
+        cameraButton.snp.makeConstraints {
+            $0.leading.equalTo(textView.snp.leading)
+            $0.top.equalTo(textView.snp.bottom).offset(8)
+            $0.height.equalTo(36)
+            $0.bottom.equalTo(safeAreaLayoutGuide.snp.bottom)
+        }
+        
+        galleryButton.snp.makeConstraints {
+            $0.leading.equalTo(cameraButton.snp.trailing).offset(8)
+            $0.centerY.equalTo(cameraButton.snp.centerY)
+        }
+        
+        pasteButton.snp.makeConstraints {
+            $0.leading.equalTo(galleryButton.snp.trailing).offset(8)
+            $0.centerY.equalTo(cameraButton.snp.centerY)
+        }
+        
+        sendButton.snp.makeConstraints {
+            $0.leading.equalTo(textView.snp.trailing).offset(8)
+            $0.trailing.equalToSuperview().offset(-12)
+            $0.centerY.equalTo(cameraButton.snp.centerY)
+            $0.width.equalTo(48)
+        }
     }
+    
+    private func setupBinding() {
+        textView.rx.didChange
+            .map { _ in Void() }
+            .bind(to: heightUpdateNeeded)
+            .disposed(by: disposeBag)
+        
+        sendButton.addAction(UIAction { [weak self] _ in
+            guard let self = self else { return }
+            
+            let inputText = self.textView.text ?? ""
+            let message = Message(kind: .text(inputText), chatType: .send)
+            self.viewModel.messages.accept(self.viewModel.messages.value + [message])
+            
+            textView.text = ""
+            placeholderLabel.isHidden = false
+            
+            heightUpdateNeeded.accept(())
+            print("\(message) 전송!")
+        }, for: .touchUpInside)
+    }
+    
+    //    override var intrinsicContentSize: CGSize {
+    //        var size = textView.sizeThatFits(CGSize(width: textView.bounds.width, height: .infinity))
+    //
+    //        size.height += 16
+    //
+    //        if size.height > maxHeight {
+    //            size.height = maxHeight
+    //        }
+    //
+    //        return CGSize(width: bounds.width, height: size.height)
+    //    }
+    //
+    //    func updateHeight() {
+    //        let size = textView.sizeThatFits(CGSize(width: textView.bounds.width, height: .infinity))
+    //        let totalHeight = size.height + 16
+    //
+    //        textView.isScrollEnabled = totalHeight > maxHeight
+    //
+    //        invalidateIntrinsicContentSize()
+    //    }
 }
 
 extension InputBar: UITextViewDelegate {
+    func textViewDidEndEditing(_ textView: UITextView) {
+        placeholderLabel.isHidden = !textView.text.isEmpty
+    }
+    
     func textViewDidChange(_ textView: UITextView) {
+        placeholderLabel.isHidden = !textView.text.isEmpty
+    }
+}
+
+extension InputBar: UITextPasteDelegate {
+    func textPasteConfigurationSupporting(_ textPasteConfigurationSupporting: any UITextPasteConfigurationSupporting, combineItemAttributedStrings itemStrings: [NSAttributedString], for textRange: UITextRange) -> NSAttributedString {
+        let text = itemStrings.first?.string ?? ""
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         
+        return NSAttributedString(string: trimmed)
+    }
+}
+
+extension Reactive where Base: InputBar {
+    var cameraButtonTap: ControlEvent<Void> {
+        return base.cameraButton.rx.tap
+    }
+    
+    var gallaryButtonTap: ControlEvent<Void> {
+        return base.galleryButton.rx.tap
     }
 }
