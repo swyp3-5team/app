@@ -227,7 +227,10 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
         }
         
         let message = viewModel.messages.value[indexPath.row]
-        cell.bind(with: message)
+        UIView.performWithoutAnimation {
+            cell.bind(with: message)
+            cell.layoutIfNeeded()
+        }
         
         return cell
     }

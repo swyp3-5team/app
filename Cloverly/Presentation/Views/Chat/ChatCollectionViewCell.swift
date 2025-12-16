@@ -58,6 +58,18 @@ class ChatCollectionViewCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        messageTextView.text = nil
+        messageImageView.image = nil
+        
+        messageTextView.isHidden = true
+        messageImageView.isHidden = true
+        
+        messageTextView.backgroundColor = .clear
+    }
+    
     func configure() {
         contentView.addSubview(profileImageView)
         contentView.addSubview(stackView)
