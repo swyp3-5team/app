@@ -5,7 +5,12 @@
 //  Created by 이인호 on 12/11/25.
 //
 
-import Foundation
+import UIKit
+
+enum MessageKind {
+    case text(String)
+    case photo(UIImage)
+}
 
 enum ChatType: CaseIterable {
     case receive
@@ -13,7 +18,7 @@ enum ChatType: CaseIterable {
 }
 
 struct Message {
-    let textBody: String
+    let kind: MessageKind
     let chatType: ChatType
 }
 
@@ -34,6 +39,6 @@ class Mock {
                                         "people you'd expect to be involved in anything strange or mysterious",
                                         "because they just didn't hold with such nonsense.",
                         "Mr. Dursley was the director of a firm called Grunnings"]
-        return messages.map { Message(textBody: $0, chatType: ChatType.allCases.randomElement()!) }
+        return messages.map { Message(kind: .text($0), chatType: ChatType.allCases.randomElement()!) }
     }
 }

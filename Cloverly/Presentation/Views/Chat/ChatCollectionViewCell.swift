@@ -13,15 +13,34 @@ class ChatCollectionViewCell: UICollectionViewCell {
     private var leadingConstraint: NSLayoutConstraint!
     private var trailingConstraint: NSLayoutConstraint!
     
-    let messageLabel: UITextView = {
-        let view = UITextView()
-        view.text = "Sample"
-        view.textColor = .black
-        view.backgroundColor = .white
-        view.layer.cornerRadius = 12
-        view.layer.masksToBounds = false
-        view.isEditable = false
-        return view
+    lazy var stackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [messageImageView, messageTextView])
+        stackView.axis = .vertical
+        stackView.alignment = .fill
+        stackView.distribution = .fill
+        stackView.spacing = 0
+        stackView.backgroundColor = .clear
+        return stackView
+    }()
+    
+    let messageImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.layer.cornerRadius = 12
+        imageView.clipsToBounds = true
+        return imageView
+    }()
+    
+    let messageTextView: UITextView = {
+        let textView = UITextView()
+        textView.text = "Sample"
+        textView.textColor = .black
+        textView.backgroundColor = .white
+        textView.layer.cornerRadius = 12
+        textView.layer.masksToBounds = false
+        textView.isEditable = false
+        textView.isScrollEnabled = false
+        return textView
     }()
     
     let profileImageView: UIImageView = {
@@ -41,45 +60,62 @@ class ChatCollectionViewCell: UICollectionViewCell {
     
     func configure() {
         contentView.addSubview(profileImageView)
-        contentView.addSubview(messageLabel)
+        contentView.addSubview(stackView)
         
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
-        messageLabel.translatesAutoresizingMaskIntoConstraints = false
+        stackView.translatesAutoresizingMaskIntoConstraints = false
         
-        messageLabel.isScrollEnabled = false
-        messageLabel.widthAnchor.constraint(lessThanOrEqualToConstant: 250).isActive = true
+        stackView.widthAnchor.constraint(lessThanOrEqualToConstant: 250).isActive = true
+        
+        //        profileImageView.snp.makeConstraints {
+        //            $0.top.equalToSuperview()
+        //            $0.leading.equalToSuperview().offset(12)
+        //        }
+        //
+        //        stackView.snp.makeConstraints {
+        //            $0.top.bottom.equalToSuperview()
+        //        }
         
         NSLayoutConstraint.activate([
             profileImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             profileImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
             
-            messageLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
-            messageLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            messageImageView.heightAnchor.constraint(lessThanOrEqualToConstant: 300)
         ])
         
-        leadingConstraint = messageLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 4)
-        trailingConstraint = messageLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12)
+        leadingConstraint = stackView.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 4)
+        trailingConstraint = stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12)
+        
+        trailingConstraint.priority = UILayoutPriority(999)
         
         leadingConstraint.isActive = false
         trailingConstraint.isActive = false
     }
     
     func bind(with message: Message) {
-        messageLabel.text = message.textBody
+        switch message.kind {
+        case .text(let text):
+            messageTextView.text = text
+            messageTextView.isHidden = false
+            messageImageView.isHidden = true
+        case .photo(let image):
+            messageImageView.image = image
+            messageTextView.isHidden = true
+            messageImageView.isHidden = false
+        }
         
-        UIView.performWithoutAnimation {
-            if message.chatType == .receive {
-                profileImageView.isHidden = false
-                leadingConstraint.isActive = true
-                trailingConstraint.isActive = false
-                messageLabel.backgroundColor = .gray
-            } else {
-                profileImageView.isHidden = true
-                leadingConstraint.isActive = false
-                trailingConstraint.isActive = true
-                messageLabel.backgroundColor = .systemBlue
-            }
-            contentView.layoutIfNeeded()
+        if message.chatType == .receive {
+            profileImageView.isHidden = false
+            leadingConstraint.isActive = true
+            trailingConstraint.isActive = false
+            messageTextView.backgroundColor = .gray
+        } else {
+            profileImageView.isHidden = true
+            leadingConstraint.isActive = false
+            trailingConstraint.isActive = true
+            messageTextView.backgroundColor = .systemBlue
         }
     }
 }
