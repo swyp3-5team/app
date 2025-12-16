@@ -84,12 +84,14 @@ class ChatViewController: UIViewController {
     }
 
     @objc func dismissKeyboard() {
-        view.endEditing(true)
+//        view.window?.endEditing(true)
+        inputBar.textView.resignFirstResponder()
     }
     
     func configure() {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
+        view.backgroundColor = .systemBackground
 
         collectionView.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
@@ -255,6 +257,7 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
 extension ChatViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate, PHPickerViewControllerDelegate {
     func openCamera() {
         imagePicker.sourceType = .camera
+        dismissKeyboard()
         present(imagePicker, animated: false, completion: nil)
     }
     
@@ -276,10 +279,11 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
     func openPicker() {
         var config = PHPickerConfiguration()
         config.filter = .images
-        config.selectionLimit = 0
+        config.selectionLimit = 1
         
         let phPicker = PHPickerViewController(configuration: config)
         phPicker.delegate = self
+        dismissKeyboard()
         present(phPicker, animated: true, completion: nil)
     }
     
