@@ -13,6 +13,10 @@ import SnapKit
 class InputBar: UIView {
     private let viewModel: ChatViewModel
     private let disposeBag = DisposeBag()
+    private var textViewHeightConstraint: Constraint?
+    
+    private let minTextViewHeight: CGFloat = 36
+    private let maxTextViewHeight: CGFloat = 120
     
     let heightUpdateNeeded = PublishRelay<Void>()
     
@@ -105,8 +109,9 @@ class InputBar: UIView {
         
         textView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(12)
-            $0.trailing.equalToSuperview().offset(-12)
+            $0.trailing.equalTo(sendButton.snp.leading).offset(-8)
             $0.top.equalToSuperview().offset(8)
+            textViewHeightConstraint = $0.height.equalTo(minTextViewHeight).constraint
         }
         
         placeholderLabel.snp.makeConstraints {
@@ -118,7 +123,7 @@ class InputBar: UIView {
             $0.leading.equalTo(textView.snp.leading)
             $0.top.equalTo(textView.snp.bottom).offset(8)
             $0.height.equalTo(36)
-            $0.bottom.equalTo(safeAreaLayoutGuide.snp.bottom)
+            $0.bottom.equalTo(safeAreaLayoutGuide.snp.bottom).offset(-8)
         }
         
         galleryButton.snp.makeConstraints {
@@ -132,15 +137,19 @@ class InputBar: UIView {
         }
         
         sendButton.snp.makeConstraints {
-            $0.leading.equalTo(textView.snp.trailing).offset(8)
             $0.trailing.equalToSuperview().offset(-12)
             $0.centerY.equalTo(cameraButton.snp.centerY)
             $0.width.equalTo(48)
         }
+        
+        updateTextViewHeight()
     }
     
     private func setupBinding() {
         textView.rx.didChange
+            .do(onNext: { [weak self] in
+                self?.updateTextViewHeight()
+            })
             .map { _ in Void() }
             .bind(to: heightUpdateNeeded)
             .disposed(by: disposeBag)
@@ -154,32 +163,33 @@ class InputBar: UIView {
             
             textView.text = ""
             placeholderLabel.isHidden = false
+            updateTextViewHeight()
             
             heightUpdateNeeded.accept(())
             print("\(message) 전송!")
         }, for: .touchUpInside)
     }
     
-    //    override var intrinsicContentSize: CGSize {
-    //        var size = textView.sizeThatFits(CGSize(width: textView.bounds.width, height: .infinity))
-    //
-    //        size.height += 16
-    //
-    //        if size.height > maxHeight {
-    //            size.height = maxHeight
-    //        }
-    //
-    //        return CGSize(width: bounds.width, height: size.height)
-    //    }
-    //
-    //    func updateHeight() {
-    //        let size = textView.sizeThatFits(CGSize(width: textView.bounds.width, height: .infinity))
-    //        let totalHeight = size.height + 16
-    //
-    //        textView.isScrollEnabled = totalHeight > maxHeight
-    //
-    //        invalidateIntrinsicContentSize()
-    //    }
+    override var intrinsicContentSize: CGSize {
+        let size = textView.sizeThatFits(CGSize(width: textView.bounds.width, height: .infinity))
+        
+        // 여백(Padding) 더하기 (위아래 여백 합쳐서 16이라고 가정)
+        let totalHeight = size.height + 16
+        
+        // 최대 높이 제한 로직 (이걸 해야 무한정 안 늘어남)
+        return CGSize(width: bounds.width, height: min(totalHeight, maxTextViewHeight))
+    }
+    
+    private func updateTextViewHeight() {
+        let fittingSize = CGSize(width: textView.bounds.width, height: .greatestFiniteMagnitude)
+        let calculatedHeight = textView.sizeThatFits(fittingSize).height
+        let clampedHeight = min(max(calculatedHeight, minTextViewHeight), maxTextViewHeight)
+        
+        textView.isScrollEnabled = calculatedHeight > maxTextViewHeight
+        textViewHeightConstraint?.update(offset: clampedHeight)
+        invalidateIntrinsicContentSize()
+        layoutIfNeeded()
+    }
 }
 
 extension InputBar: UITextViewDelegate {
