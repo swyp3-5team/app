@@ -27,23 +27,23 @@ enum NicknameValidateState {
     
     var color: UIColor {
         switch self {
-        case .valid: return .systemGreen
+        case .valid: return .blueConfirm
         case .empty: return .clear
-        default: return .red
+        default: return .redError
         }
     }
     
     var buttonTextColor: UIColor {
         switch self {
-        case .valid: return .white
-        default: return .lightGray
+        case .valid: return .gray10
+        default: return .gray6
         }
     }
     
     var buttonBackgroundColor: UIColor {
         switch self {
-        case .valid: return .systemGreen
-        default: return .gray
+        case .valid: return .green5
+        default: return .gray8
         }
     }
     
@@ -58,28 +58,30 @@ class NicknameInputViewController: UIViewController {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "닉네임을 입력해주세요"
-        label.textColor = .black
-        label.font = .systemFont(ofSize: 24)
+        label.textColor = .gray1
+        label.font = .customFont(.pretendardSemiBold, size: 22)
         return label
     }()
     
     private let subtitleLabel: UILabel = {
         let label = UILabel()
         label.text = "원하는 닉네임을 자유롭게 입력해주세요"
-        label.textColor = .gray
-        label.font = .systemFont(ofSize: 16)
+        label.textColor = .gray3
+        label.font = .customFont(.pretendardRegular, size: 16)
         return label
     }()
     
     private lazy var nicknameTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "10글자 이하의 닉네임"
-        textField.layer.borderColor = UIColor.gray.cgColor
+        textField.textColor = .gray1
+        textField.font = .customFont(.pretendardRegular, size: 14)
+        textField.layer.borderColor = UIColor.gray8.cgColor
         textField.layer.borderWidth = 1
-        textField.layer.cornerRadius = 12
+        textField.layer.cornerRadius = 8
         textField.clipsToBounds = true
         
-        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 0))
+        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
         textField.leftViewMode = .always
         
         return textField
@@ -87,15 +89,16 @@ class NicknameInputViewController: UIViewController {
     
     private let confirmLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 10)
+        label.font = .customFont(.pretendardRegular, size: 12)
         label.isHidden = true
         return label
     }()
     
-    private lazy var nextButton: UIButton = {
+    private lazy var startButton: UIButton = {
         let button = UIButton()
-        button.setTitle("다음", for: .normal)
+        button.setTitle("시작", for: .normal)
         button.setTitleColor(UIColor.gray, for: .normal)
+        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
         button.layer.cornerRadius = 12
         button.clipsToBounds = true
         
@@ -124,23 +127,22 @@ class NicknameInputViewController: UIViewController {
         view.addSubview(subtitleLabel)
         view.addSubview(nicknameTextField)
         view.addSubview(confirmLabel)
-        view.addSubview(nextButton)
+        view.addSubview(startButton)
         
         titleLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
+            $0.top.equalToSuperview().offset(127)
             $0.leading.equalToSuperview().offset(16)
         }
         
         subtitleLabel.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(12)
-            $0.leading.equalToSuperview().offset(16)
+            $0.top.equalTo(titleLabel.snp.bottom).offset(8)
+            $0.leading.equalTo(titleLabel)
         }
         
         nicknameTextField.snp.makeConstraints {
-            $0.top.equalTo(subtitleLabel.snp.bottom).offset(36)
-            $0.leading.equalToSuperview().offset(16)
-            $0.trailing.equalToSuperview().offset(-16)
-            $0.height.equalTo(50)
+            $0.top.equalTo(subtitleLabel.snp.bottom).offset(40)
+            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.height.equalTo(48)
         }
         
         confirmLabel.snp.makeConstraints {
@@ -148,9 +150,8 @@ class NicknameInputViewController: UIViewController {
             $0.leading.equalToSuperview().offset(16)
         }
         
-        nextButton.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
-            $0.trailing.equalToSuperview().offset(-16)
+        startButton.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview().inset(16)
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
             $0.height.equalTo(50)
         }
@@ -178,14 +179,14 @@ class NicknameInputViewController: UIViewController {
                 self.confirmLabel.isHidden = state == .empty
                 self.confirmLabel.layer.borderColor = state.color.cgColor
                 
-                self.nextButton.setTitleColor(state.buttonTextColor, for: .normal)
-                self.nextButton.backgroundColor = state.buttonBackgroundColor
+                self.startButton.setTitleColor(state.buttonTextColor, for: .normal)
+                self.startButton.backgroundColor = state.buttonBackgroundColor
             })
             .disposed(by: disposeBag)
         
         validation
             .map { $0.isValid }
-            .bind(to: nextButton.rx.isEnabled)
+            .bind(to: startButton.rx.isEnabled)
             .disposed(by: disposeBag)
     }
     
