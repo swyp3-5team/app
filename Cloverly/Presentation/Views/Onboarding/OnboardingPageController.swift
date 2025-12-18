@@ -39,14 +39,15 @@ class OnboardingPageController: UIViewController {
     
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 24)
+        label.font = .customFont(.pretendardSemiBold, size: 22)
+        label.textColor = .gray1
         return label
     }()
     
     private let subtitleLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 16)
-        label.textColor = .secondaryLabel
+        label.font = .customFont(.pretendardRegular, size: 16)
+        label.textColor = .gray3
         label.numberOfLines = 0
         return label
     }()
@@ -79,19 +80,18 @@ class OnboardingPageController: UIViewController {
         view.addSubview(imageView)
         
         titleLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(40)
+            $0.top.equalToSuperview().offset(127)
             $0.leading.equalToSuperview().offset(16)
         }
         
         subtitleLabel.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(16)
+            $0.top.equalTo(titleLabel.snp.bottom).offset(8)
             $0.leading.equalTo(titleLabel)
         }
         
         imageView.snp.makeConstraints {
-            $0.top.equalTo(subtitleLabel.snp.bottom).offset(20)
-            $0.leading.equalToSuperview().offset(16)
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.top.equalTo(subtitleLabel.snp.bottom).offset(40)
+            $0.leading.trailing.equalToSuperview().inset(16)
         }
     }
     

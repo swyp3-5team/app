@@ -22,9 +22,10 @@ class OnboardingViewController: UIPageViewController {
         let button = BouncyButton()
         
         button.setTitle("다음", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .systemGreen
-        button.layer.cornerRadius = 12
+        button.setTitleColor(.gray10, for: .normal)
+        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.backgroundColor = .green5
+        button.layer.cornerRadius = 8
         button.clipsToBounds = true
         
         return button
@@ -56,17 +57,15 @@ class OnboardingViewController: UIPageViewController {
         
         pagecontrol.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            // 버튼의 위쪽(top)에 붙임 + 간격 20
             $0.bottom.equalTo(button.snp.top).offset(-20)
-            $0.height.equalTo(10) // 높이 고정
+            $0.height.equalTo(10)
         }
         
-        // 3. 레이아웃: 버튼 위에 인디케이터
+        
         button.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(20)
-            $0.trailing.equalToSuperview().offset(-20)
-            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
-            $0.height.equalTo(50)
+            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.bottom.equalToSuperview().offset(-34)
+            $0.height.equalTo(56)
         }
         
         // 맨 앞으로 가져오기 (혹시 가려질까봐)

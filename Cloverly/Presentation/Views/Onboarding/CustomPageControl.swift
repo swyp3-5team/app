@@ -17,15 +17,13 @@ class CustomPageControl: UIView {
     private var currentPage: Int = 0
     private var dots: [UIView] = []
     
-    // 색상 설정 (유저분의 blue4, blue2에 맞춰 수정하세요)
-    private let activeColor: UIColor = .systemBlue // Color.blue4
-    private let inactiveColor: UIColor = .systemGray4 // Color.blue2
+    private let activeColor: UIColor = .green5
+    private let inactiveColor: UIColor = .green9
     
-    // 사이즈 설정
-    private let activeWidth: CGFloat = 41
-    private let inactiveWidth: CGFloat = 9
-    private let height: CGFloat = 9
-    private let spacing: CGFloat = 10
+    private let activeWidth: CGFloat = 28
+    private let inactiveWidth: CGFloat = 8
+    private let height: CGFloat = 8
+    private let spacing: CGFloat = 12
     
     // MARK: - UI Components
     private lazy var stackView: UIStackView = {
@@ -33,7 +31,7 @@ class CustomPageControl: UIView {
         stack.axis = .horizontal
         stack.spacing = spacing
         stack.alignment = .center
-        stack.distribution = .fill // 크기가 제각각이어야 하므로 fill
+        stack.distribution = .fill
         return stack
     }()
     
