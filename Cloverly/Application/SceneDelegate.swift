@@ -18,14 +18,56 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         window = UIWindow(windowScene: windowScene)
         window?.backgroundColor = .systemBackground
-        window?.rootViewController = UINavigationController(rootViewController: LoginViewController())
-        window?.makeKeyAndVisible()
+        
+        checkAndUpdateRootViewController()
+    }
+    
+    private func showOnboarding() {
+        let onboardingVC = OnboardingViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
+        changeRootViewController(onboardingVC)
+    }
+    
+    private func showMain() {
+        let mainVC = UINavigationController(rootViewController: ChatViewController())
+        changeRootViewController(mainVC)
+    }
+    
+    private func showLogin() {
+        let loginVC = UINavigationController(rootViewController: LoginViewController())
+        changeRootViewController(loginVC)
+    }
+    
+    private func changeRootViewController(_ vc: UIViewController, animated: Bool = true) {
+        guard let window = self.window else { return }
+        
+        window.rootViewController = vc
+        
+        if animated {
+            UIView.transition(with: window,
+                              duration: 0.3,
+                              options: .transitionCrossDissolve,
+                              animations: nil,
+                              completion: nil)
+        }
+        window.makeKeyAndVisible()
     }
     
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         if let url = URLContexts.first?.url {
             if (AuthApi.isKakaoTalkLoginUrl(url)) {
                 _ = AuthController.handleOpenUrl(url: url)
+            }
+        }
+    }
+    
+    func checkAndUpdateRootViewController() {
+        if !UserDefaults.standard.bool(forKey: "hasSeenOnboarding") {
+            showOnboarding()
+        } else {
+            if KeychainManager.shared.refreshToken != nil {
+                showMain()
+            } else {
+                showLogin()
             }
         }
     }

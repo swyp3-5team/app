@@ -257,7 +257,6 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
 extension ChatViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate, PHPickerViewControllerDelegate {
     func openCamera() {
         imagePicker.sourceType = .camera
-        dismissKeyboard()
         present(imagePicker, animated: false, completion: nil)
     }
     

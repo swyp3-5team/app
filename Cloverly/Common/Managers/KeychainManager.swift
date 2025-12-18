@@ -11,13 +11,34 @@ import Security
 class KeychainManager {
     static let shared = KeychainManager()
     
-    private(set) var accessToken: String?
-    private(set) var refreshToken: String?
-    
-    private init() {
-        self.accessToken = KeychainManager.shared.read(key: "accessToken")
-        self.refreshToken = KeychainManager.shared.read(key: "refreshToken")
+    var accessToken: String? {
+        get {
+            return read(key: "accessToken")
+        }
+        set {
+            // 값을 넣으면 자동으로 키체인에 저장/삭제
+            if let value = newValue {
+                create(key: "accessToken", token: value)
+            } else {
+                delete(key: "accessToken")
+            }
+        }
     }
+    
+    var refreshToken: String? {
+        get {
+            return read(key: "refreshToken")
+        }
+        set {
+            if let value = newValue {
+                create(key: "refreshToken", token: value)
+            } else {
+                delete(key: "refreshToken")
+            }
+        }
+    }
+    
+    private init() {}
     
     func create(key: String, token: String) -> Bool {
         let query: NSDictionary = [
