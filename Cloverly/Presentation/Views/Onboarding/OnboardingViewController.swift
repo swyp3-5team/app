@@ -28,6 +28,9 @@ class OnboardingViewController: UIPageViewController {
         button.layer.cornerRadius = 8
         button.clipsToBounds = true
         
+        button.addAction(UIAction { [weak self] _ in
+            self?.moveToNextPage()
+        }, for: .touchUpInside)
         return button
     }()
     
@@ -35,7 +38,6 @@ class OnboardingViewController: UIPageViewController {
         super.viewDidLoad()
         setupPages()
         configureUI()
-        bind()
         pagecontrol.configure(numberOfPages: pages.count)
     }
     
@@ -71,14 +73,6 @@ class OnboardingViewController: UIPageViewController {
         // 맨 앞으로 가져오기 (혹시 가려질까봐)
         view.bringSubviewToFront(button)
         view.bringSubviewToFront(pagecontrol)
-    }
-    
-    private func bind() {
-        button.rx.tap
-            .subscribe(onNext: { [weak self] in
-                self?.moveToNextPage()
-            })
-            .disposed(by: disposeBag)
     }
     
     private func moveToNextPage() {
