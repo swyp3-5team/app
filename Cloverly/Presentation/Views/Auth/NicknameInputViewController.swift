@@ -53,6 +53,7 @@ enum NicknameValidateState {
 }
 
 class NicknameInputViewController: UIViewController {
+    private let viewModel = AuthViewModel.shared
     private let disposeBag = DisposeBag()
     
     private let titleLabel: UILabel = {
@@ -103,7 +104,9 @@ class NicknameInputViewController: UIViewController {
         button.clipsToBounds = true
         
         button.addAction(UIAction { [weak self] _ in
-            print("click")
+            guard let self = self else { return }
+            print(nicknameTextField.text)
+            print(viewModel.marketingTerm)
         }, for: .touchUpInside)
         return button
     }()

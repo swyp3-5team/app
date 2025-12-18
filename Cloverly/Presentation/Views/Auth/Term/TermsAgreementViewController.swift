@@ -9,6 +9,7 @@ import UIKit
 import SnapKit
 
 class TermsAgreementViewController: UIViewController {
+    private let viewModel = AuthViewModel.shared
     
     private let allTermCheckControl = AllTermCheckControl(title: "약관 전체동의")
     private let serviceTermControl = TermCheckControl(title: "서비스 이용약관 동의 (필수)")
@@ -54,6 +55,10 @@ class TermsAgreementViewController: UIViewController {
         
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
+            
+            viewModel.serviceTerm = serviceTermControl.isSelected
+            viewModel.privacyTerm = privacyTermControl.isSelected
+            viewModel.marketingTerm = marketingTermControl.isSelected
             
             let vc = NicknameInputViewController()
             navigationController?.pushViewController(vc, animated: true)

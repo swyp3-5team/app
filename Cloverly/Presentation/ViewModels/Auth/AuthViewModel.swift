@@ -17,6 +17,11 @@ final class AuthViewModel: ObservableObject {
     var authStatus: AuthStatus = .unauthenticated
     let api = LoginAPI()
     
+    var serviceTerm = false
+    var privacyTerm = false
+    var marketingTerm = false
+    var nickname = ""
+    
     private init() {}
     
     func kakaoLogin() {

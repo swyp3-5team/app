@@ -16,3 +16,10 @@ struct AppleLoginRequest: nonisolated Encodable {
     let code: String
     let deviceId: String
 }
+
+struct SignUpRequest {
+    let serviceTerm: Bool
+    let privacyTerm: Bool
+    let marketingTerm: Bool
+    var nickname: String
+}
