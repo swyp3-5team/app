@@ -16,6 +16,8 @@ class ChatViewController: UIViewController {
     private let viewModel = ChatViewModel()
     private let sizingCell = ChatCollectionViewCell()
     private lazy var inputBar = InputBar(viewModel: viewModel)
+
+    let segmented = CustomSegmentedControl(items: ["가계부", "대화"], cornerRadius: 17)
     
     private lazy var imagePicker: UIImagePickerController = {
         let imagePicker = UIImagePickerController()
@@ -87,11 +89,29 @@ class ChatViewController: UIViewController {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
         view.backgroundColor = .systemBackground
-
+        
         collectionView.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             $0.leading.trailing.bottom.equalToSuperview()
         }
+        
+        segmented.snp.makeConstraints {
+            $0.width.equalTo(120)
+            $0.height.equalTo(34)
+        }
+        
+        collectionView.register(
+            DateHeaderView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: DateHeaderView.id
+        )
+
+        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            layout.headerReferenceSize = CGSize(width: view.frame.width, height: 50)
+            layout.minimumLineSpacing = 12
+        }
+        
+        navigationItem.titleView = segmented
     }
     
     func textBind() {
@@ -246,6 +266,27 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
         )
         
         return exactSize
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        
+        if kind == UICollectionView.elementKindSectionHeader {
+            let header = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: DateHeaderView.id,
+                for: indexPath
+            ) as! DateHeaderView
+            
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy년 MM월 dd일 EEEE"
+            formatter.locale = Locale(identifier: "ko_KR")
+            let todayString = formatter.string(from: Date())
+            
+            header.dateLabel.text = "\(todayString)"
+            
+            return header
+        }
+        return UICollectionReusableView()
     }
 }
 
