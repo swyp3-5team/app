@@ -105,8 +105,19 @@ class NicknameInputViewController: UIViewController {
         
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
-            print(nicknameTextField.text)
-            print(viewModel.marketingTerm)
+            
+            guard let nickname = self.nicknameTextField.text?.trimmingCharacters(in: .whitespaces),
+                  !nickname.isEmpty else {
+                print("닉네임을 입력해주세요!")
+                return
+            }
+            
+            viewModel.saveUser(nickname: nickname)
+            
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let sceneDelegate = windowScene.delegate as? SceneDelegate {
+                sceneDelegate.checkAndUpdateRootViewController()
+            }
         }, for: .touchUpInside)
         return button
     }()

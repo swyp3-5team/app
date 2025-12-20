@@ -49,11 +49,43 @@ final class LoginAPI {
             .value
     }
     
-//    func saveUser(user: User) {
-//        
-//    }
-//    
+    func saveUser(nickname: String, marketingEnable: Bool, token: String) async throws {
+        let requestBody = SignUpRequest(nickname: nickname, marketingEnable: marketingEnable)
+        
+        let headers: HTTPHeaders = [
+            .authorization(bearerToken: token)
+        ]
+        
+        _ = try await AF.request(
+            "\(baseURL)/api/v1/user-profiles",
+            method: .post,
+            parameters: requestBody,
+            encoder: JSONParameterEncoder.default,
+            headers: headers
+        )
+        .validate()
+        .serializingData()
+        .value
+    }
+    
+    func deleteKakaoUser() async throws {
+        guard let token = KeychainManager.shared.accessToken else { return }
+        
+        let headers: HTTPHeaders = [
+            .authorization(bearerToken: token)
+        ]
+        
+        _ = try await AF.request(
+            "\(baseURL)/auth/kakao/unlink",
+            method: .delete,
+            headers: headers
+        )
+        .validate()
+        .serializingData()
+        .value
+    }
+    
 //    func renewAccessToken() -> TokenResponse {
-//        
+//
 //    }
 }

@@ -7,9 +7,36 @@
 
 import UIKit
 import AuthenticationServices
+import RxSwift
+import RxCocoa
+import SnapKit
 
 class LoginViewController: UIViewController {
     private let viewModel = AuthViewModel.shared
+    private let disposeBag = DisposeBag()
+    
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "오늘의 감정도, 지출도"
+        label.font = .customFont(.pretendardSemiBold, size: 22)
+        label.textColor = .gray1
+        return label
+    }()
+    
+    private let subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "클로버리와 함께 정리해요"
+        label.font = .customFont(.pretendardRegular, size: 16)
+        label.textColor = .gray3
+        label.numberOfLines = 0
+        return label
+    }()
+    
+    private lazy var imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
+        return imageView
+    }()
     
     private lazy var kakaoLoginButton: UIButton = {
         let button = UIButton()
@@ -37,26 +64,64 @@ class LoginViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
+        bind()
+    }
+    
+    func bind() {
+        viewModel.authStatus
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] status in
+                guard let self = self else { return }
+                
+                switch status {
+                case .needsOnboarding:
+                    let vc = TermsAgreementViewController()
+                    navigationController?.pushViewController(vc, animated: true)
+                case .authenticated:
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let sceneDelegate = windowScene.delegate as? SceneDelegate {
+                        sceneDelegate.checkAndUpdateRootViewController()
+                    }
+                default:
+                    break
+                }
+            })
+            .disposed(by: disposeBag)
     }
     
     func configureUI() {
+        view.addSubview(titleLabel)
+        view.addSubview(subtitleLabel)
+        view.addSubview(imageView)
         view.addSubview(kakaoLoginButton)
         view.addSubview(appleLoginButton)
         
-        kakaoLoginButton.translatesAutoresizingMaskIntoConstraints = false
-        appleLoginButton.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(125)
+            $0.leading.equalToSuperview().offset(16)
+        }
         
-        NSLayoutConstraint.activate([
-            kakaoLoginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            kakaoLoginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            kakaoLoginButton.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -30),
-            kakaoLoginButton.heightAnchor.constraint(equalToConstant: 50),
-            
-            appleLoginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            appleLoginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            appleLoginButton.topAnchor.constraint(equalTo: kakaoLoginButton.bottomAnchor, constant: 16),
-            appleLoginButton.heightAnchor.constraint(equalToConstant: 50)
-        ])
+        subtitleLabel.snp.makeConstraints {
+            $0.top.equalTo(titleLabel.snp.bottom).offset(8)
+            $0.leading.equalTo(titleLabel)
+        }
+        
+        imageView.snp.makeConstraints {
+            $0.top.equalTo(subtitleLabel.snp.bottom).offset(40)
+            $0.leading.trailing.equalToSuperview().inset(16)
+        }
+        
+        kakaoLoginButton.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.height.equalTo(56)
+            $0.bottom.equalTo(appleLoginButton.snp.top).offset(-8)
+        }
+        
+        appleLoginButton.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.height.equalTo(56)
+            $0.bottom.equalToSuperview().offset(-34)
+        }
     }
     
     func didTapAppleLogin() {
@@ -81,7 +146,7 @@ extension LoginViewController: ASAuthorizationControllerPresentationContextProvi
 extension LoginViewController: ASAuthorizationControllerDelegate {
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: any Error) {
         print("애플 로그인 실패: \(error.localizedDescription)")
-        viewModel.authStatus = .unauthenticated
+        viewModel.authStatus.accept(.unauthenticated)
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {

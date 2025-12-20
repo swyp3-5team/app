@@ -12,8 +12,8 @@ struct LoginResponse: nonisolated Decodable {
     let provider: String
     let userName: String?
     let userEmail: String
-    let accessToken: String?
-    let refreshToken: String?
+    let accessToken: String
+    let refreshToken: String
     let message: String
     let newUser: Bool
 }
