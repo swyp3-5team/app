@@ -64,11 +64,6 @@ class ChatViewController: UIViewController {
             object: nil
         )
     }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        scrollToBottom(animated: false)
-    }
 
     override func viewDidDisappear(_ animated: Bool) {
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)

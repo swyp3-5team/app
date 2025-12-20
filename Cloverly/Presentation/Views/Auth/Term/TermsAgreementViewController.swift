@@ -58,7 +58,7 @@ class TermsAgreementViewController: UIViewController {
             
             viewModel.serviceTerm = serviceTermControl.isSelected
             viewModel.privacyTerm = privacyTermControl.isSelected
-            viewModel.marketingTerm = marketingTermControl.isSelected
+            viewModel.marketingEnable = marketingTermControl.isSelected
             
             let vc = NicknameInputViewController()
             navigationController?.pushViewController(vc, animated: true)

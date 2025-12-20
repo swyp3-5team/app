@@ -10,5 +10,5 @@ import RxSwift
 import RxCocoa
 
 final class ChatViewModel {
-    let messages = BehaviorRelay<[Message]>(value: Mock.getMockMessages())
+    let messages = BehaviorRelay<[Message]>(value: [])
 }

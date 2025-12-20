@@ -31,41 +31,80 @@ class InputBar: UIView {
     
     lazy var placeholderLabel: UILabel = {
         let label = UILabel()
-        label.text = "텍스트를 입력하세요"
-        label.font = .systemFont(ofSize: 14)
+        label.text = "오늘의 소비 내역을 알려주세요!"
+        label.font = .customFont(.pretendardMedium, size: 16)
         label.textColor = UIColor.lightGray
         label.sizeToFit()
         label.isHidden = !textView.text.isEmpty
         return label
     }()
     
-    fileprivate lazy var cameraButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("카메라", for: .normal)
-        button.setTitleColor(.black, for: .normal)
-        button.layer.cornerRadius = 12
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.gray.cgColor
+    fileprivate lazy var galleryButton: UIButton = {
+        var config = UIButton.Configuration.plain()
+        
+        config.title = "사진"
+        config.baseForegroundColor = .gray3
+        
+        config.image = UIImage(systemName: "doc.on.clipboard")
+        config.imagePlacement = .leading
+        config.imagePadding = 4
+        
+//        config.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+        
+        config.background.strokeColor = .gray8
+        config.background.strokeWidth = 1
+        config.cornerStyle = .capsule
+        
+        var titleAttr = AttributedString.init("사진")
+        titleAttr.font = .customFont(.pretendardMedium, size: 14)
+        config.attributedTitle = titleAttr
+        
+        let button = UIButton(configuration: config)
         return button
     }()
     
-    fileprivate lazy var galleryButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("사진", for: .normal)
-        button.setTitleColor(.black, for: .normal)
-        button.layer.cornerRadius = 12
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.gray.cgColor
+    fileprivate lazy var cameraButton: UIButton = {
+        var config = UIButton.Configuration.plain()
+        
+        config.title = "카메라"
+        config.baseForegroundColor = .gray3
+        
+        config.image = UIImage(systemName: "doc.on.clipboard")
+        config.imagePlacement = .leading
+        config.imagePadding = 4
+        
+        config.background.strokeColor = .gray8
+        config.background.strokeWidth = 1
+        config.cornerStyle = .capsule
+        
+        var titleAttr = AttributedString.init("카메라")
+        titleAttr.font = .customFont(.pretendardMedium, size: 14)
+        config.attributedTitle = titleAttr
+        
+        let button = UIButton(configuration: config)
+        
         return button
     }()
     
     fileprivate lazy var pasteButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("붙여넣기", for: .normal)
-        button.setTitleColor(.black, for: .normal)
-        button.layer.cornerRadius = 12
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.gray.cgColor
+        var config = UIButton.Configuration.plain()
+        
+        config.title = "붙여넣기"
+        config.baseForegroundColor = .gray3
+        
+        config.image = UIImage(systemName: "doc.on.clipboard")
+        config.imagePlacement = .leading
+        config.imagePadding = 4
+        
+        config.background.strokeColor = .gray8
+        config.background.strokeWidth = 1
+        config.cornerStyle = .capsule
+        
+        var titleAttr = AttributedString.init("붙여넣기")
+        titleAttr.font = .customFont(.pretendardMedium, size: 14)
+        config.attributedTitle = titleAttr
+        
+        let button = UIButton(configuration: config)
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             
@@ -102,14 +141,14 @@ class InputBar: UIView {
     private func configureUI() {
         textView.addSubview(placeholderLabel)
         addSubview(textView)
-        addSubview(cameraButton)
         addSubview(galleryButton)
+        addSubview(cameraButton)
         addSubview(pasteButton)
         addSubview(sendButton)
         
         textView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(12)
-            $0.trailing.equalTo(sendButton.snp.leading).offset(-8)
+            $0.trailing.equalTo(sendButton.snp.leading).offset(-8).priority(999)
             $0.top.equalToSuperview().offset(8)
             textViewHeightConstraint = $0.height.equalTo(minTextViewHeight).constraint
         }
@@ -119,26 +158,28 @@ class InputBar: UIView {
             $0.top.equalTo(textView.snp.top).offset(textView.textContainerInset.top)
         }
         
-        cameraButton.snp.makeConstraints {
+        galleryButton.snp.makeConstraints {
             $0.leading.equalTo(textView.snp.leading)
             $0.top.equalTo(textView.snp.bottom).offset(8)
-            $0.height.equalTo(36)
-            $0.bottom.equalTo(safeAreaLayoutGuide.snp.bottom).offset(-8)
+            $0.height.equalTo(30)
+            $0.bottom.equalTo(safeAreaLayoutGuide.snp.bottom).offset(-8).priority(999)
         }
         
-        galleryButton.snp.makeConstraints {
-            $0.leading.equalTo(cameraButton.snp.trailing).offset(8)
-            $0.centerY.equalTo(cameraButton.snp.centerY)
+        cameraButton.snp.makeConstraints {
+            $0.leading.equalTo(galleryButton.snp.trailing).offset(8)
+            $0.centerY.equalTo(galleryButton.snp.centerY)
+            $0.height.equalTo(30)
         }
         
         pasteButton.snp.makeConstraints {
-            $0.leading.equalTo(galleryButton.snp.trailing).offset(8)
-            $0.centerY.equalTo(cameraButton.snp.centerY)
+            $0.leading.equalTo(cameraButton.snp.trailing).offset(8)
+            $0.centerY.equalTo(galleryButton.snp.centerY)
+            $0.height.equalTo(30)
         }
         
         sendButton.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-12)
-            $0.centerY.equalTo(cameraButton.snp.centerY)
+            $0.centerY.equalTo(galleryButton.snp.centerY)
             $0.width.equalTo(48)
         }
         
