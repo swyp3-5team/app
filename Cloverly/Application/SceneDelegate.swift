@@ -28,7 +28,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
     
     private func showMain() {
-        let mainVC = UINavigationController(rootViewController: ChatViewController())
+        let mainVC = UINavigationController(rootViewController: CustomTabBarViewController())
         changeRootViewController(mainVC)
     }
     
