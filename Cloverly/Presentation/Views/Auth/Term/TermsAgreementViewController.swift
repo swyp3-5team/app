@@ -49,7 +49,7 @@ class TermsAgreementViewController: UIViewController {
         button.setTitleColor(.gray6, for: .normal)
         button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
         button.backgroundColor = .gray8
-        button.layer.cornerRadius = 12
+        button.layer.cornerRadius = 8
         button.clipsToBounds = true
         button.isEnabled = false
         

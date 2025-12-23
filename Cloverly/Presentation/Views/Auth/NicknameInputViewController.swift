@@ -100,7 +100,7 @@ class NicknameInputViewController: UIViewController {
         button.setTitle("시작", for: .normal)
         button.setTitleColor(UIColor.gray, for: .normal)
         button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
-        button.layer.cornerRadius = 12
+        button.layer.cornerRadius = 8
         button.clipsToBounds = true
         
         button.addAction(UIAction { [weak self] _ in
