@@ -10,6 +10,13 @@ import SnapKit
 
 class HomeViewController: UIViewController {
     
+    private lazy var backgroundImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage(named: "background"))
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        return imageView
+    }()
+    
     private lazy var chatButton: UIButton = {
         let button = UIButton()
         var config = UIButton.Configuration.filled()
@@ -44,8 +51,15 @@ class HomeViewController: UIViewController {
     }
     
     func configureUI() {
-        view.backgroundColor = .gray
+        view.backgroundColor = .clear
+        
+        view.addSubview(backgroundImageView)
+        view.sendSubviewToBack(backgroundImageView)
         view.addSubview(chatButton)
+        
+        backgroundImageView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
         
         chatButton.snp.makeConstraints {
             $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
