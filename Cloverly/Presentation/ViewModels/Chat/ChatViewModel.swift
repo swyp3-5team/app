@@ -11,4 +11,5 @@ import RxCocoa
 
 final class ChatViewModel {
     let messages = BehaviorRelay<[Message]>(value: [])
+    let isSheetPresent = BehaviorRelay<Bool>(value: true)
 }

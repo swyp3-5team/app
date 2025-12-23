@@ -107,7 +107,6 @@ class ChatViewController: UIViewController {
         )
 
         if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
-            layout.headerReferenceSize = CGSize(width: view.frame.width, height: 50)
             layout.minimumLineSpacing = 12
         }
         
@@ -128,6 +127,12 @@ class ChatViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] newMessages in
                 guard let self = self else { return }
+                
+                if newMessages.isEmpty {
+                    self.collectionView.backgroundView = EmptyStateView() // 아까 만든 뷰 클래스
+                } else {
+                    self.collectionView.backgroundView = nil
+                }
                 
                 let currentCount = self.collectionView.numberOfSections > 0 ? self.collectionView.numberOfItems(inSection: 0) : 0
                 let newCount = newMessages.count
@@ -164,6 +169,22 @@ class ChatViewController: UIViewController {
         inputBar.rx.gallaryButtonTap
             .subscribe(onNext: { [weak self] in
                 self?.openPicker()
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.isSheetPresent
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] isPresent in
+                guard let self = self else { return }
+                
+                if isPresent {
+                    let vc = ExpenseHistoryViewController()
+                    let nav = UINavigationController(rootViewController: vc)
+                    nav.modalPresentationStyle = .fullScreen
+
+                    present(nav, animated: true)
+                }
             })
             .disposed(by: disposeBag)
     }
@@ -287,6 +308,15 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
             return header
         }
         return UICollectionReusableView()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        
+        if viewModel.messages.value.isEmpty {
+            return .zero
+        }
+        
+        return CGSize(width: collectionView.frame.width, height: 50)
     }
 }
 
