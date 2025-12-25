@@ -37,7 +37,7 @@ final class LoginAPI {
     }
     
     private func appleLogin(code: String) async throws -> LoginResponse {
-        let requestBody = AppleLoginRequest(code: code, deviceId: "iPhone")
+        let requestBody = LoginRequest(idToken: code, deviceId: "iPhone")
         
         return try await AF.request(
                 "\(baseURL)/auth/apple/callback",
@@ -77,6 +77,23 @@ final class LoginAPI {
         
         _ = try await AF.request(
             "\(baseURL)/auth/kakao/unlink",
+            method: .delete,
+            headers: headers
+        )
+        .validate()
+        .serializingData()
+        .value
+    }
+    
+    func deleteAppleUser() async throws {
+        guard let token = KeychainManager.shared.accessToken else { return }
+        
+        let headers: HTTPHeaders = [
+            .authorization(bearerToken: token)
+        ]
+        
+        _ = try await AF.request(
+            "\(baseURL)/auth/apple/unlink",
             method: .delete,
             headers: headers
         )

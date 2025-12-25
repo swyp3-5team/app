@@ -134,6 +134,11 @@ final class AuthViewModel: ObservableObject {
         }
     }
     
+    func logout() {
+        KeychainManager.shared.delete(key: "accessToken")
+        KeychainManager.shared.delete(key: "refreshToken")
+    }
+    
     func deleteKakaoUser() {
         Task {
             do {
@@ -142,6 +147,18 @@ final class AuthViewModel: ObservableObject {
                 KeychainManager.shared.delete(key: "refreshToken")
             } catch {
                 print("카카오 회원탈퇴 실패: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func deleteAppleUser() {
+        Task {
+            do {
+                try await api.deleteAppleUser()
+                KeychainManager.shared.delete(key: "accessToken")
+                KeychainManager.shared.delete(key: "refreshToken")
+            } catch {
+                print("애플 회원탈퇴 실패: \(error.localizedDescription)")
             }
         }
     }

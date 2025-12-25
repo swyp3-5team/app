@@ -12,11 +12,6 @@ struct LoginRequest: nonisolated Encodable {
     let deviceId: String
 }
 
-struct AppleLoginRequest: nonisolated Encodable {
-    let code: String
-    let deviceId: String
-}
-
 struct SignUpRequest: nonisolated Encodable {
     var nickname: String
     let marketingEnable: Bool
