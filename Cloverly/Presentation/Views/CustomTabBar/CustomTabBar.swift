@@ -14,7 +14,8 @@ class CustomTabBar: UIView {
     let itemTapped = PublishSubject<Int>()
     
     var buttons: [UIButton] = []
-    let icons = ["house.fill", "plus.circle.fill", "person.fill"]
+    let selectedIcons = ["home icon enabled", "list icon enabled", "mypage icon enabled"]
+    let unselectedIcons = ["home icon disabled", "list icon disabled", "mypage icon disabled"]
     let names = ["홈", "내역", "마이"]
     
     private let stackView: UIStackView = {
@@ -44,26 +45,27 @@ class CustomTabBar: UIView {
         
         stackView.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
-//            $0.bottom.equalTo(safeAreaLayoutGuide)
         }
         
-        for (index, iconName) in icons.enumerated() {
+        for (index, _) in names.enumerated() {
             let button = UIButton()
-            button.setImage(UIImage(systemName: iconName), for: .normal)
-            button.tintColor = (index == 0) ? .green : .gray
+            
+            let isSelected = (index == 0)
+            let iconName = isSelected ? selectedIcons[index] : unselectedIcons[index]
             
             var config = UIButton.Configuration.plain()
-
-            config.image = UIImage(systemName: iconName)
+            config.image = UIImage(named: iconName)
             config.title = names[index]
-
             config.imagePlacement = .top
-            config.imagePadding = 5
-
+            config.imagePadding = 2
+            
             var titleAttr = AttributedString(names[index])
             titleAttr.font = .customFont(.pretendardSemiBold, size: 12)
+            titleAttr.foregroundColor = isSelected ? .green5 : .gray3 // 색상도 초기화
             config.attributedTitle = titleAttr
-
+            
+            config.background.backgroundColor = .clear
+            
             button.configuration = config
             button.contentHorizontalAlignment = .center
             
@@ -78,12 +80,24 @@ class CustomTabBar: UIView {
     @objc private func tabButtonTapped(_ sender: UIButton) {
         let index = sender.tag
         itemTapped.onNext(index)
-        updateButtonColors(selectedIndex: index)
+        updateButtonState(selectedIndex: index)
     }
     
-    private func updateButtonColors(selectedIndex: Int) {
+    private func updateButtonState(selectedIndex: Int) {
         for (index, button) in buttons.enumerated() {
-            button.tintColor = (index == selectedIndex) ? .green : .gray
+            let isSelected = (index == selectedIndex)
+            
+            var config = button.configuration
+            
+            let iconName = isSelected ? selectedIcons[index] : unselectedIcons[index]
+            config?.image = UIImage(named: iconName)
+            
+            var titleAttr = AttributedString(names[index])
+            titleAttr.font = .customFont(.pretendardSemiBold, size: 12)
+            titleAttr.foregroundColor = isSelected ? .green5 : .gray3
+            config?.attributedTitle = titleAttr
+            
+            button.configuration = config
         }
     }
 }
