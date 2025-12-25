@@ -25,6 +25,17 @@ enum NicknameValidateState {
         }
     }
     
+    var imageName: String {
+        switch self {
+        case .empty:
+            return ""
+        case .valid:
+            return "Success icon"
+        case .lengthExceeded, .invalidChar:
+            return "error icon"
+        }
+    }
+    
     var color: UIColor {
         switch self {
         case .valid: return .blueConfirm
@@ -88,6 +99,21 @@ class NicknameInputViewController: UIViewController {
         return textField
     }()
     
+    private lazy var resetButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(named: "Reset icon"), for: .normal)
+        button.addAction(UIAction { [weak self] _ in
+            self?.nicknameTextField.text = ""
+            self?.nicknameTextField.sendActions(for: .editingChanged)
+        }, for: .touchUpInside)
+        return button
+    }()
+    
+    private let confirmImage: UIImageView = {
+        let imageView = UIImageView()
+        return imageView
+    }()
+    
     private let confirmLabel: UILabel = {
         let label = UILabel()
         label.font = .customFont(.pretendardRegular, size: 12)
@@ -140,6 +166,8 @@ class NicknameInputViewController: UIViewController {
         view.addSubview(titleLabel)
         view.addSubview(subtitleLabel)
         view.addSubview(nicknameTextField)
+        view.addSubview(resetButton)
+        view.addSubview(confirmImage)
         view.addSubview(confirmLabel)
         view.addSubview(startButton)
         
@@ -159,9 +187,19 @@ class NicknameInputViewController: UIViewController {
             $0.height.equalTo(48)
         }
         
-        confirmLabel.snp.makeConstraints {
-            $0.top.equalTo(nicknameTextField.snp.bottom).offset(12)
+        resetButton.snp.makeConstraints {
+            $0.trailing.equalTo(nicknameTextField).offset(-16)
+            $0.centerY.equalTo(nicknameTextField.snp.centerY)
+        }
+        
+        confirmImage.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
+            $0.centerY.equalTo(confirmLabel)
+        }
+        
+        confirmLabel.snp.makeConstraints {
+            $0.top.equalTo(nicknameTextField.snp.bottom).offset(4)
+            $0.leading.equalTo(confirmImage.snp.trailing).offset(4)
         }
         
         startButton.snp.makeConstraints {
@@ -195,6 +233,8 @@ class NicknameInputViewController: UIViewController {
                 
                 self.startButton.setTitleColor(state.buttonTextColor, for: .normal)
                 self.startButton.backgroundColor = state.buttonBackgroundColor
+                
+                self.confirmImage.image = UIImage(named: "\(state.imageName)")
             })
             .disposed(by: disposeBag)
         

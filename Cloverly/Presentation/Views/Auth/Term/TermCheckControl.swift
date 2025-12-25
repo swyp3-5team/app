@@ -15,8 +15,7 @@ class TermCheckControl: UIControl {
     private let checkImageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFit
-        iv.image = UIImage(systemName: "checkmark")
-        iv.tintColor = .lightGray
+        iv.image = UIImage(named: "check_disabled")
         return iv
     }()
     
@@ -73,11 +72,9 @@ class TermCheckControl: UIControl {
     
     private func updateState() {
         if isSelected {
-            checkImageView.image = UIImage(systemName: "checkmark.circle.fill")
-            checkImageView.tintColor = .systemGreen
+            checkImageView.image = UIImage(named: "check_enabled")
         } else {
-            checkImageView.image = UIImage(systemName: "checkmark.circle")
-            checkImageView.tintColor = .lightGray
+            checkImageView.image = UIImage(named: "check_disabled")
         }
     }
 
