@@ -8,6 +8,12 @@
 import UIKit
 import SnapKit
 
+class NoFocusWindow: UIWindow {
+    override var canBecomeKey: Bool {
+        return false
+    }
+}
+
 class CoachMarkView: UIView {
     var onDismiss: (() -> Void)?
     

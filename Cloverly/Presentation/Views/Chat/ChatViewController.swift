@@ -25,6 +25,8 @@ class ChatViewController: UIViewController {
     
     lazy var segmented = CustomSegmentedControl(viewModel: viewModel, items: ["가계부", "대화"], cornerRadius: 17)
     
+    var overlayWindow: UIWindow?
+    
     private lazy var imagePicker: UIImagePickerController = {
         let imagePicker = UIImagePickerController()
         imagePicker.delegate = self
@@ -85,20 +87,17 @@ class ChatViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-        showCoachMark()
+    
         if !UserDefaults.standard.bool(forKey: "hasSeenCoachMark") {
             showCoachMark()
             UserDefaults.standard.set(true, forKey: "hasSeenCoachMark")
         }
     }
     
-    var overlayWindow: UIWindow?
-    
     func showCoachMark() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
         
-        let newWindow = UIWindow(windowScene: windowScene)
+        let newWindow = NoFocusWindow(windowScene: windowScene)
         newWindow.frame = windowScene.coordinateSpace.bounds
         newWindow.backgroundColor = .clear
         newWindow.windowLevel = .statusBar + 1
