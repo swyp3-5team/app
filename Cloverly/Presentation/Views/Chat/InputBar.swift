@@ -39,7 +39,7 @@ class InputBar: UIView {
         return label
     }()
     
-    fileprivate lazy var galleryButton: UIButton = {
+    lazy var galleryButton: UIButton = {
         var config = UIButton.Configuration.plain()
         
         config.title = "사진"
@@ -63,7 +63,7 @@ class InputBar: UIView {
         return button
     }()
     
-    fileprivate lazy var cameraButton: UIButton = {
+    lazy var cameraButton: UIButton = {
         var config = UIButton.Configuration.plain()
         
         config.title = "카메라"
@@ -86,7 +86,7 @@ class InputBar: UIView {
         return button
     }()
     
-    fileprivate lazy var pasteButton: UIButton = {
+    lazy var pasteButton: UIButton = {
         var config = UIButton.Configuration.plain()
         
         config.title = "붙여넣기"
@@ -105,6 +105,9 @@ class InputBar: UIView {
         config.attributedTitle = titleAttr
         
         let button = UIButton(configuration: config)
+        
+        button.isHidden = viewModel.selectedIndex.value == 1 ? true : false
+        
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             
@@ -205,12 +208,19 @@ class InputBar: UIView {
             .bind(to: sendButton.rx.isEnabled)
             .disposed(by: disposeBag)
         
+        viewModel.selectedIndex
+            .map { $0 == 1 }
+            .distinctUntilChanged()
+            .bind(to: pasteButton.rx.isHidden)
+            .disposed(by: disposeBag)
+        
         sendButton.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             
             let inputText = self.textView.text ?? ""
             let message = Message(kind: .text(inputText), chatType: .send)
             self.viewModel.messages.accept(self.viewModel.messages.value + [message])
+            self.viewModel.sendChat(message: inputText)
             
             textView.text = ""
             placeholderLabel.isHidden = false

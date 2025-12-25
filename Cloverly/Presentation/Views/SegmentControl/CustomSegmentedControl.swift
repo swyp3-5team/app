@@ -11,21 +11,23 @@ import RxCocoa
 import SnapKit
 
 final class CustomSegmentedControl: UIView {
-
+    private let viewModel: ChatViewModel
     private let stackView = UIStackView()
     private let indicatorView = UIView()
     private var buttons: [UIButton] = []
 
-    let selectedIndex = BehaviorRelay<Int>(value: 0)
     private let disposeBag = DisposeBag()
 
-    init(items: [String], cornerRadius: CGFloat) {
+    init(viewModel: ChatViewModel, items: [String], cornerRadius: CGFloat) {
+        self.viewModel = viewModel
         super.init(frame: .zero)
         setupUI(items: items, cornerRadius: cornerRadius)
         bind()
     }
 
-    required init?(coder: NSCoder) { fatalError() }
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     private func setupUI(items: [String], cornerRadius: CGFloat) {
         backgroundColor = .gray9
@@ -52,7 +54,7 @@ final class CustomSegmentedControl: UIView {
 
             button.rx.tap
                 .map { index }
-                .bind(to: selectedIndex)
+                .bind(to: viewModel.selectedIndex)
                 .disposed(by: disposeBag)
 
             buttons.append(button)
@@ -61,7 +63,7 @@ final class CustomSegmentedControl: UIView {
     }
 
     private func bind() {
-        selectedIndex
+        viewModel.selectedIndex
             .distinctUntilChanged()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] index in
@@ -84,7 +86,7 @@ final class CustomSegmentedControl: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        indicatorView.frame = buttons[selectedIndex.value].frame
+        indicatorView.frame = buttons[viewModel.selectedIndex.value].frame
     }
 }
 
