@@ -155,6 +155,7 @@ class NicknameInputViewController: UIViewController {
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tap.cancelsTouchesInView = false
+        tap.delegate = self
         view.addGestureRecognizer(tap)
     }
     
@@ -247,5 +248,16 @@ class NicknameInputViewController: UIViewController {
     private func isNicknameValid(_ text: String) -> Bool {
         let regex = "^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9]+$"
         return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: text)
+    }
+}
+
+extension NicknameInputViewController: UIGestureRecognizerDelegate {
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        if touch.view is UIButton {
+            return false
+        }
+
+        return true
     }
 }
