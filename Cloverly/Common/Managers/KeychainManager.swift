@@ -40,7 +40,7 @@ class KeychainManager {
     
     private init() {}
     
-    func create(key: String, token: String) -> Bool {
+    func create(key: String, token: String) {
         let query: NSDictionary = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrAccount: key,
@@ -48,11 +48,9 @@ class KeychainManager {
         ]
         
         let status = SecItemAdd(query, nil)
-        guard status == errSecSuccess else {
-            print("Keychain create error")
-            return false
+        if status != errSecSuccess {
+            print("Keychain create error: \(status)")
         }
-        return true
     }
     
     func read(key: String) -> String? {
@@ -77,34 +75,26 @@ class KeychainManager {
         }
     }
     
-    func delete(key: String) -> Bool {
+    func delete(key: String) {
         let query: NSDictionary = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrAccount: key
         ]
         
         let status = SecItemDelete(query)
-        guard status != errSecItemNotFound else {
-            print("Token not found in keychain")
-            return false
+        if status != errSecSuccess && status != errSecItemNotFound {
+            print("Keychain delete error: \(status)")
         }
-        
-        guard status == errSecSuccess else {
-            print("Token delete error")
-            return false
-        }
-        
-        return true
     }
     
     func save(accessToken: String, refreshToken: String) {
         self.accessToken = accessToken
         self.refreshToken = refreshToken
         
-        _ = KeychainManager.shared.delete(key: "accessToken")
-        _ = KeychainManager.shared.create(key: "accessToken", token: accessToken)
+        KeychainManager.shared.delete(key: "accessToken")
+        KeychainManager.shared.create(key: "accessToken", token: accessToken)
         
-        _ = KeychainManager.shared.delete(key: "refreshToken")
-        _ = KeychainManager.shared.create(key: "refreshToken", token: refreshToken)
+        KeychainManager.shared.delete(key: "refreshToken")
+        KeychainManager.shared.create(key: "refreshToken", token: refreshToken)
     }
 }
