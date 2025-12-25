@@ -11,13 +11,19 @@ import RxCocoa
 import SnapKit
 import PhotosUI
 
+extension UINavigationController {
+    open override func viewWillLayoutSubviews() {
+        navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+    }
+}
+
 class ChatViewController: UIViewController {
     private let disposeBag = DisposeBag()
     private let viewModel = ChatViewModel()
     private let sizingCell = ChatCollectionViewCell()
     private lazy var inputBar = InputBar(viewModel: viewModel)
-
-    let segmented = CustomSegmentedControl(items: ["가계부", "대화"], cornerRadius: 17)
+    
+    lazy var segmented = CustomSegmentedControl(viewModel: viewModel, items: ["가계부", "대화"], cornerRadius: 17)
     
     private lazy var imagePicker: UIImagePickerController = {
         let imagePicker = UIImagePickerController()
@@ -54,6 +60,11 @@ class ChatViewController: UIViewController {
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tap.cancelsTouchesInView = false
         view.addGestureRecognizer(tap)
+        
+        let backImage = UIImage(named: "Chevron left")
+        navigationController?.navigationBar.backIndicatorImage = backImage
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = backImage
+        navigationController?.navigationBar.tintColor = .gray1
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -72,16 +83,82 @@ class ChatViewController: UIViewController {
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        showCoachMark()
+        if !UserDefaults.standard.bool(forKey: "hasSeenCoachMark") {
+            showCoachMark()
+            UserDefaults.standard.set(true, forKey: "hasSeenCoachMark")
+        }
+    }
+    
+    var overlayWindow: UIWindow?
+    
+    func showCoachMark() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        
+        let newWindow = UIWindow(windowScene: windowScene)
+        newWindow.frame = windowScene.coordinateSpace.bounds
+        newWindow.backgroundColor = .clear
+        newWindow.windowLevel = .statusBar + 1
+        
+        let coachView = CoachMarkView(frame: newWindow.bounds)
+        
+        var cutouts: [(CGRect, CGFloat)] = []
+        
+        // 상단 Segmented Control
+        if let segFrame = self.segmented.superview?.convert(self.segmented.frame, to: nil) {
+            let finalSegRect = segFrame.insetBy(dx: -10, dy: -11)
+            cutouts.append((finalSegRect, finalSegRect.height / 2))
+        }
+        
+        // 버튼들이 포함된 배열
+        let targetButtons = [self.inputBar.galleryButton, self.inputBar.cameraButton, self.inputBar.pasteButton]
+        var combinedFrame: CGRect = .null
+        
+        for button in targetButtons {
+            guard let frame = button.superview?.convert(button.frame, to: nil) else { continue }
+            
+            if combinedFrame.isNull {
+                combinedFrame = frame
+            } else {
+                combinedFrame = combinedFrame.union(frame)
+            }
+        }
+        
+        let fixedFrame = CGRect(
+            x: combinedFrame.origin.x,
+            y: UIScreen.main.bounds.height - 78,
+            width: combinedFrame.width,
+            height: combinedFrame.height
+        )
+        
+        let finalBtnRect = fixedFrame.insetBy(dx: -6, dy: -6)
+        
+        cutouts.append((finalBtnRect, finalBtnRect.height / 2))
+
+        coachView.setCutouts(cutouts)
+        
+        coachView.onDismiss = { [weak self] in
+            self?.overlayWindow = nil
+        }
+        
+        newWindow.addSubview(coachView)
+        newWindow.isHidden = false
+        self.overlayWindow = newWindow
+    }
+    
     override var inputAccessoryView: UIView? {
         return inputBar
     }
-
+    
     override var canBecomeFirstResponder: Bool {
         return true
     }
-
+    
     @objc func dismissKeyboard() {
-//        view.window?.endEditing(true)
+        //        view.window?.endEditing(true)
         inputBar.textView.resignFirstResponder()
     }
     
@@ -178,7 +255,7 @@ class ChatViewController: UIViewController {
                     let vc = ExpenseHistoryViewController()
                     let nav = UINavigationController(rootViewController: vc)
                     nav.modalPresentationStyle = .fullScreen
-
+                    
                     present(nav, animated: true)
                 }
             })
@@ -191,11 +268,11 @@ class ChatViewController: UIViewController {
             let frame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
             let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
         else { return }
-
+        
         let keyboardHeight = frame.height
-
+        
         let bottomInset: CGFloat
-
+        
         if keyboardHeight > 0 {
             bottomInset = keyboardHeight /*- 간격 없이 딱 view.safeAreaInsets.bottom*/
         } else {
@@ -205,20 +282,20 @@ class ChatViewController: UIViewController {
         UIView.animate(withDuration: duration) {
             self.collectionView.contentInset.bottom = bottomInset
             self.collectionView.verticalScrollIndicatorInsets.bottom = bottomInset
-
+            
             if self.isAtBottom {
                 self.scrollToBottom(animated: false)
             }
         }
     }
-
+    
     func scrollToBottom(animated: Bool = true) {
         let section = 0
         let itemCount = collectionView.numberOfItems(inSection: section)
         guard itemCount > 0 else { return }
-
+        
         let indexPath = IndexPath(item: itemCount - 1, section: section)
-
+        
         collectionView.layoutIfNeeded()
         collectionView.scrollToItem(at: indexPath, at: .bottom, animated: animated)
     }
@@ -323,17 +400,18 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        dismiss(animated: true)
+        
         if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage{
             let message = Message(kind: .photo(image), chatType: .send)
             self.viewModel.messages.accept(self.viewModel.messages.value + [message])
+            self.viewModel.sendChat(image: image)
         }
-        
-        dismiss(animated: true)
     }
     
     func openLibrary(){
         imagePicker.sourceType = .photoLibrary
-//        imagePicker.allowsEditing = true
+        //        imagePicker.allowsEditing = true
         present(imagePicker, animated: false, completion: nil)
     }
     
@@ -360,6 +438,7 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
                     if let image = image as? UIImage {
                         let message = Message(kind: .photo(image), chatType: .send)
                         self.viewModel.messages.accept(self.viewModel.messages.value + [message])
+                        self.viewModel.sendChat(message: "ㅇㅇ", image: image)
                     }
                 }
             }
