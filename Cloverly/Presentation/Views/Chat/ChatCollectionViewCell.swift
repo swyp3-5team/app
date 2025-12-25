@@ -42,7 +42,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
         textView.layer.masksToBounds = false
         textView.isEditable = false
         textView.isScrollEnabled = false
-        textView.textContainerInset = UIEdgeInsets(top: 6, left: 12, bottom: 6, right: 12)
+        textView.textContainerInset = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
         textView.textContainer.lineFragmentPadding = 0
         textView.font = .customFont(.pretendardRegular, size: 16)
         
@@ -50,7 +50,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
     }()
     
     let profileImageView: UIImageView = {
-        let view = UIImageView(image: UIImage(systemName: "heart"))
+        let view = UIImageView(image: UIImage(named: "character chat profile"))
         view.layer.cornerRadius = view.bounds.width / 2
         return view
     }()
@@ -112,20 +112,20 @@ class ChatCollectionViewCell: UICollectionViewCell {
         
         NSLayoutConstraint.activate([
             profileImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            profileImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            profileImageView.centerYAnchor.constraint(equalTo: stackView.centerYAnchor),
             
             stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             
-            timeLabel.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 6),
-            timeLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            timeLabel.bottomAnchor.constraint(equalTo: stackView.bottomAnchor),
             
             messageImageView.heightAnchor.constraint(lessThanOrEqualToConstant: 300)
         ])
         
         leadingConstraint = stackView.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8)
         trailingConstraint = stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
-        timeLeadingConstraint = timeLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8)
-        timeTrailingConstraint = timeLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
+        timeLeadingConstraint = timeLabel.leadingAnchor.constraint(equalTo: stackView.trailingAnchor, constant: 6)
+        timeTrailingConstraint = timeLabel.trailingAnchor.constraint(equalTo: stackView.leadingAnchor, constant: -6)
         
         trailingConstraint.priority = UILayoutPriority(999)
         

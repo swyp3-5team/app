@@ -13,14 +13,14 @@ class EmptyStateView: UIView {
     private let stackView: UIStackView = {
         let sv = UIStackView()
         sv.axis = .vertical
-        sv.spacing = 10
+        sv.spacing = 24
         sv.alignment = .center
         return sv
     }()
     
     private let imageView: UIImageView = {
         let iv = UIImageView()
-        iv.image = UIImage(systemName: "")
+        iv.image = UIImage(named: "character profile")
         iv.contentMode = .scaleAspectFit
         return iv
     }()
@@ -28,8 +28,8 @@ class EmptyStateView: UIView {
     private let messageLabel: UILabel = {
         let label = UILabel()
         label.text = "지출 내역을 입력해주세요!"
-        label.textColor = .gray6
-        label.font = .systemFont(ofSize: 15)
+        label.textColor = .gray1
+        label.font = .customFont(.pretendardSemiBold, size: 22)
         label.textAlignment = .center
         return label
     }()
@@ -42,12 +42,8 @@ class EmptyStateView: UIView {
         stackView.addArrangedSubview(messageLabel)
         
         stackView.snp.makeConstraints {
-            $0.top.equalTo(safeAreaLayoutGuide.snp.top).offset(36)
+            $0.top.equalTo(safeAreaLayoutGuide.snp.top).offset(47)
             $0.centerX.equalToSuperview()
-        }
-        
-        imageView.snp.makeConstraints {
-            $0.width.height.equalTo(138)
         }
     }
     

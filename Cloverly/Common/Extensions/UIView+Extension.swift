@@ -9,10 +9,10 @@ import UIKit
 
 extension UIView {
     func applyTopShadow(
-        color: UIColor = .black,
+        color: UIColor = .shadow,
         alpha: Float = 0.1,
-        yOffset: CGFloat = -2,
-        blur: CGFloat = 2,
+        yOffset: CGFloat = -4,
+        blur: CGFloat = 10,
         cornerRadius: CGFloat = 20
     ) {
         layer.cornerRadius = cornerRadius

@@ -22,7 +22,7 @@ class InputBar: UIView {
     
     lazy var textView: UITextView = {
         let textView = UITextView()
-        textView.font = .systemFont(ofSize: 14)
+        textView.font = .customFont(.pretendardMedium, size: 16)
         textView.isScrollEnabled = false
         textView.delegate = self
         textView.pasteDelegate = self
@@ -33,7 +33,7 @@ class InputBar: UIView {
         let label = UILabel()
         label.text = "오늘의 소비 내역을 알려주세요!"
         label.font = .customFont(.pretendardMedium, size: 16)
-        label.textColor = UIColor.lightGray
+        label.textColor = .gray7
         label.sizeToFit()
         label.isHidden = !textView.text.isEmpty
         return label
@@ -45,7 +45,7 @@ class InputBar: UIView {
         config.title = "사진"
         config.baseForegroundColor = .gray3
         
-        config.image = UIImage(systemName: "doc.on.clipboard")
+        config.image = UIImage(named: "image icon")
         config.imagePlacement = .leading
         config.imagePadding = 4
         
@@ -69,7 +69,7 @@ class InputBar: UIView {
         config.title = "카메라"
         config.baseForegroundColor = .gray3
         
-        config.image = UIImage(systemName: "doc.on.clipboard")
+        config.image = UIImage(named: "camera icon")
         config.imagePlacement = .leading
         config.imagePadding = 4
         
@@ -92,7 +92,7 @@ class InputBar: UIView {
         config.title = "붙여넣기"
         config.baseForegroundColor = .gray3
         
-        config.image = UIImage(systemName: "doc.on.clipboard")
+        config.image = UIImage(named: "paste icon")
         config.imagePlacement = .leading
         config.imagePadding = 4
         
@@ -115,8 +115,10 @@ class InputBar: UIView {
     }()
     
     lazy var sendButton: UIButton = {
-        let sendButton = UIButton(type: .system)
-        sendButton.setTitle("전송", for: .normal)
+        let sendButton = UIButton()
+        sendButton.setImage(UIImage(named: "send button enabled"), for: .normal)
+        sendButton.setImage(UIImage(named: "Send Button disabled"), for: .disabled)
+        sendButton.isEnabled = false
         return sendButton
     }()
     
@@ -126,7 +128,7 @@ class InputBar: UIView {
         backgroundColor = .white
         autoresizingMask = .flexibleHeight
         configureUI()
-        setupBinding()
+        bind()
     }
     
     override func layoutSubviews() {
@@ -149,7 +151,7 @@ class InputBar: UIView {
         textView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.trailing.equalTo(sendButton.snp.leading).offset(-8).priority(999)
-            $0.top.equalToSuperview().offset(8)
+            $0.top.equalToSuperview().offset(22)
             textViewHeightConstraint = $0.height.equalTo(minTextViewHeight).constraint
         }
         
@@ -160,7 +162,7 @@ class InputBar: UIView {
         
         galleryButton.snp.makeConstraints {
             $0.leading.equalTo(textView.snp.leading)
-            $0.top.equalTo(textView.snp.bottom).offset(8)
+            $0.top.equalTo(textView.snp.bottom).offset(15)
             $0.height.equalTo(30)
             $0.bottom.equalTo(safeAreaLayoutGuide.snp.bottom).offset(-14).priority(999)
         }
@@ -186,13 +188,21 @@ class InputBar: UIView {
         updateTextViewHeight()
     }
     
-    private func setupBinding() {
+    private func bind() {
         textView.rx.didChange
             .do(onNext: { [weak self] in
                 self?.updateTextViewHeight()
             })
             .map { _ in Void() }
             .bind(to: heightUpdateNeeded)
+            .disposed(by: disposeBag)
+        
+        textView.rx.text.orEmpty
+            .map { text in
+                return !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            }
+            .distinctUntilChanged()
+            .bind(to: sendButton.rx.isEnabled)
             .disposed(by: disposeBag)
         
         sendButton.addAction(UIAction { [weak self] _ in

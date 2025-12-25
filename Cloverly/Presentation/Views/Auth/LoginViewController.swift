@@ -40,21 +40,18 @@ class LoginViewController: UIViewController {
     
     private lazy var kakaoLoginButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage(named: "KakaoLogin"), for: .normal)
+        button.setImage(UIImage(named: "Btn_Kakao_Login"), for: .normal)
         button.imageView?.contentMode = .scaleAspectFill
-        button.layer.cornerRadius = 12
-        button.clipsToBounds = true
-        
         button.addAction(UIAction { [weak self] _ in
             self?.viewModel.kakaoLogin()
         }, for: .touchUpInside)
         return button
     }()
     
-    private lazy var appleLoginButton: ASAuthorizationAppleIDButton = {
-        let button = ASAuthorizationAppleIDButton()
-        button.layer.cornerRadius = 12
-        button.clipsToBounds = true
+    private lazy var appleLoginButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(named: "Btn_Apple_Login"), for: .normal)
+        button.imageView?.contentMode = .scaleAspectFill
         button.addAction(UIAction { [weak self] _ in
             self?.didTapAppleLogin()
         }, for: .touchUpInside)
