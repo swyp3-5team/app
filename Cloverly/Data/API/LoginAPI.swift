@@ -52,16 +52,11 @@ final class LoginAPI {
     func saveUser(nickname: String, marketingEnable: Bool, token: String) async throws {
         let requestBody = SignUpRequest(nickname: nickname, marketingEnable: marketingEnable)
         
-        let headers: HTTPHeaders = [
-            .authorization(bearerToken: token)
-        ]
-        
-        _ = try await AF.request(
+        _ = try await NetworkManager.shared.session.request(
             "\(baseURL)/api/v1/user-profiles",
             method: .post,
             parameters: requestBody,
-            encoder: JSONParameterEncoder.default,
-            headers: headers
+            encoder: JSONParameterEncoder.default
         )
         .validate()
         .serializingData()
@@ -69,16 +64,9 @@ final class LoginAPI {
     }
     
     func deleteKakaoUser() async throws {
-        guard let token = KeychainManager.shared.accessToken else { return }
-        
-        let headers: HTTPHeaders = [
-            .authorization(bearerToken: token)
-        ]
-        
-        _ = try await AF.request(
+        _ = try await NetworkManager.shared.session.request(
             "\(baseURL)/auth/kakao/unlink",
-            method: .delete,
-            headers: headers
+            method: .delete
         )
         .validate()
         .serializingData()
@@ -86,16 +74,9 @@ final class LoginAPI {
     }
     
     func deleteAppleUser() async throws {
-        guard let token = KeychainManager.shared.accessToken else { return }
-        
-        let headers: HTTPHeaders = [
-            .authorization(bearerToken: token)
-        ]
-        
-        _ = try await AF.request(
+        _ = try await NetworkManager.shared.session.request(
             "\(baseURL)/auth/apple/unlink",
             method: .delete,
-            headers: headers
         )
         .validate()
         .serializingData()
