@@ -251,11 +251,16 @@ class ChatViewController: UIViewController {
                 guard let self = self else { return }
                 
                 if isPresent {
-                    let vc = ExpenseHistoryViewController()
+                    let vc = SaveModalViewController(viewModel: viewModel)
                     let nav = UINavigationController(rootViewController: vc)
-                    nav.modalPresentationStyle = .fullScreen
                     
+                    if let sheet = nav.sheetPresentationController {
+                        sheet.detents = [.medium()]
+                    }
                     present(nav, animated: true)
+                } else {
+                    self.becomeFirstResponder()
+                    dismiss(animated: true)
                 }
             })
             .disposed(by: disposeBag)
@@ -404,7 +409,8 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
         if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage{
             let message = Message(kind: .photo(image), chatType: .send)
             self.viewModel.messages.accept(self.viewModel.messages.value + [message])
-            self.viewModel.sendChat(image: image)
+//            self.viewModel.sendChat(image: image)
+            self.viewModel.isSheetPresent.accept(true)
         }
     }
     
@@ -437,7 +443,8 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
                     if let image = image as? UIImage {
                         let message = Message(kind: .photo(image), chatType: .send)
                         self.viewModel.messages.accept(self.viewModel.messages.value + [message])
-                        self.viewModel.sendChat(message: "ㅇㅇ", image: image)
+//                        self.viewModel.sendChat(message: "ㅇㅇ", image: image)
+                        self.viewModel.isSheetPresent.accept(true)
                     }
                 }
             }

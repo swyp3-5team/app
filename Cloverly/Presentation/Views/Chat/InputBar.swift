@@ -220,14 +220,18 @@ class InputBar: UIView {
             let inputText = self.textView.text ?? ""
             let message = Message(kind: .text(inputText), chatType: .send)
             self.viewModel.messages.accept(self.viewModel.messages.value + [message])
-            self.viewModel.sendChat(message: inputText)
+//            self.viewModel.sendChat(message: inputText)
             
             textView.text = ""
             placeholderLabel.isHidden = false
             updateTextViewHeight()
             
             heightUpdateNeeded.accept(())
-            print("\(message) 전송!")
+            
+            textView.resignFirstResponder()
+            
+            // 가계부일때만
+            viewModel.isSheetPresent.accept(true)
         }, for: .touchUpInside)
     }
     
