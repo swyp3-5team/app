@@ -83,7 +83,28 @@ final class LoginAPI {
         .value
     }
     
-//    func renewAccessToken() -> TokenResponse {
-//
-//    }
+    func renewAccessToken() async throws -> Bool {
+        guard let token = KeychainManager.shared.refreshToken else { return false }
+        
+        let headers: HTTPHeaders = [
+            .authorization(bearerToken: token)
+        ]
+        
+        let response = try await AF.request(
+            "\(baseURL)/auth/refresh",
+            method: .post,
+            headers: headers
+        )
+        .validate()
+        .serializingDecodable(TokenResponse.self)
+        .value
+        
+        KeychainManager.shared.accessToken = response.accessToken
+        
+        if let newRefresh = response.refreshToken {
+            KeychainManager.shared.refreshToken = newRefresh
+        }
+        
+        return true
+    }
 }

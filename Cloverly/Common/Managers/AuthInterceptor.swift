@@ -9,6 +9,8 @@ import Foundation
 import Alamofire
 
 class AuthInterceptor: RequestInterceptor {
+    let api = LoginAPI()
+    
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, any Error>) -> Void) {
         var urlRequest = urlRequest
         
@@ -20,11 +22,28 @@ class AuthInterceptor: RequestInterceptor {
     }
     
     func retry(_ request: Request, for session: Session, dueTo error: Error, completion: @escaping (RetryResult) -> Void) {
-        guard let response = request.task?.response as? HTTPURLResponse, response.statusCode == 401 else {
+        guard let response = request.task?.response as? HTTPURLResponse, (response.statusCode == 401 || response.statusCode == 403) else {
             completion(.doNotRetryWithError(error))
             return
         }
         
+        if request.retryCount >= 2 {
+            completion(.doNotRetryWithError(error))
+            return
+        }
         
+        Task {
+            do {
+                let isSuccess = try await api.renewAccessToken()
+                
+                if isSuccess {
+                    completion(.retry)
+                } else {
+                    completion(.doNotRetryWithError(error))
+                }
+            } catch {
+                completion(.doNotRetryWithError(error))
+            }
+        }
     }
 }
