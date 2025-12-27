@@ -83,7 +83,7 @@ class CustomTabBar: UIView {
         updateButtonState(selectedIndex: index)
     }
     
-    private func updateButtonState(selectedIndex: Int) {
+    func updateButtonState(selectedIndex: Int) {
         for (index, button) in buttons.enumerated() {
             let isSelected = (index == selectedIndex)
             

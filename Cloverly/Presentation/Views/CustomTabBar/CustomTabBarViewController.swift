@@ -18,6 +18,13 @@ class CustomTabBarViewController: UITabBarController {
         super.viewDidLoad()
         setupViewControllers()
         configureUI()
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleTabChange(_:)),
+            name: .changeTab,
+            object: nil
+        )
     }
     
     func setupViewControllers() {
@@ -44,5 +51,19 @@ class CustomTabBarViewController: UITabBarController {
             $0.leading.trailing.bottom.equalToSuperview()
             $0.height.equalTo(90)
         }
+    }
+    
+    @objc private func handleTabChange(_ notification: Notification) {
+        guard let index = notification.userInfo?["index"] as? Int else { return }
+        
+        // 메인 스레드에서 안전하게 이동
+        DispatchQueue.main.async { [weak self] in
+            self?.selectedIndex = index
+            self?.customTabBar.updateButtonState(selectedIndex: index)
+        }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 }

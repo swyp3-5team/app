@@ -76,7 +76,27 @@ class SaveModalViewController: UIViewController {
             let message = Message(kind: .text("나나나"), chatType: .receive)
             self.viewModel.messages.accept(self.viewModel.messages.value + [message])
             
+            let parentVC = self.presentingViewController
+            
             self.viewModel.isSheetPresent.accept(false)
+            
+            parentVC?.showToast(
+                message: "내역에 저장되었습니다.",
+                buttonTitle: "보기 >"
+            ) { [weak self] in
+                if let nav = parentVC as? UINavigationController {
+                    nav.popViewController(animated: true)
+                } else {
+                    parentVC?.navigationController?.popViewController(animated: true)
+                }
+                
+                NotificationCenter.default.post(
+                    name: .changeTab,
+                    object: nil,
+                    userInfo: ["index": 1]
+                )
+            }
+            
         }, for: .touchUpInside)
         
         return button
