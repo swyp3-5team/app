@@ -30,7 +30,7 @@ class CustomTabBarViewController: UITabBarController {
     func setupViewControllers() {
         let homeVC = HomeViewController()
         let recordVC = ViewController()
-        let myVC = ViewController()
+        let myVC = MyPageViewController()
         
         viewControllers = [homeVC, recordVC, myVC]
         
