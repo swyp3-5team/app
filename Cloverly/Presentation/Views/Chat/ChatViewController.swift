@@ -10,6 +10,7 @@ import RxSwift
 import RxCocoa
 import SnapKit
 import PhotosUI
+import Lottie
 
 extension UINavigationController {
     open override func viewWillLayoutSubviews() {
@@ -51,6 +52,35 @@ class ChatViewController: UIViewController {
         cv.keyboardDismissMode = .interactive
         
         return cv
+    }()
+    
+    private lazy var lottieView: LottieAnimationView = {
+        let animationView = LottieAnimationView(name: "loadingSpinner")
+        
+        animationView.loopMode = .loop
+        animationView.contentMode = .scaleAspectFit
+        animationView.animationSpeed = 1.0
+        
+        return animationView
+    }()
+    
+    private let statusLabel: UILabel = {
+        let label = UILabel()
+        label.text = "인식중"
+        label.font = .customFont(.pretendardSemiBold, size: 18)
+        label.textColor = .gray2
+        label.textAlignment = .center
+        return label
+    }()
+    
+    private lazy var loadingStackView: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [lottieView, statusLabel])
+        stack.axis = .vertical
+        stack.spacing = 8
+        stack.alignment = .center
+        stack.distribution = .fill
+        stack.isHidden = true
+        return stack
     }()
     
     override func viewDidLoad() {
@@ -164,6 +194,7 @@ class ChatViewController: UIViewController {
     func configure() {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
+        view.addSubview(loadingStackView)
         view.backgroundColor = .systemBackground
         
         collectionView.snp.makeConstraints {
@@ -174,6 +205,10 @@ class ChatViewController: UIViewController {
         segmented.snp.makeConstraints {
             $0.width.equalTo(120)
             $0.height.equalTo(34)
+        }
+        
+        loadingStackView.snp.makeConstraints {
+            $0.center.equalToSuperview()
         }
         
         collectionView.register(
@@ -261,6 +296,25 @@ class ChatViewController: UIViewController {
                 } else {
                     self.becomeFirstResponder()
                     dismiss(animated: true)
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.isLoading
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] isLoading in
+                guard let self = self else { return }
+                
+                if isLoading {
+                    self.loadingStackView.isHidden = false
+                    self.lottieView.play()
+                    
+                    // 로딩 중엔 다른 버튼 못 누르게 막기
+                    self.view.isUserInteractionEnabled = false
+                } else {
+                    self.lottieView.stop() // 배터리 절약을 위해 stop
+                    self.loadingStackView.isHidden = true
+                    self.view.isUserInteractionEnabled = true
                 }
             })
             .disposed(by: disposeBag)
@@ -409,7 +463,7 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
         if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage{
             let message = Message(kind: .photo(image), chatType: .send)
             self.viewModel.messages.accept(self.viewModel.messages.value + [message])
-//            self.viewModel.sendChat(image: image)
+            self.viewModel.sendChat(image: image)
             self.viewModel.isSheetPresent.accept(true)
         }
     }
@@ -443,8 +497,7 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
                     if let image = image as? UIImage {
                         let message = Message(kind: .photo(image), chatType: .send)
                         self.viewModel.messages.accept(self.viewModel.messages.value + [message])
-//                        self.viewModel.sendChat(message: "ㅇㅇ", image: image)
-                        self.viewModel.isSheetPresent.accept(true)
+                        self.viewModel.sendChat(image: image)
                     }
                 }
             }

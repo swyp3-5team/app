@@ -9,8 +9,8 @@ import UIKit
 
 extension UIView {
     func applyTopShadow(
-        color: UIColor = .shadow,
-        alpha: Float = 0.1,
+        color: UIColor = .shadow1,
+        alpha: Float = 0.05,
         yOffset: CGFloat = -4,
         blur: CGFloat = 10,
         cornerRadius: CGFloat = 20

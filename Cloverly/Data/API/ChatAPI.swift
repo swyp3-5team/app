@@ -66,4 +66,16 @@ final class ChatAPI {
             throw AFError.responseSerializationFailed(reason: .inputDataNilOrZeroLength)
         }
     }
+    
+    func saveTransaction(requestBody: TransactionRequest) async throws {
+         _ = try await NetworkManager.shared.session.request(
+            "\(baseURL)/api/transaction-groups",
+            method: .post,
+            parameters: requestBody,
+            encoder: JSONParameterEncoder.default,
+        )
+        .validate()
+        .serializingData()
+        .value
+    }
 }

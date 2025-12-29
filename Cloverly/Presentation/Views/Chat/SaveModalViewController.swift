@@ -7,10 +7,12 @@
 
 import UIKit
 import SnapKit
+import RxSwift
 import RxCocoa
 
 class SaveModalViewController: UIViewController {
     private let viewModel: ChatViewModel
+    private let disposeBag = DisposeBag()
     
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -72,31 +74,34 @@ class SaveModalViewController: UIViewController {
         button.backgroundColor = .green5
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
-            // 임시
-            let message = Message(kind: .text("나나나"), chatType: .receive)
-            self.viewModel.messages.accept(self.viewModel.messages.value + [message])
-            
             let parentVC = self.presentingViewController
             
-            self.viewModel.isSheetPresent.accept(false)
-            
-            parentVC?.showToast(
-                message: "내역에 저장되었습니다.",
-                buttonTitle: "보기 >"
-            ) { [weak self] in
-                if let nav = parentVC as? UINavigationController {
-                    nav.popViewController(animated: true)
-                } else {
-                    parentVC?.navigationController?.popViewController(animated: true)
+            Task {
+                do {
+                    try await self.viewModel.saveTransaction()
+                    
+                    self.viewModel.isSheetPresent.accept(false)
+                    
+                    parentVC?.showToast(
+                        message: "내역에 저장되었습니다.",
+                        buttonTitle: "보기 >"
+                    ) { [weak self] in
+                        if let nav = parentVC as? UINavigationController {
+                            nav.popViewController(animated: true)
+                        } else {
+                            parentVC?.navigationController?.popViewController(animated: true)
+                        }
+                        
+                        NotificationCenter.default.post(
+                            name: .changeTab,
+                            object: nil,
+                            userInfo: ["index": 1]
+                        )
+                    }
+                } catch {
+                    print("저장 실패: \(error)")
                 }
-                
-                NotificationCenter.default.post(
-                    name: .changeTab,
-                    object: nil,
-                    userInfo: ["index": 1]
-                )
             }
-            
         }, for: .touchUpInside)
         
         return button
@@ -115,6 +120,7 @@ class SaveModalViewController: UIViewController {
         super.viewDidLoad()
         isModalInPresentation = true
         configureUI()
+        bind()
     }
     
     func configureUI() {
@@ -163,7 +169,7 @@ class SaveModalViewController: UIViewController {
     private func addInfoRow(title: String, valueLabel: UILabel) {
         let rowStack = UIStackView()
         rowStack.axis = .horizontal
-        rowStack.spacing = 48
+        rowStack.spacing = 20
         rowStack.alignment = .firstBaseline
         
         let keyLabel = UILabel()
@@ -171,8 +177,14 @@ class SaveModalViewController: UIViewController {
         keyLabel.font = .customFont(.pretendardRegular, size: 16)
         keyLabel.textColor = .gray4
         
+        keyLabel.snp.makeConstraints {
+            $0.width.equalTo(70)
+        }
+        
         valueLabel.font = .customFont(.pretendardMedium, size: 16)
         valueLabel.textColor = .gray1
+        valueLabel.numberOfLines = 0
+        valueLabel.textAlignment = .left
         
         rowStack.addArrangedSubview(keyLabel)
         rowStack.addArrangedSubview(valueLabel)
@@ -180,7 +192,22 @@ class SaveModalViewController: UIViewController {
         contentStackView.addArrangedSubview(rowStack)
     }
     
-    func configure() {
-        storeNameValueLabel.text = "텍스트"
+    func bind() {
+        viewModel.chatResponse
+            .observe(on: MainScheduler.instance)
+            .compactMap { $0 }
+            .subscribe(onNext: { [weak self] info in
+                guard let self = self else { return }
+
+                let transactionInfo = info.transactionInfo
+                storeNameValueLabel.text = transactionInfo.place
+                amountValueLabel.text = "\(transactionInfo.totalAmount)"
+                dateValueLabel.text = transactionInfo.transactionDate
+                emotionValueLabel.text = transactionInfo.emotion.displayName
+                contentValueLabel.text = transactionInfo.transactions.map { $0.name }.joined(separator: ", ")
+                paymentMethodValueLabel.text = transactionInfo.payment.displayName
+                categoryValueLabel.text = Array(Set(transactionInfo.transactions.map { $0.categoryName })).joined(separator: ", ")
+            })
+            .disposed(by: disposeBag)
     }
 }

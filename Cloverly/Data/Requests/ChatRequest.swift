@@ -16,7 +16,7 @@ enum ChatMode: String, Encodable {
     }
 }
 
-struct ChatRequest: nonisolated Encodable{
+struct ChatRequest: nonisolated Codable{
     let message: String?
     let mode: String
 }
