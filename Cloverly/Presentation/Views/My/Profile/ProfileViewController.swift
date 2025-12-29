@@ -60,7 +60,7 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        switch indexPath.section {
+        switch indexPath.row {
         case 0:
             let vc = ProfileEditViewController()
             navigationController?.pushViewController(vc, animated: true)

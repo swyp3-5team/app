@@ -35,6 +35,11 @@ class CustomTabBar: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        applyTopShadow(color: .shadow2, yOffset: -6)
+    }
+    
     func configureUI() {
         backgroundColor = .gray10
         
