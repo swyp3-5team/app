@@ -197,9 +197,8 @@ class SaveModalViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .compactMap { $0 }
             .subscribe(onNext: { [weak self] info in
-                guard let self = self else { return }
+                guard let self = self, let transactionInfo = info.transactionInfo else { return }
 
-                let transactionInfo = info.transactionInfo
                 storeNameValueLabel.text = transactionInfo.place
                 amountValueLabel.text = "\(transactionInfo.totalAmount)"
                 dateValueLabel.text = transactionInfo.transactionDate

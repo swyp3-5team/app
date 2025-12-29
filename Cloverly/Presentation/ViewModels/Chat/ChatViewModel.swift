@@ -19,20 +19,38 @@ final class ChatViewModel {
     
     func sendChat(message: String? = nil, image: UIImage? = nil) {
         Task {
-            isLoading.accept(true)
+            let mode = ChatMode(index: selectedIndex.value)
             
-            defer {
-                isLoading.accept(false)
-            }
-            
-            do {
-                let mode = ChatMode(index: selectedIndex.value)
-                let response = try await api.sendChat(message: message, mode: mode, image: image)
-                self.chatResponse.accept(response)
-                self.isSheetPresent.accept(true)
-                print(response)
-            } catch {
-                print("채팅 전송 실패: \(error.localizedDescription)")
+            if mode == .receipt {
+                isLoading.accept(true)
+                
+                defer {
+                    isLoading.accept(false)
+                }
+                
+                do {
+                    let mode = ChatMode(index: selectedIndex.value)
+                    let response = try await api.sendChat(message: message, mode: mode, image: image)
+                    self.chatResponse.accept(response)
+                    self.isSheetPresent.accept(true)
+                    print(response)
+                } catch {
+                    print("채팅 전송 실패: \(error.localizedDescription)")
+                }
+            } else {
+                do {
+                    let mode = ChatMode(index: selectedIndex.value)
+                    let response = try await api.sendChat(message: message, mode: mode, image: image)
+                    
+                    let message = Message(kind: .text("\(response.message)"), chatType: .receive)
+                    var currentMessages = messages.value
+                    currentMessages.append(message)
+                    messages.accept(currentMessages)
+                    
+                    print(response)
+                } catch {
+                    print("채팅 전송 실패: \(error.localizedDescription)")
+                }
             }
         }
     }
@@ -42,7 +60,6 @@ final class ChatViewModel {
             throw NSError(domain: "DataError", code: -1, userInfo: [NSLocalizedDescriptionKey: "저장할 데이터가 없습니다."])
         }
         
-        // 2. RequestBody 생성 (VM이 담당)
         let requestBody = TransactionRequest(
             place: info.place,
             transactionDate: info.transactionDate,

@@ -66,5 +66,5 @@ struct Transaction: nonisolated Codable {
 
 struct ChatResponse: nonisolated Codable {
     let message: String
-    let transactionInfo: TransactionInfo
+    let transactionInfo: TransactionInfo?
 }
