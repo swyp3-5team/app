@@ -66,9 +66,9 @@ class ChatViewController: UIViewController {
     
     private let statusLabel: UILabel = {
         let label = UILabel()
-        label.text = "인식중"
-        label.font = .customFont(.pretendardSemiBold, size: 18)
-        label.textColor = .gray2
+        label.text = "영수증 인식중"
+        label.font = .customFont(.pretendardSemiBold, size: 14)
+        label.textColor = .gray10
         label.textAlignment = .center
         return label
     }()
@@ -79,6 +79,13 @@ class ChatViewController: UIViewController {
         stack.spacing = 8
         stack.alignment = .center
         stack.distribution = .fill
+        stack.backgroundColor = .gray1.withAlphaComponent(0.2)
+        stack.layer.cornerRadius = 16
+        stack.clipsToBounds = true
+        
+        stack.layoutMargins = UIEdgeInsets(top: 25, left: 25, bottom: 25, right: 25)
+        stack.isLayoutMarginsRelativeArrangement = true
+        
         stack.isHidden = true
         return stack
     }()
@@ -209,6 +216,7 @@ class ChatViewController: UIViewController {
         
         loadingStackView.snp.makeConstraints {
             $0.center.equalToSuperview()
+            $0.width.equalTo(loadingStackView.snp.height).multipliedBy(1.2)
         }
         
         collectionView.register(
