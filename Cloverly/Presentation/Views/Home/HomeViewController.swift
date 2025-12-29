@@ -9,6 +9,20 @@ import UIKit
 import SnapKit
 
 class HomeViewController: UIViewController {
+    private var timeBasedMessage: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        
+        switch hour {
+        case 6..<12:
+            return "좋은 아침이에요! 🌼"
+        case 12..<18:
+            return "맛있는 점심 드셨나요? 🍛"
+        case 18..<22:
+            return "오늘 하루 수고했어요 🌟"
+        default:
+            return "아직 안 주무셨군요? 🌙"
+        }
+    }
     
     private lazy var backgroundImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage(named: "background"))
@@ -17,11 +31,17 @@ class HomeViewController: UIViewController {
         return imageView
     }()
     
-    private let greetingLabel: UILabel = {
+    private let appNameLabel: UILabel = {
         let label = UILabel()
-        label.text = "안녕하세요, OO님!\n오늘은 어떤 지출이 있었나요?"
+        label.text = "Cloverly"
+        return label
+    }()
+    
+    private lazy var greetingLabel: UILabel = {
+        let label = UILabel()
+        label.text = timeBasedMessage
         label.font = .customFont(.pretendardSemiBold, size: 24)
-        label.textColor = .gray1
+        label.textColor = .gray10
         label.textAlignment = .center
         label.numberOfLines = 0
         return label
@@ -72,12 +92,18 @@ class HomeViewController: UIViewController {
         
         view.addSubview(backgroundImageView)
         view.sendSubviewToBack(backgroundImageView)
+        view.addSubview(appNameLabel)
         view.addSubview(greetingLabel)
         view.addSubview(characterImageView)
         view.addSubview(chatButton)
         
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
+        }
+        
+        appNameLabel.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(15)
+            $0.leading.equalToSuperview().offset(16)
         }
         
         greetingLabel.snp.makeConstraints {
