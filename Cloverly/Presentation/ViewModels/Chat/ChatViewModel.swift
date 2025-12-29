@@ -82,13 +82,5 @@ final class ChatViewModel {
         var currentMessages = messages.value
         currentMessages.append(message)
         messages.accept(currentMessages)
-        
-//        Task {
-//            do {
-//                try await api.saveTransaction(requestBody: requestBody)
-//            } catch {
-//                print("거래내역 저장 실패: \(error.localizedDescription)")
-//            }
-//        }
     }
 }
