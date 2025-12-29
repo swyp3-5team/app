@@ -19,6 +19,13 @@ class MenuTableViewCell: UITableViewCell {
         return label
     }()
     
+    private let chevronImageView: UIImageView = {
+        let iv = UIImageView()
+        iv.image = UIImage(systemName: "chevron.right")
+        iv.contentMode = .scaleAspectFit
+        return iv
+    }()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         configureUI()
@@ -31,10 +38,16 @@ class MenuTableViewCell: UITableViewCell {
     
     func configureUI() {
         contentView.addSubview(titleLabel)
+        contentView.addSubview(chevronImageView)
         
         titleLabel.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.top.bottom.equalToSuperview().inset(19)
+        }
+        
+        chevronImageView.snp.makeConstraints {
+            $0.trailing.equalToSuperview().offset(-16)
+            $0.centerY.equalTo(titleLabel.snp.centerY)
         }
     }
     

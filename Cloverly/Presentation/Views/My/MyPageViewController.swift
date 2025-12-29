@@ -7,23 +7,27 @@
 
 import UIKit
 import SnapKit
+import MessageUI
 
 enum MyPageMenu: String, CaseIterable {
     case characterTone = "캐릭터 말투 변경"
-    case notification = "알림 설정"
     case notice = "공지사항"
     case inquiry = "문의하기"
+    case termsOfService = "서비스 이용약관"
+    case privacyPolicy = "개인정보 처리방침"
 
     var viewController: UIViewController {
         switch self {
         case .characterTone:
             return CharacterToneViewController()
-        case .notification:
-            return NotificationSettingViewController()
         case .notice:
             return NoticeViewController()
-        case .inquiry:
-            return InquiryViewController()
+        case .termsOfService:
+            return TermsOfServiceViewController()
+        case .privacyPolicy:
+            return PrivacyPolicyViewController()
+        default:
+            return UIViewController()
         }
     }
 }
@@ -49,6 +53,8 @@ class MyPageViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
+        
+        AuthViewModel.shared.getProfile()
     }
     
     func configureUI() {
@@ -73,7 +79,7 @@ extension MyPageViewController: UITableViewDelegate, UITableViewDataSource {
         case 0:
             return 1
         case 1:
-            return 4
+            return 5
         default:
             return 0
         }
@@ -104,8 +110,38 @@ extension MyPageViewController: UITableViewDelegate, UITableViewDataSource {
             let vc = ProfileViewController()
             navigationController?.pushViewController(vc, animated: true)
         case 1:
-            let menu = menuItems[indexPath.row]
-            navigationController?.pushViewController(menu.viewController, animated: true)
+            switch indexPath.row {
+            case 2:
+                if MFMailComposeViewController.canSendMail() {
+                    let composeVC = MFMailComposeViewController()
+                    composeVC.mailComposeDelegate = self
+                    
+                    // 받는 사람, 제목, 본문 설정
+                    composeVC.setToRecipients(["dlrgks0909@gmail.com"])
+                    composeVC.setSubject("[Cloverly] 문의 및 의견")
+                    let bodyString = """
+                                     
+                                     -------------------
+                                     이곳에 문의 내용을 적어주세요.
+                                     버그 제보라면 스크린샷을 함께 첨부해주시면 큰 도움이 됩니다!
+                                     -------------------
+                                     
+                                     [디바이스 정보]
+                                     Device: \(UIDevice.current.model)
+                                     OS: iOS \(UIDevice.current.systemVersion)
+                                     App Version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown")
+                                     """
+                        
+                    composeVC.setMessageBody(bodyString, isHTML: false)
+                    
+                    self.present(composeVC, animated: true)
+                } else {
+                    showSendMailErrorAlert()
+                }
+            default:
+                let menu = menuItems[indexPath.row]
+                navigationController?.pushViewController(menu.viewController, animated: true)
+            }
         default:
             break
         }
@@ -116,5 +152,21 @@ extension MyPageViewController: UITableViewDelegate, UITableViewDataSource {
             return 80
         }
         return UITableView.automaticDimension
+    }
+}
+
+extension MyPageViewController: MFMailComposeViewControllerDelegate {
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        controller.dismiss(animated: true)
+    }
+    
+    func showSendMailErrorAlert() {
+        let alert = UIAlertController(
+            title: "메일 전송 실패",
+            message: "아이폰 이메일 설정을 확인하고 다시 시도해주세요.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
     }
 }
