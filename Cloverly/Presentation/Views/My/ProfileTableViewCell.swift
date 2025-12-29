@@ -7,9 +7,12 @@
 
 import UIKit
 import SnapKit
+import RxSwift
+import RxCocoa
 
 class ProfileTableViewCell: UITableViewCell {
     static let identifier = "ProfileTableViewCell"
+    private let disposeBag = DisposeBag()
     
     private lazy var profileImageView: UIImageView = {
         let iv = UIImageView()
@@ -20,7 +23,6 @@ class ProfileTableViewCell: UITableViewCell {
     
     private let nicknameLabel: UILabel = {
         let label = UILabel()
-        label.text = "모아요"
         label.textAlignment = .center
         return label
     }()
@@ -35,6 +37,7 @@ class ProfileTableViewCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         configureUI()
+        bind()
         selectionStyle = .none
     }
     
@@ -62,5 +65,15 @@ class ProfileTableViewCell: UITableViewCell {
             $0.trailing.equalToSuperview().offset(-16)
             $0.centerY.equalTo(profileImageView.snp.centerY)
         }
+    }
+    
+    private func bind() {
+        AuthViewModel.shared.currentUser
+            .observe(on: MainScheduler.instance)
+            .map { user -> String in
+                return user?.nickName ?? "게스트"
+            }
+            .bind(to: nicknameLabel.rx.text)
+            .disposed(by: disposeBag)
     }
 }

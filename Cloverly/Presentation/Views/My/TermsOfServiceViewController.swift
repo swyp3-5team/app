@@ -6,24 +6,34 @@
 //
 
 import UIKit
+import WebKit
+import SnapKit
 
 class TermsOfServiceViewController: UIViewController {
 
+    private lazy var webView: WKWebView = {
+        let webView = WKWebView()
+        if let url = URL(string: "https://shadow-iguanodon-ecb.notion.site/Cloverly-2c56a965517a80a6bac3d1d3f4c6e9d6") {
+            let request = URLRequest(url: url)
+            webView.load(request)
+        }
+        return webView
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        configureUI()
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    private func configureUI() {
+        view.backgroundColor = .systemBackground
+        navigationItem.title = "서비스 이용약관"
+        
+        view.addSubview(webView)
+        
+        webView.snp.makeConstraints {
+            $0.edges.equalTo(view.safeAreaLayoutGuide)
+        }
     }
-    */
 
 }
