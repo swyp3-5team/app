@@ -52,11 +52,16 @@ final class LoginAPI {
     func saveUser(nickname: String, marketingEnable: Bool, token: String) async throws {
         let requestBody = SignUpRequest(nickname: nickname, marketingEnable: marketingEnable)
         
-        _ = try await NetworkManager.shared.session.request(
-            "\(baseURL)/api/v1/user-profiles",
+        let headers: HTTPHeaders = [
+            .authorization(bearerToken: token)
+        ]
+        
+        _ = try await AF.request(
+            "\(baseURL)/auth/refresh",
             method: .post,
             parameters: requestBody,
-            encoder: JSONParameterEncoder.default
+            encoder: JSONParameterEncoder.default,
+            headers: headers
         )
         .validate()
         .serializingData()
