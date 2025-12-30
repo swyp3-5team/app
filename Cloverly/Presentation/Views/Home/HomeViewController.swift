@@ -9,6 +9,13 @@ import UIKit
 import SnapKit
 
 class HomeViewController: UIViewController {
+    var statusBarHeight: CGFloat {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            return windowScene.statusBarManager?.statusBarFrame.height ?? 0
+        }
+        return 0
+    }
+    
     private var timeBasedMessage: String {
         let hour = Calendar.current.component(.hour, from: Date())
         
@@ -31,10 +38,11 @@ class HomeViewController: UIViewController {
         return imageView
     }()
     
-    private let appNameLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Cloverly"
-        return label
+    private let typeLogoImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage(named: "typeLogo"))
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        return imageView
     }()
     
     private lazy var greetingLabel: UILabel = {
@@ -93,7 +101,7 @@ class HomeViewController: UIViewController {
         
         view.addSubview(backgroundImageView)
         view.sendSubviewToBack(backgroundImageView)
-        view.addSubview(appNameLabel)
+        view.addSubview(typeLogoImageView)
         view.addSubview(greetingLabel)
         view.addSubview(characterImageView)
         view.addSubview(chatButton)
@@ -102,8 +110,8 @@ class HomeViewController: UIViewController {
             $0.edges.equalToSuperview()
         }
         
-        appNameLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(15)
+        typeLogoImageView.snp.makeConstraints {
+            $0.top.equalTo(view.snp.top).offset(statusBarHeight + 15)
             $0.leading.equalToSuperview().offset(16)
         }
         
