@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C20C8C322F043B100093B69B /* FSCalendar in Frameworks */ = {isa = PBXBuildFile; productRef = C20C8C312F043B100093B69B /* FSCalendar */; };
+		C20C8C352F043B590093B69B /* Tabman in Frameworks */ = {isa = PBXBuildFile; productRef = C20C8C342F043B590093B69B /* Tabman */; };
 		C27EFB712F00E36F00144665 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = C27EFB702F00E36F00144665 /* Lottie */; };
 		C2876D492EEB01E100231C37 /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C2876D482EEB01E100231C37 /* KakaoSDKAuth */; };
 		C2876D4B2EEB01E100231C37 /* KakaoSDKCommon in Frameworks */ = {isa = PBXBuildFile; productRef = C2876D4A2EEB01E100231C37 /* KakaoSDKCommon */; };
@@ -80,6 +82,8 @@
 				C2876D492EEB01E100231C37 /* KakaoSDKAuth in Frameworks */,
 				C2876D992EEB070100231C37 /* RxSwift in Frameworks */,
 				C29A8AF72EF1A07700C58C0A /* SnapKit in Frameworks */,
+				C20C8C352F043B590093B69B /* Tabman in Frameworks */,
+				C20C8C322F043B100093B69B /* FSCalendar in Frameworks */,
 				C2876D972EEB070100231C37 /* RxCocoa in Frameworks */,
 				C2876D4D2EEB01E100231C37 /* KakaoSDKUser in Frameworks */,
 			);
@@ -149,6 +153,8 @@
 				C2876D982EEB070100231C37 /* RxSwift */,
 				C29A8AF62EF1A07700C58C0A /* SnapKit */,
 				C27EFB702F00E36F00144665 /* Lottie */,
+				C20C8C312F043B100093B69B /* FSCalendar */,
+				C20C8C342F043B590093B69B /* Tabman */,
 			);
 			productName = Cloverly;
 			productReference = C2876C202EEAFD3300231C37 /* Cloverly.app */;
@@ -238,6 +244,8 @@
 				C2876D952EEB070100231C37 /* XCRemoteSwiftPackageReference "RxSwift" */,
 				C29A8AF52EF1A07700C58C0A /* XCRemoteSwiftPackageReference "SnapKit" */,
 				C27EFB6F2F00E36F00144665 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				C20C8C302F043B100093B69B /* XCRemoteSwiftPackageReference "FSCalendar" */,
+				C20C8C332F043B590093B69B /* XCRemoteSwiftPackageReference "Tabman" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C2876C212EEAFD3300231C37 /* Products */;
@@ -640,6 +648,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		C20C8C302F043B100093B69B /* XCRemoteSwiftPackageReference "FSCalendar" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/WenchaoD/FSCalendar.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.8.4;
+			};
+		};
+		C20C8C332F043B590093B69B /* XCRemoteSwiftPackageReference "Tabman" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/uias/Tabman";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
 		C27EFB6F2F00E36F00144665 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airbnb/lottie-ios";
@@ -675,6 +699,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		C20C8C312F043B100093B69B /* FSCalendar */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C20C8C302F043B100093B69B /* XCRemoteSwiftPackageReference "FSCalendar" */;
+			productName = FSCalendar;
+		};
+		C20C8C342F043B590093B69B /* Tabman */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C20C8C332F043B590093B69B /* XCRemoteSwiftPackageReference "Tabman" */;
+			productName = Tabman;
+		};
 		C27EFB702F00E36F00144665 /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C27EFB6F2F00E36F00144665 /* XCRemoteSwiftPackageReference "lottie-ios" */;

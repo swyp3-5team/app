@@ -1,5 +1,5 @@
 {
-  "originHash" : "4c81031dcfafe0d87c5d071ef01cb6a0a8f6a300b2058aee79d80a9c3910d833",
+  "originHash" : "c33cacd7929ba449afc0d228063d7d57b15a6f3ab36958c36259348936cfa69c",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "513364f870f6bfc468f9d2ff0a95caccc10044c5",
         "version" : "5.10.2"
+      }
+    },
+    {
+      "identity" : "fscalendar",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/WenchaoD/FSCalendar.git",
+      "state" : {
+        "revision" : "0fbdec5172fccb90f707472eeaea4ffe095278f6",
+        "version" : "2.8.4"
       }
     },
     {
@@ -29,6 +38,15 @@
       }
     },
     {
+      "identity" : "pageboy",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/uias/Pageboy",
+      "state" : {
+        "revision" : "d522ccd03a87db72bf9b2df52808522134139001",
+        "version" : "5.0.1"
+      }
+    },
+    {
       "identity" : "rxswift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ReactiveX/RxSwift",
@@ -44,6 +62,15 @@
       "state" : {
         "revision" : "2842e6e84e82eb9a8dac0100ca90d9444b0307f4",
         "version" : "5.7.1"
+      }
+    },
+    {
+      "identity" : "tabman",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/uias/Tabman",
+      "state" : {
+        "revision" : "567ea7c35419fd6c1eb439c078e7407edfdc8214",
+        "version" : "4.0.0"
       }
     }
   ],
