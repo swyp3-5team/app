@@ -21,7 +21,7 @@ enum MyPageMenu: String, CaseIterable {
     var viewController: UIViewController {
         switch self {
         case .characterTone:
-            return CharacterToneViewController()
+            return CharacterToneViewController(viewModel: MyViewModel())
         case .notice:
             return NoticeViewController()
         case .termsOfService:
@@ -38,6 +38,21 @@ enum MyPageMenu: String, CaseIterable {
 class MyPageViewController: UIViewController {
     private let disposeBag = DisposeBag()
     private let menuItems = MyPageMenu.allCases
+    
+    var statusBarHeight: CGFloat {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            return windowScene.statusBarManager?.statusBarFrame.height ?? 0
+        }
+        return 0
+    }
+    
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "마이페이지"
+        label.font = .customFont(.pretendardSemiBold, size: 18)
+        label.textColor = .gray1
+        return label
+    }()
     
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
@@ -61,9 +76,14 @@ class MyPageViewController: UIViewController {
     
     func configureUI() {
         view.backgroundColor = .systemBackground
-        navigationItem.title = "마이페이지"
         
         view.addSubview(tableView)
+        view.addSubview(titleLabel)
+        
+        titleLabel.snp.makeConstraints {
+            $0.top.equalTo(view.snp.top).offset(statusBarHeight + 15.5)
+            $0.centerX.equalToSuperview()
+        }
         
         tableView.snp.makeConstraints {
             $0.edges.equalToSuperview()
