@@ -16,7 +16,7 @@ class ProfileTableViewCell: UITableViewCell {
     
     private lazy var profileImageView: UIImageView = {
         let iv = UIImageView()
-        iv.image = UIImage(named: "character profile")
+        iv.image = UIImage(named: "mypage profile 1")
         iv.contentMode = .scaleAspectFit
         return iv
     }()
@@ -29,7 +29,7 @@ class ProfileTableViewCell: UITableViewCell {
     
     private let chevronImageView: UIImageView = {
         let iv = UIImageView()
-        iv.image = UIImage(systemName: "chevron.right")
+        iv.image = UIImage(named: "Chevron right gray")
         iv.contentMode = .scaleAspectFit
         return iv
     }()
@@ -37,7 +37,6 @@ class ProfileTableViewCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         configureUI()
-        bind()
         selectionStyle = .none
     }
     
@@ -53,7 +52,6 @@ class ProfileTableViewCell: UITableViewCell {
         profileImageView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(48)
         }
         
         nicknameLabel.snp.makeConstraints {
@@ -67,13 +65,7 @@ class ProfileTableViewCell: UITableViewCell {
         }
     }
     
-    private func bind() {
-        AuthViewModel.shared.currentUser
-            .observe(on: MainScheduler.instance)
-            .map { user -> String in
-                return user?.nickName ?? "게스트"
-            }
-            .bind(to: nicknameLabel.rx.text)
-            .disposed(by: disposeBag)
+    func configure(with nickname: String?) {
+        self.nicknameLabel.text = nickname ?? "게스트"
     }
 }

@@ -8,6 +8,8 @@
 import UIKit
 import SnapKit
 import MessageUI
+import RxSwift
+import RxCocoa
 
 enum MyPageMenu: String, CaseIterable {
     case characterTone = "캐릭터 말투 변경"
@@ -34,7 +36,7 @@ enum MyPageMenu: String, CaseIterable {
 
 
 class MyPageViewController: UIViewController {
-    
+    private let disposeBag = DisposeBag()
     private let menuItems = MyPageMenu.allCases
     
     private lazy var tableView: UITableView = {
@@ -52,9 +54,9 @@ class MyPageViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureUI()
         
-        AuthViewModel.shared.getProfile()
+        configureUI()
+        bind()
     }
     
     func configureUI() {
@@ -66,6 +68,15 @@ class MyPageViewController: UIViewController {
         tableView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
+    }
+    
+    private func bind() {
+        AuthViewModel.shared.currentUser
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] _ in
+                self?.tableView.reloadData()
+            })
+            .disposed(by: disposeBag)
     }
 }
 
@@ -91,6 +102,9 @@ extension MyPageViewController: UITableViewDelegate, UITableViewDataSource {
             guard let cell = tableView.dequeueReusableCell(withIdentifier: ProfileTableViewCell.identifier, for: indexPath) as? ProfileTableViewCell else {
                 return UITableViewCell()
             }
+            let currentNickname = AuthViewModel.shared.currentUser.value?.nickName
+                
+            cell.configure(with: currentNickname)
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
             return cell
         case 1:

@@ -7,7 +7,8 @@
 
 import UIKit
 import SnapKit
-import RxRelay
+import RxSwift
+import RxCocoa
 
 enum ProfileMenu: String, CaseIterable {
     case profile = "프로필"
@@ -17,7 +18,7 @@ enum ProfileMenu: String, CaseIterable {
 }
 
 class ProfileViewController: UIViewController {
-    
+    private let disposeBag = DisposeBag()
     private let menuItems = ProfileMenu.allCases
     
     private lazy var tableView: UITableView = {
@@ -33,6 +34,7 @@ class ProfileViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
+        bind()
     }
     
     func configureUI() {
@@ -45,6 +47,15 @@ class ProfileViewController: UIViewController {
             $0.edges.equalToSuperview()
         }
     }
+    
+    private func bind() {
+        AuthViewModel.shared.currentUser
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] _ in
+                self?.tableView.reloadData()
+            })
+            .disposed(by: disposeBag)
+    }
 }
 
 extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
@@ -56,7 +67,7 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ProfileSettingCell.identifier, for: indexPath) as? ProfileSettingCell else { return UITableViewCell() }
         
         let menu = menuItems[indexPath.row]
-        cell.configure(menu: menu)
+        cell.configure(menu: menu, user: AuthViewModel.shared.currentUser.value)
         return cell
     }
     
@@ -80,7 +91,7 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
     
     private func showLogoutAlert() {
         let alert = UIAlertController(
-            title: "로그아웃하시겠어요?",
+            title: "로그아웃 하시겠어요?",
             message: nil,
             preferredStyle: .alert
         )

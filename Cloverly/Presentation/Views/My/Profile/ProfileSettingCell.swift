@@ -13,8 +13,8 @@ class ProfileSettingCell: UITableViewCell {
     
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 16)
-        label.textColor = .black
+        label.font = .customFont(.pretendardMedium, size: 16)
+        label.textColor = .gray2
         return label
     }()
     
@@ -22,7 +22,7 @@ class ProfileSettingCell: UITableViewCell {
     private let rightStackView: UIStackView = {
         let sv = UIStackView()
         sv.axis = .horizontal
-        sv.spacing = 8
+        sv.spacing = 6
         sv.alignment = .center
         return sv
     }()
@@ -30,9 +30,10 @@ class ProfileSettingCell: UITableViewCell {
     // 타입 1: 텍스트 (이름/이메일 등)
     private let infoLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 16)
-        label.textColor = .black
+        label.font = .customFont(.pretendardMedium, size: 16)
+        label.textColor = .gray1
         label.isHidden = true
+        label.numberOfLines = 1
         return label
     }()
     
@@ -47,7 +48,7 @@ class ProfileSettingCell: UITableViewCell {
     // 타입 3: 쉐브론
     private let chevronImageView: UIImageView = {
         let iv = UIImageView()
-        iv.image = UIImage(systemName: "chevron.right")
+        iv.image = UIImage(named: "Chevron right gray")
         iv.tintColor = .gray
         iv.isHidden = true
         return iv
@@ -88,7 +89,7 @@ class ProfileSettingCell: UITableViewCell {
         }
     }
     
-    func configure(menu: ProfileMenu) {
+    func configure(menu: ProfileMenu, user: User?) {
         titleLabel.text = menu.rawValue
         
         // 초기화
@@ -98,15 +99,20 @@ class ProfileSettingCell: UITableViewCell {
         
         switch menu {
         case .profile:
-            infoLabel.text = "모아요"
+            infoLabel.text = user?.nickName
             infoLabel.isHidden = false
             chevronImageView.isHidden = false
             
         case .account:
-            infoLabel.text = "moayo@naver.com"
+            infoLabel.text = user?.userEmail
             infoLabel.isHidden = false
-            iconImageView.image = UIImage(systemName: "bubble.left.fill")
-            iconImageView.tintColor = .systemYellow
+            
+            if user?.provider == .apple {
+                iconImageView.image = UIImage(systemName: "apple.logo")
+                iconImageView.tintColor = .black
+            } else {
+                iconImageView.image = UIImage(named: "kakao icon")
+            }
             iconImageView.isHidden = false
             
         case .logout, .withdraw:
@@ -114,5 +120,7 @@ class ProfileSettingCell: UITableViewCell {
             break
         }
     }
+    
+    
 }
 

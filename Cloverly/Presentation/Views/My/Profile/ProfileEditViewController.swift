@@ -16,12 +16,13 @@ class ProfileEditViewController: UIViewController {
     
     private let profileImage: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "character profile")
+        imageView.image = UIImage(named: "mypage profile 2")
         return imageView
     }()
     
     private lazy var nicknameTextField: UITextField = {
         let textField = UITextField()
+        textField.text = AuthViewModel.shared.currentUser.value?.nickName
         textField.placeholder = "10글자 이하의 닉네임"
         textField.textColor = .gray1
         textField.font = .customFont(.pretendardRegular, size: 14)
@@ -75,6 +76,15 @@ class ProfileEditViewController: UIViewController {
                 return
             }
             // 프로필 업데이트
+            Task {
+                do {
+                    try await AuthViewModel.shared.updateProfile(nickname: nickname)
+                    self.navigationController?.popViewController(animated: true)
+                } catch {
+                    print("프로필 수정 실패: \(error)")
+                }
+            }
+            
         }, for: .touchUpInside)
         return button
     }()

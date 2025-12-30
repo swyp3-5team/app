@@ -21,7 +21,7 @@ class MenuTableViewCell: UITableViewCell {
     
     private let chevronImageView: UIImageView = {
         let iv = UIImageView()
-        iv.image = UIImage(systemName: "chevron.right")
+        iv.image = UIImage(named: "Chevron right gray")
         iv.contentMode = .scaleAspectFit
         return iv
     }()
