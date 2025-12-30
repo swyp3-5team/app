@@ -57,7 +57,7 @@ final class LoginAPI {
         ]
         
         _ = try await AF.request(
-            "\(baseURL)/auth/refresh",
+            "\(baseURL)/api/v1/user-profiles",
             method: .post,
             parameters: requestBody,
             encoder: JSONParameterEncoder.default,
@@ -66,6 +66,30 @@ final class LoginAPI {
         .validate()
         .serializingData()
         .value
+    }
+    
+    func getProfile() async throws -> User {
+        return try await NetworkManager.shared.session.request(
+                "\(baseURL)/api/v1/user-profiles/me",
+                method: .get
+            )
+            .validate(statusCode: 200..<300)
+            .serializingDecodable(User.self)
+            .value
+    }
+    
+    func updateProfile(nickname: String) async throws -> User {
+        let requestBody = UpdateProfileRequest(nickname: nickname)
+        
+        return try await NetworkManager.shared.session.request(
+                "\(baseURL)/api/v1/user-profiles",
+                method: .put,
+                parameters: requestBody,
+                encoder: JSONParameterEncoder.default,
+            )
+            .validate()
+            .serializingDecodable(User.self)
+            .value
     }
     
     func deleteKakaoUser() async throws {
@@ -87,6 +111,7 @@ final class LoginAPI {
         .serializingData()
         .value
     }
+    
     
     func renewAccessToken() async throws -> Bool {
         guard let token = KeychainManager.shared.refreshToken else { return false }
