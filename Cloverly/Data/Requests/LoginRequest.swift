@@ -17,6 +17,10 @@ struct SignUpRequest: nonisolated Encodable {
     let marketingEnable: Bool
 }
 
+struct UpdateProfileRequest: nonisolated Encodable {
+    var nickname: String
+}
+
 struct TokenRequest {
     let accessToken: String
     let refreshToken: String

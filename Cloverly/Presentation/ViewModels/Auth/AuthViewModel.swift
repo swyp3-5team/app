@@ -18,6 +18,8 @@ final class AuthViewModel: ObservableObject {
     var authStatus = PublishRelay<AuthStatus>()
     let api = LoginAPI()
     
+    let currentUser = BehaviorRelay<User?>(value: nil)
+    
     var serviceTerm = false
     var privacyTerm = false
     var marketingEnable = false
@@ -134,33 +136,38 @@ final class AuthViewModel: ObservableObject {
         }
     }
     
+    func getProfile() {
+        Task {
+            do {
+                let user = try await api.getProfile()
+                currentUser.accept(user)
+            } catch {
+                print("프로필 조회 실패: \(error.localizedDescription)")
+            }
+        }
+    }
+    
     func logout() {
+        currentUser.accept(nil)
         KeychainManager.shared.delete(key: "accessToken")
         KeychainManager.shared.delete(key: "refreshToken")
     }
     
-    func deleteKakaoUser() {
-        Task {
-            do {
-                try await api.deleteKakaoUser()
-                KeychainManager.shared.delete(key: "accessToken")
-                KeychainManager.shared.delete(key: "refreshToken")
-            } catch {
-                print("카카오 회원탈퇴 실패: \(error.localizedDescription)")
-            }
-        }
+    func updateProfile(nickname: String) async throws {
+        let user = try await api.updateProfile(nickname: nickname)
+        currentUser.accept(user)
     }
     
-    func deleteAppleUser() {
-        Task {
-            do {
-                try await api.deleteAppleUser()
-                KeychainManager.shared.delete(key: "accessToken")
-                KeychainManager.shared.delete(key: "refreshToken")
-            } catch {
-                print("애플 회원탈퇴 실패: \(error.localizedDescription)")
-            }
-        }
+    func deleteKakaoUser() async throws {
+        try await api.deleteKakaoUser()
+        KeychainManager.shared.delete(key: "accessToken")
+        KeychainManager.shared.delete(key: "refreshToken")
+    }
+    
+    func deleteAppleUser() async throws {
+        try await api.deleteAppleUser()
+        KeychainManager.shared.delete(key: "accessToken")
+        KeychainManager.shared.delete(key: "refreshToken")
     }
     
     private func getUserInfo() {

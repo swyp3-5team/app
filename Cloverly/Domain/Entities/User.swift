@@ -13,15 +13,17 @@ enum AuthStatus {
     case authenticated
 }
 
-enum AuthProvider: Codable {
-    case kakao
-    case apple
+enum AuthProvider: String, Codable {
+    case kakao = "KAKAO"
+    case apple = "APPLE"
 }
 
-struct User: Codable, Hashable, Identifiable {
-    let id: String
-    let email: String
-    var nickname: String
-    let providerUserId: String
+struct User: nonisolated Codable, Hashable, Identifiable {
+    let profileId: Int
+    let nickName: String
+    let marketingEnable: Bool
+    let userEmail: String
     let provider: AuthProvider
+    
+    var id: Int { profileId }
 }
