@@ -29,10 +29,10 @@ class CustomTabBarViewController: UITabBarController {
     
     func setupViewControllers() {
         let homeVC = HomeViewController()
-        let recordVC = ViewController()
+        let historyVC = HistoryTabViewController()
         let myVC = MyPageViewController()
         
-        viewControllers = [homeVC, recordVC, myVC]
+        viewControllers = [homeVC, historyVC, myVC]
         
         customTabBar.itemTapped
             .subscribe(onNext: { [weak self] index in

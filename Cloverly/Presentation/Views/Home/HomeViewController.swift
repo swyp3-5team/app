@@ -93,7 +93,7 @@ class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
-        AuthViewModel.shared.getProfile()
+//        AuthViewModel.shared.getProfile()
     }
     
     func configureUI() {
