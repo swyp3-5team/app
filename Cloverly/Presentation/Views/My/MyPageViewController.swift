@@ -63,6 +63,7 @@ class MyPageViewController: UIViewController {
         tableView.dataSource = self
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60
+        tableView.isScrollEnabled = false
         
         return tableView
     }()
@@ -86,7 +87,8 @@ class MyPageViewController: UIViewController {
         }
         
         tableView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.leading.trailing.bottom.equalToSuperview()
         }
     }
     
