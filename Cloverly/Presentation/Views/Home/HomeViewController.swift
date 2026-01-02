@@ -40,6 +40,13 @@ class HomeViewController: UIViewController {
     
     private let typeLogoImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage(named: "typeLogo"))
+        imageView.contentMode = .scaleAspectFit
+        imageView.clipsToBounds = true
+        return imageView
+    }()
+    
+    private let bubbleImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage(named: "speech_bubble"))
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         return imageView
@@ -102,6 +109,7 @@ class HomeViewController: UIViewController {
         view.addSubview(backgroundImageView)
         view.sendSubviewToBack(backgroundImageView)
         view.addSubview(typeLogoImageView)
+        view.addSubview(bubbleImageView)
         view.addSubview(greetingLabel)
         view.addSubview(characterImageView)
         view.addSubview(chatButton)
@@ -115,10 +123,14 @@ class HomeViewController: UIViewController {
             $0.leading.equalToSuperview().offset(16)
         }
         
+        bubbleImageView.snp.makeConstraints {
+            $0.centerX.equalToSuperview()
+            $0.top.equalTo(typeLogoImageView.snp.bottom).offset(100)
+        }
+        
         greetingLabel.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.top.equalToSuperview().offset(182)
-            $0.bottom.equalTo(characterImageView.snp.top).offset(-144)
+            $0.top.equalTo(bubbleImageView.snp.top).offset(22)
         }
         
         characterImageView.snp.makeConstraints {
