@@ -14,5 +14,5 @@ struct TransactionRequest: nonisolated Codable {
     let paymentMemo: String?
     let emotion: Emotion
     let type: String
-    let transactions: [Transaction]
+    let transactions: [TransactionDTO]
 }

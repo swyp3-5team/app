@@ -84,16 +84,17 @@ class ExpenseListViewController: UIViewController {
 
 extension ExpenseListViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        3
+        viewModel.currentDayTransactions.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ExpenseListViewCell.identifier, for: indexPath) as? ExpenseListViewCell else {
             return UITableViewCell()
         }
-//        cell.configure()
+        
+        let transaction = viewModel.currentDayTransactions[indexPath.row]
+        cell.configure(with: transaction)
+        
         return cell
     }
-    
-    
 }

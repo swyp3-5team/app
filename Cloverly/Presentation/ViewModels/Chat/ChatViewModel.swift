@@ -68,7 +68,7 @@ final class ChatViewModel {
             emotion: info.emotion,
             type: info.type,
             transactions: info.transactions.map { item in
-                Transaction(
+                TransactionDTO(
                     name: item.name,
                     amount: item.amount,
                     categoryName: item.categoryName

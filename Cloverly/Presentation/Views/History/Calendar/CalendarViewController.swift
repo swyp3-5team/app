@@ -15,6 +15,12 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
     private let viewModel = CalendarViewModel()
     private let disposeBag = DisposeBag()
     
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+    
     private lazy var headerLabel: UILabel = {
         let label = UILabel()
         label.font = .boldSystemFont(ofSize: 18)
@@ -34,8 +40,9 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             let currentPage = calendar.currentPage
-                guard let prevPage = Calendar.current.date(byAdding: .month, value: -1, to: currentPage) else { return }
-                calendar.setCurrentPage(prevPage, animated: true)
+            guard let prevPage = Calendar.current.date(byAdding: .month, value: -1, to: currentPage) else { return }
+            calendar.setCurrentPage(prevPage, animated: true)
+            self.viewModel.updateDate(prevPage)
         }, for: .touchUpInside)
         return button
     }()
@@ -47,8 +54,9 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             let currentPage = calendar.currentPage
-                guard let prevPage = Calendar.current.date(byAdding: .month, value: 1, to: currentPage) else { return }
-                calendar.setCurrentPage(prevPage, animated: true)
+            guard let nextPage = Calendar.current.date(byAdding: .month, value: 1, to: currentPage) else { return }
+            calendar.setCurrentPage(nextPage, animated: true)
+            self.viewModel.updateDate(nextPage)
         }, for: .touchUpInside)
         return button
     }()
@@ -89,15 +97,12 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         return calendar
     }()
     
-    let expenses: [String: String] = [
-            "2025-12-25": "-50,000",
-            "2025-12-30": "-12,000"
-        ]
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
         bind()
+        
+        viewModel.updateDate(Date())
     }
     
     func configureUI() {
@@ -155,9 +160,27 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
                 }
             })
             .disposed(by: disposeBag)
+        
+        viewModel.currentDate
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] date in
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy년 MM월"
+                formatter.locale = Locale(identifier: "ko_KR")
+                self?.headerLabel.text = formatter.string(from: date)
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.dailyTotalAmounts
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] _ in
+                self?.calendar.reloadData()
+            })
+            .disposed(by: disposeBag)
     }
 
     func calendar(_ calendar: FSCalendar, didSelect date: Date, at monthPosition: FSCalendarMonthPosition) {
+        self.viewModel.selectedDate.accept(date)
         self.viewModel.isSheetPresent.accept(true)
     }
     
@@ -168,24 +191,27 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
     func calendar(_ calendar: FSCalendar, cellFor date: Date, at position: FSCalendarMonthPosition) -> FSCalendarCell {
         let cell = calendar.dequeueReusableCell(withIdentifier: CalendarCell.identifier, for: date, at: position) as! CalendarCell
         
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
         let dateString = dateFormatter.string(from: date)
         
         // 데이터가 있다면 라벨에 표시
-        if let expense = expenses[dateString] {
-            cell.configure(with: expense)
+        if let totalAmount = viewModel.dailyTotalAmounts.value[dateString] {
+            // 세자리 콤마 포맷팅
+            let formattedAmount = numberFormatter.string(from: NSNumber(value: totalAmount)) ?? "\(totalAmount)"
+            cell.configure(with: "-\(formattedAmount)")
+        } else {
+            cell.configure(with: "")
         }
         
         return cell
     }
     
     func calendarCurrentPageDidChange(_ calendar: FSCalendar) {
-        let currentPage = calendar.currentPage
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy년 MM월"
-        dateFormatter.locale = Locale(identifier: "ko_KR")
-        
-        self.headerLabel.text = dateFormatter.string(from: currentPage)
+        viewModel.updateDate(calendar.currentPage)
     }
+    
+    private let numberFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter
+    }()
 }

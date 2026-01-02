@@ -14,6 +14,8 @@ class CalendarCell: FSCalendarCell {
     
     private let expenseLabel: UILabel = {
         let label = UILabel()
+        label.font = .customFont(.pretendardRegular, size: 10)
+        label.textColor = .gray4
         return label
     }()
     

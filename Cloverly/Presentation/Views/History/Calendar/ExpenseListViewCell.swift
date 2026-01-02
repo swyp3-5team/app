@@ -80,8 +80,8 @@ class ExpenseListViewCell: UITableViewCell {
         }
     }
     
-    func configure(with menu: MyPageMenu) {
-        titleLabel.text = menu.rawValue
+    func configure(with transaction: Transaction) {
+        titleLabel.text = transaction.place
     }
 
 }
