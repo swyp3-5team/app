@@ -28,6 +28,9 @@ final class CalendarViewModel {
         return groupedTransactions.value[key] ?? []
     }
     
+    // 내역-통계
+    let categoryStatistics = BehaviorRelay<[CategoryStatistic]>(value: [])
+    
     let selectedIndex = BehaviorRelay<Int>(value: 1)
     private let disposeBag = DisposeBag()
     
@@ -74,6 +77,22 @@ final class CalendarViewModel {
                 groupedTransactions.accept(grouped)
             } catch {
                 print("지출 내역 데이터 로드 실패: \(error)")
+            }
+        }
+    }
+    
+    func getCategoryStatistics(yearMonth: Date) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        let yearMonthString = formatter.string(from: yearMonth)
+        
+        Task {
+            do {
+                let categoryStatisticsList = try await transactionAPI.getCategoryStatistics(yearMonth: yearMonthString)
+                print(categoryStatisticsList)
+                categoryStatistics.accept(categoryStatisticsList)
+            } catch {
+                print("카테고리 통계 데이터 로드 실패: \(error)")
             }
         }
     }

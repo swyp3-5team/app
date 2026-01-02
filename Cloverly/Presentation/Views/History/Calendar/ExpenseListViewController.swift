@@ -12,10 +12,10 @@ import RxCocoa
 
 class ExpenseListViewController: UIViewController {
     private let viewModel: CalendarViewModel
+    private let disposeBag = DisposeBag()
     
-    private let titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "12월 31일"
         label.textColor = .gray1
         label.font = .customFont(.pretendardSemiBold, size: 18)
         return label
@@ -38,8 +38,9 @@ class ExpenseListViewController: UIViewController {
         tableView.register(ExpenseListViewCell.self, forCellReuseIdentifier: ExpenseListViewCell.identifier)
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 60
+        tableView.estimatedRowHeight = 100
         return tableView
     }()
     
@@ -55,6 +56,8 @@ class ExpenseListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
+        bind()
+        isModalInPresentation = true
     }
     
     func configureUI() {
@@ -75,11 +78,21 @@ class ExpenseListViewController: UIViewController {
         
         tableView.snp.makeConstraints {
             $0.top.equalTo(titleLabel).offset(20)
-            $0.leading.trailing.equalToSuperview().inset(16)
-            $0.bottom.equalToSuperview()
+            $0.leading.trailing.bottom.equalToSuperview()
         }
     }
-
+    
+    func bind() {
+        viewModel.selectedDate
+            .map { date -> String in
+                let formatter = DateFormatter()
+                formatter.dateFormat = "MM월 dd일"
+                formatter.locale = Locale(identifier: "ko_KR")
+                return formatter.string(from: date)
+            }
+            .bind(to: titleLabel.rx.text) // 라벨 텍스트로 바로 연결
+            .disposed(by: disposeBag)
+    }
 }
 
 extension ExpenseListViewController: UITableViewDataSource, UITableViewDelegate {

@@ -59,7 +59,7 @@ class HistoryTabViewController: TabmanViewController {
             button.tintColor = .gray6
             button.selectedTintColor = .label
         }
-        bar.indicator.weight = .custom(value: 1)
+        bar.indicator.weight = .custom(value: 2)
         bar.indicator.tintColor = .label
         
         addBar(bar, dataSource: self, at: .top)
@@ -81,7 +81,7 @@ extension HistoryTabViewController: PageboyViewControllerDataSource, TMBarDataSo
     }
     
     func barItem(for bar: TMBar, at index: Int) -> TMBarItemable {
-        let title = index == 0 ? "기록" : "통계"
+        let title = index == 0 ? "기록" : "달력"
         return TMBarItem(title: title)
     }
 }

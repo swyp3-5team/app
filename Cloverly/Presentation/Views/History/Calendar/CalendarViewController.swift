@@ -69,7 +69,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
         
         let button = UIButton(configuration: config)
-        button.layer.cornerRadius = 12
+        button.layer.cornerRadius = 32
         button.clipsToBounds = true
         
         button.addAction(UIAction { [weak self] _ in
@@ -79,6 +79,27 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         }, for: .touchUpInside)
         
         return button
+    }()
+    
+    private let expenseLabel: UILabel = {
+        let label = UILabel()
+        label.font = .customFont(.pretendardSemiBold, size: 18)
+        label.textColor = .gray1
+        return label
+    }()
+    
+    private let incomeLabel: UILabel = {
+        let label = UILabel()
+        label.font = .customFont(.pretendardSemiBold, size: 18)
+        label.textColor = .green5
+        label.text = "수입 0원"
+        return label
+    }()
+    
+    private let dividerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .gray9
+        return view
     }()
     
     private lazy var calendar: FSCalendar = {
@@ -110,6 +131,9 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         view.addSubview(headerLabel)
         view.addSubview(nextButton)
         view.addSubview(statsButton)
+        view.addSubview(expenseLabel)
+        view.addSubview(incomeLabel)
+        view.addSubview(dividerView)
         view.addSubview(calendar)
         
         prevButton.snp.makeConstraints {
@@ -118,18 +142,34 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         }
         
         headerLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(10)
-            $0.leading.equalTo(prevButton.snp.trailing).offset(20)
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(16)
+            $0.leading.equalTo(prevButton.snp.trailing).offset(8)
         }
         
         nextButton.snp.makeConstraints {
             $0.centerY.equalTo(headerLabel)
-            $0.leading.equalTo(headerLabel.snp.trailing).offset(20)
+            $0.leading.equalTo(headerLabel.snp.trailing).offset(8)
         }
         
         statsButton.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-16)
             $0.centerY.equalTo(headerLabel)
+        }
+        
+        expenseLabel.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.top.equalTo(statsButton.snp.bottom).offset(12)
+        }
+        
+        incomeLabel.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.top.equalTo(expenseLabel.snp.bottom).offset(8)
+        }
+        
+        dividerView.snp.makeConstraints {
+            $0.top.equalTo(incomeLabel.snp.bottom).offset(20)
+            $0.leading.trailing.equalToSuperview()
+            $0.height.equalTo(6)
         }
         
         calendar.snp.makeConstraints {
@@ -173,7 +213,9 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         
         viewModel.dailyTotalAmounts
             .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] _ in
+            .subscribe(onNext: { [weak self] amounts in
+                let total = amounts.values.reduce(0, +)
+                self?.expenseLabel.text = total > 0 ? "지출 -\(total.withComma)원" : "지출 0원"
                 self?.calendar.reloadData()
             })
             .disposed(by: disposeBag)
@@ -184,8 +226,10 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         self.viewModel.isSheetPresent.accept(true)
     }
     
-    func configureCell(_ cell: FSCalendarCell?, for date: Date?, at position: FSCalendarMonthPosition) {
+    func calendar(_ calendar: FSCalendar, shouldSelect date: Date, at monthPosition: FSCalendarMonthPosition) -> Bool {
+        let dateString = dateFormatter.string(from: date)
         
+        return viewModel.dailyTotalAmounts.value[dateString] != nil
     }
     
     func calendar(_ calendar: FSCalendar, cellFor date: Date, at position: FSCalendarMonthPosition) -> FSCalendarCell {
@@ -196,8 +240,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         // 데이터가 있다면 라벨에 표시
         if let totalAmount = viewModel.dailyTotalAmounts.value[dateString] {
             // 세자리 콤마 포맷팅
-            let formattedAmount = numberFormatter.string(from: NSNumber(value: totalAmount)) ?? "\(totalAmount)"
-            cell.configure(with: "-\(formattedAmount)")
+            cell.configure(with: "-\(totalAmount.withComma)")
         } else {
             cell.configure(with: "")
         }
@@ -208,10 +251,4 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
     func calendarCurrentPageDidChange(_ calendar: FSCalendar) {
         viewModel.updateDate(calendar.currentPage)
     }
-    
-    private let numberFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        return formatter
-    }()
 }

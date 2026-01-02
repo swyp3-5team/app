@@ -8,9 +8,52 @@
 import UIKit
 import DGCharts
 import SnapKit
+import RxSwift
+import RxCocoa
 
 class StatsViewController: UIViewController {
     private let viewModel: CalendarViewModel
+    private let disposeBag = DisposeBag()
+    
+    // ✨ 차트와 리스트가 공유할 색상 목록 (이미지 느낌의 파스텔톤)
+    private let chartColors: [UIColor] = [
+        UIColor(red: 0.2, green: 0.8, blue: 0.6, alpha: 1.0),  // 민트/초록 (식비)
+        UIColor(red: 1.0, green: 0.8, blue: 0.4, alpha: 1.0),  // 노랑 (쇼핑)
+        UIColor(red: 0.4, green: 0.6, blue: 1.0, alpha: 1.0),  // 파랑
+        UIColor(red: 0.2, green: 0.8, blue: 0.8, alpha: 1.0),  // 청록
+        UIColor(red: 1.0, green: 0.4, blue: 0.5, alpha: 1.0),  // 핑크/빨강
+        UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)   // 회색
+    ]
+    
+    private let emptyStateLabel: UILabel = {
+        let label = UILabel()
+        label.text = "내역이 없습니다."
+        label.font = .customFont(.pretendardMedium, size: 16)
+        label.textColor = .gray
+        label.textAlignment = .center
+        label.isHidden = true // 처음엔 숨겨둠
+        return label
+    }()
+    
+    private let dateLabel: UILabel = {
+        let label = UILabel()
+        label.font = .customFont(.pretendardMedium, size: 14)
+        label.textColor = .gray3
+        return label
+    }()
+    
+    private let totalAmount: UILabel = {
+        let label = UILabel()
+        label.font = .customFont(.pretendardSemiBold, size: 24)
+        label.textColor = .gray1
+        return label
+    }()
+    
+    private let dividerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .gray9
+        return view
+    }()
     
     private lazy var pieChartView: PieChartView = {
         let chart = PieChartView()
@@ -22,17 +65,23 @@ class StatsViewController: UIViewController {
         chart.transparentCircleRadiusPercent = 0.45
         
         chart.chartDescription.enabled = false
-        
+        chart.drawEntryLabelsEnabled = false
+        chart.rotationEnabled = false
         chart.legend.enabled = false
-//        chart.legend.horizontalAlignment = .center
-//        chart.legend.verticalAlignment = .bottom
-//        chart.legend.orientation = .horizontal
-//        chart.legend.drawInside = false
-//        chart.legend.font = .systemFont(ofSize: 17)
         
         chart.animate(yAxisDuration: 1.0, easingOption: .easeInOutQuad)
         
         return chart
+    }()
+    
+    private lazy var categoryTableView: UITableView = {
+        let tableView = UITableView()
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.separatorStyle = .none
+        tableView.rowHeight = 60 // 셀 높이를 넉넉하게
+        tableView.register(CategoryTableViewCell.self, forCellReuseIdentifier: CategoryTableViewCell.identifier)
+        return tableView
     }()
     
     lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["수입", "지출"], cornerRadius: 17)
@@ -49,66 +98,135 @@ class StatsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
-        setChartData()
+        bind()
         navigationItem.titleView = segmented
+        
+        viewModel.getCategoryStatistics(yearMonth: viewModel.currentDate.value)
     }
     
     func configureUI() {
+        view.addSubview(dateLabel)
+        view.addSubview(totalAmount)
+        view.addSubview(dividerView)
         view.addSubview(pieChartView)
+        view.addSubview(categoryTableView)
+        view.addSubview(emptyStateLabel)
+        
+        dateLabel.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
+            $0.leading.equalToSuperview().offset(16)
+        }
+        
+        totalAmount.snp.makeConstraints {
+            $0.top.equalTo(dateLabel.snp.bottom).offset(8)
+            $0.leading.equalToSuperview().offset(16)
+        }
+        
+        dividerView.snp.makeConstraints {
+            $0.top.equalTo(totalAmount.snp.bottom).offset(20)
+            $0.leading.trailing.equalToSuperview()
+            $0.height.equalTo(6)
+        }
         
         pieChartView.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(20)
+            $0.top.equalTo(dividerView.snp.bottom).offset(40)
             $0.centerX.equalToSuperview()
-            $0.width.height.equalTo(300)
+            $0.width.height.equalTo(200) // 차트 크기 적당히 조절
+        }
+        
+        categoryTableView.snp.makeConstraints {
+            $0.top.equalTo(pieChartView.snp.bottom).offset(40)
+            $0.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
         }
         
         segmented.snp.makeConstraints {
             $0.width.equalTo(120)
             $0.height.equalTo(34)
         }
+        
+        emptyStateLabel.snp.makeConstraints {
+            $0.center.equalTo(pieChartView)
+        }
+        
+        let marker = CircleMarkerView()
+        marker.chartView = pieChartView // 필수 연결
+        pieChartView.marker = marker
     }
     
-    func setChartData() {
-        let entries: [PieChartDataEntry] = [
-            PieChartDataEntry(value: 40, label: "식비"),
-            PieChartDataEntry(value: 30, label: "쇼핑"),
-            PieChartDataEntry(value: 20, label: "교통"),
-            PieChartDataEntry(value: 10, label: "기타")
-        ]
+    func bind() {
+        viewModel.categoryStatistics
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] stats in
+                self?.updateHeader(stats: stats) // 총액 업데이트
+                self?.setChartData(data: stats)
+                self?.categoryTableView.reloadData()
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    private func updateHeader(stats: [CategoryStatistic]) {
+        let total = stats.reduce(0) { $0 + $1.totalAmount }
         
+        totalAmount.text = "\(total.withComma)원"
+        
+        // 날짜 라벨도 업데이트 (viewModel 날짜 가져와서)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "M월 지출"
+        dateLabel.text = dateFormatter.string(from: viewModel.currentDate.value)
+    }
+    
+    func setChartData(data: [CategoryStatistic]) {
+        if data.isEmpty {
+            pieChartView.isHidden = true
+            emptyStateLabel.isHidden = false
+            
+            pieChartView.data = nil
+            return
+        } else {
+            pieChartView.isHidden = false
+            emptyStateLabel.isHidden = true
+        }
+        
+        let entries = data.map { PieChartDataEntry(value: $0.totalAmount, label: $0.categoryName) }
         let dataSet = PieChartDataSet(entries: entries, label: "")
         
-        // 색상 지정 (순서대로 적용됨)
-        dataSet.colors = [
-            .systemRed,
-            .systemBlue,
-            .systemGreen,
-            .systemGray
-        ]
-        
-        // 조각(Slice) 간의 간격
-//        dataSet.sliceSpace = 0
-        
-        // 선택 시 커지는 효과
+        dataSet.colors = self.chartColors
+        dataSet.sliceSpace = 0 // 이미지처럼 딱 붙이려면 0, 살짝 떼려면 2
         dataSet.selectionShift = 10
+        dataSet.drawValuesEnabled = false
         
-        // 데이터 값 텍스트 스타일
-        dataSet.valueFont = .boldSystemFont(ofSize: 12)
-        dataSet.valueTextColor = .white
+        let chartData = PieChartData(dataSet: dataSet)
+        pieChartView.data = chartData
         
-        // 4. 최종 데이터 주입
-        let data = PieChartData(dataSet: dataSet)
+//        if !data.isEmpty {
+//            pieChartView.highlightValue(x: 0, dataSetIndex: 0)
+//        }
+    }
+}
+
+extension StatsViewController: UITableViewDataSource, UITableViewDelegate {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        viewModel.categoryStatistics.value.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: CategoryTableViewCell.identifier, for: indexPath) as? CategoryTableViewCell else {
+            return UITableViewCell()
+        }
         
-        // (선택) 숫자를 소수점 없이 깔끔하게 보여주기 포맷터
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .percent
-        formatter.maximumFractionDigits = 0
-        formatter.multiplier = 1.0
-        data.setValueFormatter(DefaultValueFormatter(formatter: formatter))
+        let stats = viewModel.categoryStatistics.value
+        let item = stats[indexPath.row]
         
-        pieChartView.data = data
+        // 퍼센트 계산
+        let totalSum = stats.reduce(0.0) { $0 + $1.totalAmount }
+        let percentage = totalSum == 0 ? 0 : (item.totalAmount / totalSum) * 100
         
-        // 가장 많은 비율에 커져보이게
-  
+        // ✨ 차트와 동일한 순서의 색상을 꺼내서 전달
+        // (데이터 개수가 색상보다 많을 경우를 대비해 % 연산자 사용)
+        let color = chartColors[indexPath.row % chartColors.count]
+        
+        cell.configure(color: color, name: item.categoryName, amount: item.totalAmount, percent: percentage)
+        
+        return cell
     }
 }

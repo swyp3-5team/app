@@ -1,16 +1,16 @@
 //
-//  ExpenseListViewCell.swift
+//  CategoryTableViewCell.swift
 //  Cloverly
 //
-//  Created by wayblemac02 on 1/2/26.
+//  Created by 이인호 on 1/3/26.
 //
 
 import UIKit
 import SnapKit
 
-class ExpenseListViewCell: UITableViewCell {
+class CategoryTableViewCell: UITableViewCell {
     
-    static let identifier = "ExpenseListViewCell"
+    static let identifier = "CategoryTableViewCell"
     
     private let cellImageView: UIImageView = {
         let iv = UIImageView()
@@ -27,7 +27,7 @@ class ExpenseListViewCell: UITableViewCell {
         return label
     }()
     
-    private let subtitleLabel: UILabel = {
+    private let percentageLabel: UILabel = {
         let label = UILabel()
         label.font = .customFont(.pretendardRegular, size: 14)
         label.textColor = .gray4
@@ -35,15 +35,6 @@ class ExpenseListViewCell: UITableViewCell {
         return label
     }()
     
-    private lazy var containerStackView: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
-        stack.axis = .vertical
-        stack.spacing = 8
-        stack.alignment = .leading
-        stack.distribution = .fill
-        return stack
-    }()
-
     private let priceLabel: UILabel = {
         let label = UILabel()
         label.font = .customFont(.pretendardSemiBold, size: 18)
@@ -64,7 +55,8 @@ class ExpenseListViewCell: UITableViewCell {
     
     func configureUI() {
         contentView.addSubview(cellImageView)
-        contentView.addSubview(containerStackView)
+        contentView.addSubview(titleLabel)
+        contentView.addSubview(percentageLabel)
         contentView.addSubview(priceLabel)
         
         cellImageView.snp.makeConstraints {
@@ -72,8 +64,13 @@ class ExpenseListViewCell: UITableViewCell {
             $0.centerY.equalToSuperview()
         }
         
-        containerStackView.snp.makeConstraints {
+        titleLabel.snp.makeConstraints {
             $0.leading.equalTo(cellImageView.snp.trailing).offset(16)
+            $0.centerY.equalToSuperview()
+        }
+        
+        percentageLabel.snp.makeConstraints {
+            $0.leading.equalTo(titleLabel.snp.trailing).offset(8)
             $0.centerY.equalToSuperview()
         }
         
@@ -83,9 +80,27 @@ class ExpenseListViewCell: UITableViewCell {
         }
     }
     
-    func configure(with transaction: Transaction) {
-        titleLabel.text = transaction.place
-        subtitleLabel.text = transaction.emotion.displayName
-        priceLabel.text = "-\(transaction.totalAmount.withComma)원"
+    func configure(color: UIColor, name: String, amount: Double, percent: Double) {
+        //            colorBarView.backgroundColor = color
+        
+        // 이모지 매핑 (간단하게 구현)
+        let emoji = getEmoji(for: name)
+        titleLabel.text = "\(emoji) \(name)"
+        
+        percentageLabel.text = String(format: "%.0f%%", percent) // 소수점 없이 (21%)
+        priceLabel.text = "\(amount.withComma)원"
     }
+    
+    // 카테고리 이름에 따라 이모지 리턴하는 헬퍼 함수
+    private func getEmoji(for name: String) -> String {
+        if name.contains("식비") { return "🍚" }
+        if name.contains("쇼핑") { return "🛍️" }
+        if name.contains("카페") { return "🍰" }
+        if name.contains("교통") { return "🚌" }
+        if name.contains("생활용품") { return "🧹" }
+        if name.contains("건강") { return "💪" }
+        if name.contains("취미") { return "🧶" }
+        return "💸" // 기본값
+    }
+    
 }
