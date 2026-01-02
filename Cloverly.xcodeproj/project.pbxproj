@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3CB535492F0785AE0006D32A /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = 3CB535482F0785AE0006D32A /* DGCharts */; };
 		C20C8C322F043B100093B69B /* FSCalendar in Frameworks */ = {isa = PBXBuildFile; productRef = C20C8C312F043B100093B69B /* FSCalendar */; };
 		C20C8C352F043B590093B69B /* Tabman in Frameworks */ = {isa = PBXBuildFile; productRef = C20C8C342F043B590093B69B /* Tabman */; };
 		C27EFB712F00E36F00144665 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = C27EFB702F00E36F00144665 /* Lottie */; };
@@ -79,6 +80,7 @@
 			files = (
 				C2876D4B2EEB01E100231C37 /* KakaoSDKCommon in Frameworks */,
 				C27EFB712F00E36F00144665 /* Lottie in Frameworks */,
+				3CB535492F0785AE0006D32A /* DGCharts in Frameworks */,
 				C2876D492EEB01E100231C37 /* KakaoSDKAuth in Frameworks */,
 				C2876D992EEB070100231C37 /* RxSwift in Frameworks */,
 				C29A8AF72EF1A07700C58C0A /* SnapKit in Frameworks */,
@@ -155,6 +157,7 @@
 				C27EFB702F00E36F00144665 /* Lottie */,
 				C20C8C312F043B100093B69B /* FSCalendar */,
 				C20C8C342F043B590093B69B /* Tabman */,
+				3CB535482F0785AE0006D32A /* DGCharts */,
 			);
 			productName = Cloverly;
 			productReference = C2876C202EEAFD3300231C37 /* Cloverly.app */;
@@ -246,6 +249,7 @@
 				C27EFB6F2F00E36F00144665 /* XCRemoteSwiftPackageReference "lottie-ios" */,
 				C20C8C302F043B100093B69B /* XCRemoteSwiftPackageReference "FSCalendar" */,
 				C20C8C332F043B590093B69B /* XCRemoteSwiftPackageReference "Tabman" */,
+				3CB535472F0785AE0006D32A /* XCRemoteSwiftPackageReference "Charts" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C2876C212EEAFD3300231C37 /* Products */;
@@ -648,6 +652,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		3CB535472F0785AE0006D32A /* XCRemoteSwiftPackageReference "Charts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ChartsOrg/Charts";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.0;
+			};
+		};
 		C20C8C302F043B100093B69B /* XCRemoteSwiftPackageReference "FSCalendar" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/WenchaoD/FSCalendar.git";
@@ -699,6 +711,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		3CB535482F0785AE0006D32A /* DGCharts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3CB535472F0785AE0006D32A /* XCRemoteSwiftPackageReference "Charts" */;
+			productName = DGCharts;
+		};
 		C20C8C312F043B100093B69B /* FSCalendar */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C20C8C302F043B100093B69B /* XCRemoteSwiftPackageReference "FSCalendar" */;

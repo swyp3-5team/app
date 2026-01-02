@@ -24,7 +24,7 @@ class ChatViewController: UIViewController {
     private let sizingCell = ChatCollectionViewCell()
     private lazy var inputBar = InputBar(viewModel: viewModel)
     
-    lazy var segmented = CustomSegmentedControl(viewModel: viewModel, items: ["가계부", "대화"], cornerRadius: 17)
+    lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["가계부", "대화"], cornerRadius: 17)
     
     var overlayWindow: UIWindow?
     

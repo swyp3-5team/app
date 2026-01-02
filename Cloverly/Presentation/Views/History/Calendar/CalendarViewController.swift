@@ -63,6 +63,13 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         let button = UIButton(configuration: config)
         button.layer.cornerRadius = 12
         button.clipsToBounds = true
+        
+        button.addAction(UIAction { [weak self] _ in
+            guard let self = self else { return }
+            let vc = StatsViewController(viewModel: viewModel)
+            self.navigationController?.pushViewController(vc, animated: true)
+        }, for: .touchUpInside)
+        
         return button
     }()
     

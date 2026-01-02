@@ -11,4 +11,5 @@ import RxCocoa
 
 final class CalendarViewModel {
     let isSheetPresent = BehaviorRelay<Bool>(value: false)
+    let selectedIndex = BehaviorRelay<Int>(value: 1)
 }

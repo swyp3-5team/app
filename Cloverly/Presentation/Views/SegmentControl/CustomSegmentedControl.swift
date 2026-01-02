@@ -11,15 +11,17 @@ import RxCocoa
 import SnapKit
 
 final class CustomSegmentedControl: UIView {
-    private let viewModel: ChatViewModel
+//    private let viewModel: ChatViewModel
+    private let selectedIndex: BehaviorRelay<Int>
+    
     private let stackView = UIStackView()
     private let indicatorView = UIView()
     private var buttons: [UIButton] = []
 
     private let disposeBag = DisposeBag()
 
-    init(viewModel: ChatViewModel, items: [String], cornerRadius: CGFloat) {
-        self.viewModel = viewModel
+    init(selectedIndex: BehaviorRelay<Int>, items: [String], cornerRadius: CGFloat) {
+        self.selectedIndex = selectedIndex
         super.init(frame: .zero)
         setupUI(items: items, cornerRadius: cornerRadius)
         bind()
@@ -54,7 +56,7 @@ final class CustomSegmentedControl: UIView {
 
             button.rx.tap
                 .map { index }
-                .bind(to: viewModel.selectedIndex)
+                .bind(to: selectedIndex)
                 .disposed(by: disposeBag)
 
             buttons.append(button)
@@ -63,7 +65,7 @@ final class CustomSegmentedControl: UIView {
     }
 
     private func bind() {
-        viewModel.selectedIndex
+        selectedIndex
             .distinctUntilChanged()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] index in
@@ -86,7 +88,7 @@ final class CustomSegmentedControl: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        indicatorView.frame = buttons[viewModel.selectedIndex.value].frame
+        indicatorView.frame = buttons[selectedIndex.value].frame
     }
 }
 
