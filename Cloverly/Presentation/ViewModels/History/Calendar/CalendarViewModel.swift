@@ -31,6 +31,9 @@ final class CalendarViewModel {
     // 내역-통계
     let categoryStatistics = BehaviorRelay<[CategoryStatistic]>(value: [])
     
+    // 내역 수정
+    let currentTransaction = BehaviorRelay<Transaction?>(value: nil)
+    
     let selectedIndex = BehaviorRelay<Int>(value: 1)
     private let disposeBag = DisposeBag()
     
@@ -95,5 +98,46 @@ final class CalendarViewModel {
                 print("카테고리 통계 데이터 로드 실패: \(error)")
             }
         }
+    }
+    
+    func editName(_ name: String) {
+        guard var current = currentTransaction.value else { return }
+        current.place = name // 상호명 수정
+        currentTransaction.accept(current)
+    }
+
+    func editAmount(_ amount: Int) {
+        guard var current = currentTransaction.value else { return }
+        current.totalAmount = amount // 금액 수정
+        currentTransaction.accept(current)
+    }
+
+    func editDate(_ date: Date) {
+        guard var current = currentTransaction.value else { return }
+        current.transactionDate = date.toServerFormat
+        currentTransaction.accept(current)
+    }
+
+    func editEmotion(_ emotion: Emotion) {
+        guard var current = currentTransaction.value else { return }
+        current.emotion = emotion // 감정 수정
+        currentTransaction.accept(current)
+    }
+
+    func editPaymentMethod(_ method: Payment) {
+        guard var current = currentTransaction.value else { return }
+        current.payment = method
+        currentTransaction.accept(current)
+    }
+
+    func editMemo(_ memo: String) {
+        guard var current = currentTransaction.value else { return }
+        current.paymentMemo = memo // 메모 수정
+        currentTransaction.accept(current)
+    }
+    
+    func updateTransaction() async throws {
+        guard let current = currentTransaction.value else { return }
+        try await transactionAPI.updateTransaction(transaction: current)
     }
 }

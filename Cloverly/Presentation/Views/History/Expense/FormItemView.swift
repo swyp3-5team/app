@@ -9,7 +9,13 @@ import UIKit
 import SnapKit
 
 class FormItemView: UIView {
-    private let titleLabel = UILabel()
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = .customFont(.pretendardSemiBold, size: 14)
+        label.textColor = .gray2
+        return label
+    }()
+    
     let contentView: UIView // 텍스트필드나 칩 뷰가 들어갈 자리
     
     init(title: String, content: UIView) {

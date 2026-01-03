@@ -14,4 +14,11 @@ extension String {
         let estimatedFrame = NSString(string: self).boundingRect(with: size, options: optionss, attributes: [.font: font], context: nil)
         return estimatedFrame
     }
+    
+    var toDate: Date? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd" // 포맷 확인 필수
+        formatter.locale = Locale(identifier: "ko_KR")
+        return formatter.date(from: self)
+    }
 }

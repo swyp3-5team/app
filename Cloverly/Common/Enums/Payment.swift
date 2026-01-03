@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum Payment: String, Codable {
+enum Payment: String, Codable, CaseIterable {
     case card = "CARD"
     case cash = "CASH"
     

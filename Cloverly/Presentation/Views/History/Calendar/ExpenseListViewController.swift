@@ -110,4 +110,11 @@ extension ExpenseListViewController: UITableViewDataSource, UITableViewDelegate 
         
         return cell
     }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        viewModel.currentTransaction.accept(viewModel.currentDayTransactions[indexPath.row])
+        let vc = ExpenseHistoryViewController(viewModel: viewModel)
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
+    }
 }

@@ -7,21 +7,22 @@
 
 import Foundation
 
-struct Transaction: nonisolated Decodable {
+struct Transaction: nonisolated Codable {
     let trGroupId: Int
-    let transactionDate: String
-    let totalAmount: Int
-    let place: String
-    let paymentMemo: String?
-    let payment: Payment
-    let emotion: Emotion
-    let transactionInfoList: [TransactionInfo] // 내부 리스트
+    var transactionDate: String
+    var totalAmount: Int
+    var place: String?
+    var paymentMemo: String?
+    var payment: Payment
+    var emotion: Emotion
+    var transactionInfoList: [TransactionInfo] // 내부 리스트
 }
 
-struct TransactionInfo: nonisolated Decodable {
+struct TransactionInfo: nonisolated Codable {
     let transactionId: Int
-    let name: String
-    let amount: Int
-    let categoryId: Int
-    let categoryName: String
+    var name: String
+    var amount: Int
+    var categoryId: Int
+    var categoryName: String
+    var type: String
 }

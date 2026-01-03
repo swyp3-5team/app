@@ -80,27 +80,11 @@ class CategoryTableViewCell: UITableViewCell {
         }
     }
     
-    func configure(color: UIColor, name: String, amount: Double, percent: Double) {
-        //            colorBarView.backgroundColor = color
-        
-        // 이모지 매핑 (간단하게 구현)
-        let emoji = getEmoji(for: name)
-        titleLabel.text = "\(emoji) \(name)"
+    func configure(color: UIColor, name: String, amount: Double, percent: Double, categoryId: Int) {
+        let icon = ExpenseCategory(rawValue: categoryId)?.icon ?? "💸"
+        titleLabel.text = "\(icon) \(name)"
         
         percentageLabel.text = String(format: "%.0f%%", percent) // 소수점 없이 (21%)
         priceLabel.text = "\(amount.withComma)원"
     }
-    
-    // 카테고리 이름에 따라 이모지 리턴하는 헬퍼 함수
-    private func getEmoji(for name: String) -> String {
-        if name.contains("식비") { return "🍚" }
-        if name.contains("쇼핑") { return "🛍️" }
-        if name.contains("카페") { return "🍰" }
-        if name.contains("교통") { return "🚌" }
-        if name.contains("생활용품") { return "🧹" }
-        if name.contains("건강") { return "💪" }
-        if name.contains("취미") { return "🧶" }
-        return "💸" // 기본값
-    }
-    
 }

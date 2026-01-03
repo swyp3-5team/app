@@ -85,7 +85,7 @@ class ExpenseListViewCell: UITableViewCell {
     
     func configure(with transaction: Transaction) {
         titleLabel.text = transaction.place
-        subtitleLabel.text = transaction.emotion.displayName
+        subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.transactionInfoList.max { $0.amount < $1.amount }?.categoryName ?? "내역 없음")"
         priceLabel.text = "-\(transaction.totalAmount.withComma)원"
     }
 }

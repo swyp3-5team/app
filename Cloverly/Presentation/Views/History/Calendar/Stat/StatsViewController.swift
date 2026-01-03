@@ -225,7 +225,7 @@ extension StatsViewController: UITableViewDataSource, UITableViewDelegate {
         // (데이터 개수가 색상보다 많을 경우를 대비해 % 연산자 사용)
         let color = chartColors[indexPath.row % chartColors.count]
         
-        cell.configure(color: color, name: item.categoryName, amount: item.totalAmount, percent: percentage)
+        cell.configure(color: color, name: item.categoryName, amount: item.totalAmount, percent: percentage, categoryId: item.categoryId)
         
         return cell
     }

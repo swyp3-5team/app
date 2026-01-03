@@ -7,9 +7,9 @@
 
 import Foundation
 
-enum Emotion: String, Codable {
+enum Emotion: String, Codable, CaseIterable {
     case neutral = "NEUTRAL"
-    case stress_releaf = "STRESS_RELIEF"
+    case stress_relief = "STRESS_RELIEF"
     case reward = "REWARD"
     case impulse = "IMPULSE"
     case regret = "REGRET"
@@ -19,7 +19,7 @@ enum Emotion: String, Codable {
         switch self {
         case .neutral:
             "일상"
-        case .stress_releaf:
+        case .stress_relief:
             "스트레스 해소"
         case .reward:
             "보상 심리"
@@ -29,6 +29,23 @@ enum Emotion: String, Codable {
             "후회"
         case .satisfaction:
             "만족"
+        }
+    }
+    
+    var imageName: String {
+        switch self {
+        case .neutral:
+            "Emoji Normal"
+        case .stress_relief:
+            "Emoji Stress Relief"
+        case .reward:
+            "Emoji Self Reward"
+        case .impulse:
+            "Emoji Impulse Buying"
+        case .regret:
+            "Emoji Regret"
+        case .satisfaction:
+            "Emoji Satisfaction"
         }
     }
 }
