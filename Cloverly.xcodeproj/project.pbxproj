@@ -336,8 +336,8 @@
 				DEVELOPMENT_TEAM = 4C5QZ5DXV6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Cloverly/Info.plist;
-				INFOPLIST_KEY_NSCameraUsageDescription = "OCR 인식을 위해 카메라 접근 허용이 필요합니다.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "OCR 인식을 위해 갤러리 접근 허용이 필요합니다.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "영수증을 촬영하여 내용을 자동으로 인식하고 가계부에 기록하기 위해 카메라 접근이 필요합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범에 저장된 영수증 이미지를 불러와 내용을 자동으로 인식하고 가계부에 기록하기 위해 카메라 접근이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -374,8 +374,8 @@
 				DEVELOPMENT_TEAM = 4C5QZ5DXV6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Cloverly/Info.plist;
-				INFOPLIST_KEY_NSCameraUsageDescription = "OCR 인식을 위해 카메라 접근 허용이 필요합니다.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "OCR 인식을 위해 갤러리 접근 허용이 필요합니다.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "영수증을 촬영하여 내용을 자동으로 인식하고 가계부에 기록하기 위해 카메라 접근이 필요합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범에 저장된 영수증 이미지를 불러와 내용을 자동으로 인식하고 가계부에 기록하기 위해 카메라 접근이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -404,7 +404,7 @@
 		C2876C4C2EEAFD3500231C37 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = C2876C222EEAFD3300231C37 /* Cloverly */;
-			baseConfigurationReferenceRelativePath = Config.xcconfig;
+			baseConfigurationReferenceRelativePath = dev.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -470,6 +470,8 @@
 		};
 		C2876C4D2EEAFD3500231C37 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = C2876C222EEAFD3300231C37 /* Cloverly */;
+			baseConfigurationReferenceRelativePath = prod.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
