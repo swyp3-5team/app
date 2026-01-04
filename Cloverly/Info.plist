@@ -22,10 +22,7 @@
 	<key>NATIVE_APP_KEY</key>
 	<string>$(NATIVE_APP_KEY)</string>
 	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
+	<dict/>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Pretendard-Black.otf</string>
