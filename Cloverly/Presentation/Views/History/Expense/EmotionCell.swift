@@ -20,8 +20,8 @@ class EmotionCell: UICollectionViewCell {
     // 텍스트 (일상, 만족 등)
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 12, weight: .medium) // 폰트 사이즈 조절
-        label.textColor = .gray
+        label.font = .customFont(.pretendardRegular, size: 14)
+        label.textColor = .gray2
         label.textAlignment = .center
         return label
     }()
@@ -47,7 +47,7 @@ class EmotionCell: UICollectionViewCell {
         // 둥근 테두리 박스
         contentView.layer.cornerRadius = 8
         contentView.layer.borderWidth = 1
-        contentView.layer.borderColor = UIColor.systemGray5.cgColor
+        contentView.layer.borderColor = UIColor.gray8.cgColor
         contentView.backgroundColor = .white
         
         imageView.snp.makeConstraints {
@@ -65,16 +65,14 @@ class EmotionCell: UICollectionViewCell {
     private func updateAppearance() {
         if isSelected {
             // ✅ 선택됨: 초록색 테두리 + 검은 글씨
-            contentView.layer.borderColor = UIColor.systemGreen.cgColor // 색상 코드 #2CC069 등
-            contentView.layer.borderWidth = 1.5
-            titleLabel.textColor = .black
-            titleLabel.font = .systemFont(ofSize: 12, weight: .bold)
+            contentView.layer.borderColor = UIColor.green5.cgColor
+            titleLabel.textColor = .gray1
+            titleLabel.font = .customFont(.pretendardSemiBold, size: 14)
         } else {
             // ⬜️ 해제됨: 회색 테두리 + 회색 글씨
-            contentView.layer.borderColor = UIColor.systemGray5.cgColor
-            contentView.layer.borderWidth = 1
-            titleLabel.textColor = .gray
-            titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
+            contentView.layer.borderColor = UIColor.gray8.cgColor
+            titleLabel.textColor = .gray2
+            titleLabel.font = .customFont(.pretendardRegular, size: 14)
         }
     }
     

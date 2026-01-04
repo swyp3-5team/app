@@ -40,9 +40,7 @@ class PaymentDropDown: UIView {
     
     private let arrowIcon: UIImageView = {
         let view = UIImageView()
-        view.image = UIImage(systemName: "chevron.down")
-        view.tintColor = .gray
-        view.contentMode = .scaleAspectFit
+        view.image = UIImage(named: "text field arrow down")
         return view
     }()
     

@@ -120,6 +120,9 @@ class ExpenseHistoryViewController: UIViewController {
     }()
     
     private let paymentDropDown = PaymentDropDown()
+
+    private let expandableListView = ExpandableListView()
+    
     
     private lazy var stackView: UIStackView = {
         let stackView = UIStackView()
@@ -141,10 +144,11 @@ class ExpenseHistoryViewController: UIViewController {
         button.addAction(UIAction { [weak self] _ in
             Task {
                 do {
-                    try await self?.viewModel.updateTransaction()
+                    try await self?.viewModel.saveTransaction()
+                    self?.viewModel.refreshTrigger.accept(())
                     self?.dismiss(animated: true)
                 } catch {
-                    print("지출 업데이트 실패: \(error)")
+                    print("지출 저장 실패: \(error)")
                 }
             }
         }, for: .touchUpInside)
@@ -156,6 +160,7 @@ class ExpenseHistoryViewController: UIViewController {
         super.viewDidLoad()
         configureUI()
         bind()
+        updateViewMode()
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tap.cancelsTouchesInView = false
@@ -169,7 +174,6 @@ class ExpenseHistoryViewController: UIViewController {
     
     func configureUI() {
         view.backgroundColor = .systemBackground
-        navigationItem.title = "지출 내역"
         
         dateContainerView.addSubview(datePicker)
         
@@ -186,7 +190,10 @@ class ExpenseHistoryViewController: UIViewController {
         let emojiSection = FormItemView(title: "감정", content: emotionGridView)
         let paymentMethodSection = FormItemView(title: "결제수단", content: paymentDropDown)
         let memoSection = FormItemView(title: "메모", content: memoTextField)
-        let categoryMethodSection = FormItemView(title: "지출내역", content: UIView())
+        let categoryMethodSection = FormItemView(title: "지출내역", content: expandableListView, showActionBtn: true)
+        categoryMethodSection.onAction = { [weak self] in
+                self?.presentAddTransactionView()
+            }
         
         stackView.addArrangedSubview(amountSection)
         stackView.addArrangedSubview(nameSection)
@@ -232,6 +239,10 @@ class ExpenseHistoryViewController: UIViewController {
             $0.height.equalTo(48)
         }
         
+//        expandableListView.snp.makeConstraints {
+//            $0.height.equalTo(48)
+//        }
+        
         scrollView.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(16)
             $0.leading.trailing.equalToSuperview().inset(16)
@@ -254,6 +265,17 @@ class ExpenseHistoryViewController: UIViewController {
         }
     }
     
+    private func updateViewMode() {
+        guard let current = viewModel.currentTransaction.value else { return }
+        
+        if current.trGroupId != -1 {
+            self.titleLabel.text = "내역 수정"
+        } else {
+            self.titleLabel.text = "내역 추가"
+            self.amountTextField.text = nil
+        }
+    }
+    
     private func bind() {
         
         // ============================================
@@ -267,12 +289,14 @@ class ExpenseHistoryViewController: UIViewController {
             .subscribe(onNext: { [weak self] transaction in
                 guard let self = self else { return }
                 self.nameTextField.text = transaction.place ?? ""
-                self.amountTextField.text = "\(transaction.totalAmount)" // 콤마 포맷팅 필요 시 .withComma 사용
+                self.amountTextField.text = "\(transaction.totalAmount.withComma)" // 콤마 포맷팅 필요 시 .withComma 사용
                 self.memoTextField.text = transaction.paymentMemo
                 
                 // 커스텀 뷰 초기값
                 self.emotionGridView.select(emotion: transaction.emotion)
                 self.paymentDropDown.selectedPayment.accept(transaction.payment)
+            
+                expandableListView.configure(with: transaction)
                 
                 // 날짜 초기값
                 if let date = transaction.transactionDate.toDate {
@@ -319,6 +343,114 @@ class ExpenseHistoryViewController: UIViewController {
             .distinctUntilChanged()
             .bind(onNext: viewModel.editMemo)
             .disposed(by: disposeBag)
+        
+        expandableListView.onDeleteItem = { [weak self] index in
+            guard let self = self else { return }
+            
+            // ① 현재 보고 있는 트랜잭션 데이터 꺼내기 (복사본)
+            guard var currentData = self.viewModel.currentTransaction.value else { return }
+            
+            // ② 리스트에서 해당 아이템 삭제
+            // (index는 ExpandableListView가 알려준 "몇 번째 줄인지" 정보)
+            currentData.transactionInfoList.remove(at: index)
+            
+            // ③ 금액(totalAmount)도 바뀌었을 테니 재계산 (선택 사항이지만 추천)
+            let newTotal = currentData.transactionInfoList.reduce(0) { $0 + $1.amount }
+            currentData.totalAmount = newTotal
+            self.amountTextField.text = "\(newTotal.withComma)"
+            
+            // ④ 수정된 데이터를 다시 ViewModel에 덮어씌움 (상태 저장)
+            self.viewModel.currentTransaction.accept(currentData)
+            
+            // ⑤ 화면 갱신 (지워진 상태로 다시 그림)
+            self.expandableListView.configure(with: currentData)
+        }
+        
+        expandableListView.onEditItem = { [weak self] index in
+            guard let self = self else { return }
+            guard let currentData = self.viewModel.currentTransaction.value else { return }
+            
+            // ① 수정할 아이템 꺼내기
+            let targetItem = currentData.transactionInfoList[index]
+            
+            // ② 편집 화면 생성 (현재 값 주입)
+            let editVC = TransactionInfoEditViewController(
+                name: targetItem.name,
+                amount: targetItem.amount,
+                categoryId: targetItem.categoryId
+            )
+            
+            // ③ ✨ 편집 완료 후 콜백 처리 (여기서 데이터 업데이트!)
+            editVC.onSave = { [weak self] newName, newAmount, newCategoryId in
+                guard let self = self else { return }
+                
+                // A. 데이터 수정 (ViewModel의 값 복사본을 수정)
+                var updatedTransaction = self.viewModel.currentTransaction.value! // 강제 언래핑 안전함(위에서 guard함)
+                
+                // 해당 인덱스의 아이템 속성 변경
+                updatedTransaction.transactionInfoList[index].name = newName
+                updatedTransaction.transactionInfoList[index].amount = newAmount
+                updatedTransaction.transactionInfoList[index].categoryId = newCategoryId
+                if let category = ExpenseCategory(rawValue: newCategoryId) {
+                    updatedTransaction.transactionInfoList[index].categoryName = category.name
+                } else {
+                    // 혹시라도 Enum에 없는 ID라면 기본값 처리 (안전을 위해)
+                    updatedTransaction.transactionInfoList[index].categoryName = "기타"
+                }
+                
+                // B. 총액 재계산 (금액이 바뀌었을 수 있으니까)
+                updatedTransaction.totalAmount = updatedTransaction.transactionInfoList.reduce(0) { $0 + $1.amount }
+                
+                // C. 텍스트필드 UI 업데이트 (총액이 바꼈으니까)
+                self.amountTextField.text = "\(updatedTransaction.totalAmount.withComma)"
+                
+                // D. 뷰모델에 수정된 전체 데이터 다시 덮어씌우기
+                self.viewModel.currentTransaction.accept(updatedTransaction)
+                
+                // E. 리스트뷰 갱신 (화면에 즉시 반영)
+                self.expandableListView.configure(with: updatedTransaction)
+            }
+            
+            // ④ 화면 띄우기 (Navigation Push 또는 Present)
+             self.navigationController?.pushViewController(editVC, animated: true)
+        }
+    }
+    
+    private func presentAddTransactionView() {
+        // 1. "추가" 모드이므로 빈 값으로 초기화해서 생성
+        // (amount: 0, categoryId: 1 등 기본값 설정)
+        let addVC = TransactionInfoEditViewController(name: "", amount: 0, categoryId: 1)
+        
+        // 2. 저장(Save) 콜백 처리
+        addVC.onSave = { [weak self] newName, newAmount, newCategoryId in
+            guard let self = self else { return }
+            guard var currentData = self.viewModel.currentTransaction.value else { return }
+            
+            // A. 새로운 TransactionInfo 객체 생성
+            // (TransactionInfo 구조체에 맞는 init을 사용하세요. 아래는 예시입니다.)
+            let newInfo = TransactionInfo(
+                transactionId: nil,
+                name: newName,
+                amount: newAmount,
+                categoryId: newCategoryId,
+                categoryName: ExpenseCategory(rawValue: newCategoryId)?.name ?? "기타"
+            )
+            
+            // B. 리스트에 추가 (Append)
+            currentData.transactionInfoList.append(newInfo)
+            
+            // C. 총액 재계산
+            currentData.totalAmount = currentData.transactionInfoList.reduce(0) { $0 + $1.amount }
+            
+            // D. 화면 및 데이터 업데이트
+            self.amountTextField.text = "\(currentData.totalAmount.withComma)" // 콤마 포맷
+            self.viewModel.currentTransaction.accept(currentData)
+            self.expandableListView.configure(with: currentData)
+        }
+        
+        // 3. 화면 이동 (Push)
+        // 주의: 이 VC가 NavigationController 안에 있어야 push가 동작합니다.
+        self.navigationController?.pushViewController(addVC, animated: true)
     }
 }
 
