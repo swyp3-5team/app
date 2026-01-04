@@ -12,11 +12,11 @@ class ExpenseListViewCell: UITableViewCell {
     
     static let identifier = "ExpenseListViewCell"
     
-    private let cellImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.image = UIImage(named: "Chevron right gray")
-        iv.contentMode = .scaleAspectFit
-        return iv
+    private let indicatorView: UIView = {
+        let view = UIView()
+        view.layer.cornerRadius = 2
+        view.clipsToBounds = true
+        return view
     }()
     
     private let titleLabel: UILabel = {
@@ -63,29 +63,33 @@ class ExpenseListViewCell: UITableViewCell {
     }
     
     func configureUI() {
-        contentView.addSubview(cellImageView)
+        contentView.addSubview(indicatorView)
         contentView.addSubview(containerStackView)
         contentView.addSubview(priceLabel)
         
-        cellImageView.snp.makeConstraints {
+        indicatorView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
-            $0.centerY.equalToSuperview()
+            $0.top.bottom.equalToSuperview().inset(15)
+            $0.width.equalTo(4)
         }
         
         containerStackView.snp.makeConstraints {
-            $0.leading.equalTo(cellImageView.snp.trailing).offset(16)
-            $0.centerY.equalToSuperview()
+            $0.leading.equalTo(indicatorView.snp.trailing).offset(16)
+            $0.top.bottom.equalToSuperview().inset(7)
         }
         
         priceLabel.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-16)
-            $0.centerY.equalToSuperview()
+            $0.centerY.equalTo(containerStackView)
         }
     }
     
     func configure(with transaction: Transaction) {
         titleLabel.text = transaction.place
         subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.transactionInfoList.max { $0.amount < $1.amount }?.categoryName ?? "내역 없음")"
+        indicatorView.backgroundColor = transaction.transactionInfoList
+            .max { $0.amount < $1.amount }
+            .map { ExpenseCategory.from(id: $0.categoryId).color }
         priceLabel.text = "-\(transaction.totalAmount.withComma)원"
     }
 }

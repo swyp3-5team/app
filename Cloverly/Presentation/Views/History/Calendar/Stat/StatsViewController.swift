@@ -99,7 +99,7 @@ class StatsViewController: UIViewController {
         super.viewDidLoad()
         configureUI()
         bind()
-        navigationItem.titleView = segmented
+        navigationItem.title = "통계"
         
         viewModel.getCategoryStatistics(yearMonth: viewModel.currentDate.value)
     }
@@ -190,7 +190,11 @@ class StatsViewController: UIViewController {
         let entries = data.map { PieChartDataEntry(value: $0.totalAmount, label: $0.categoryName) }
         let dataSet = PieChartDataSet(entries: entries, label: "")
         
-        dataSet.colors = self.chartColors
+        let colors = data.map { stat in
+            return ExpenseCategory.from(id: stat.categoryId).color
+        }
+        
+        dataSet.colors = colors
         dataSet.sliceSpace = 0 // 이미지처럼 딱 붙이려면 0, 살짝 떼려면 2
         dataSet.selectionShift = 10
         dataSet.drawValuesEnabled = false
@@ -221,9 +225,7 @@ extension StatsViewController: UITableViewDataSource, UITableViewDelegate {
         let totalSum = stats.reduce(0.0) { $0 + $1.totalAmount }
         let percentage = totalSum == 0 ? 0 : (item.totalAmount / totalSum) * 100
         
-        // ✨ 차트와 동일한 순서의 색상을 꺼내서 전달
-        // (데이터 개수가 색상보다 많을 경우를 대비해 % 연산자 사용)
-        let color = chartColors[indexPath.row % chartColors.count]
+        let color = ExpenseCategory.from(id: item.categoryId).color
         
         cell.configure(color: color, name: item.categoryName, amount: item.totalAmount, percent: percentage, categoryId: item.categoryId)
         

@@ -97,13 +97,13 @@ class CircleMarkerView: MarkerView {
                 percentLabel.textColor = color
             }
         }
-        
+        setNeedsLayout()
         layoutIfNeeded()
     }
     
     // ✨ 마커 위치 조정 (터치한 곳의 정중앙에 오도록)
     override func offsetForDrawing(atPoint point: CGPoint) -> CGPoint {
-        return CGPoint(x: -self.bounds.width / 2, y: -self.bounds.height / 2)
+        return CGPoint(x: -self.bounds.width / 2 + 10, y: -self.bounds.height / 2 - 10)
     }
 }
 

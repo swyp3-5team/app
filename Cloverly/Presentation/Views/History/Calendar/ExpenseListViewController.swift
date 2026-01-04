@@ -40,7 +40,7 @@ class ExpenseListViewController: UIViewController {
         tableView.dataSource = self
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 100
+        tableView.estimatedRowHeight = 60
         return tableView
     }()
     
@@ -61,7 +61,7 @@ class ExpenseListViewController: UIViewController {
     }
     
     func configureUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .gray10
         view.addSubview(titleLabel)
         view.addSubview(xButton)
         view.addSubview(tableView)
@@ -92,6 +92,13 @@ class ExpenseListViewController: UIViewController {
             }
             .bind(to: titleLabel.rx.text) // 라벨 텍스트로 바로 연결
             .disposed(by: disposeBag)
+        
+        viewModel.groupedTransactions
+            .observe(on: MainScheduler.instance)
+                .subscribe(onNext: { [weak self] _ in
+                    self?.tableView.reloadData()
+                })
+                .disposed(by: disposeBag)
     }
 }
 
@@ -114,7 +121,8 @@ extension ExpenseListViewController: UITableViewDataSource, UITableViewDelegate 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         viewModel.currentTransaction.accept(viewModel.currentDayTransactions[indexPath.row])
         let vc = ExpenseHistoryViewController(viewModel: viewModel)
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: true)
+        let nav = UINavigationController(rootViewController: vc)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
     }
 }

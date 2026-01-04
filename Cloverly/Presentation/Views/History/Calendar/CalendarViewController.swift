@@ -12,8 +12,17 @@ import RxSwift
 import RxCocoa
 
 class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendarDelegate {
-    private let viewModel = CalendarViewModel()
+    private let viewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
+    
+    init(viewModel: CalendarViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -25,37 +34,30 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         let label = UILabel()
         label.font = .boldSystemFont(ofSize: 18)
         label.textColor = .black
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy년 MM월"
-        dateFormatter.locale = Locale(identifier: "ko_KR")
-        label.text = dateFormatter.string(from: calendar.currentPage)
         return label
     }()
     
     private lazy var prevButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage(systemName: "chevron.left"), for: .normal)
+        button.setImage(UIImage(named: "Calendar Navigation Arrow left"), for: .normal)
         button.tintColor = .black
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
-            let currentPage = calendar.currentPage
-            guard let prevPage = Calendar.current.date(byAdding: .month, value: -1, to: currentPage) else { return }
-            calendar.setCurrentPage(prevPage, animated: true)
+            let current = self.viewModel.currentDate.value
+            guard let prevPage = Calendar.current.date(byAdding: .month, value: -1, to: current) else { return }
             self.viewModel.updateDate(prevPage)
         }, for: .touchUpInside)
         return button
     }()
-
+    
     private lazy var nextButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage(systemName: "chevron.right"), for: .normal)
+        button.setImage(UIImage(named: "Calendar Navigation Arrow right"), for: .normal)
         button.tintColor = .black
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
-            let currentPage = calendar.currentPage
-            guard let nextPage = Calendar.current.date(byAdding: .month, value: 1, to: currentPage) else { return }
-            calendar.setCurrentPage(nextPage, animated: true)
+            let current = self.viewModel.currentDate.value
+            guard let nextPage = Calendar.current.date(byAdding: .month, value: 1, to: current) else { return }
             self.viewModel.updateDate(nextPage)
         }, for: .touchUpInside)
         return button
@@ -64,9 +66,15 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
     private lazy var statsButton: UIButton = {
         var config = UIButton.Configuration.filled()
         config.title = "통계"
-        config.baseBackgroundColor = .gray6
+        config.baseForegroundColor = .gray2
+        config.baseBackgroundColor = .gray9
         config.baseForegroundColor = .black
         config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
+        
+        config.image = UIImage(named: "Analytics Icon")
+        
+        config.imagePlacement = .leading
+        config.imagePadding = 4
         
         let button = UIButton(configuration: config)
         button.layer.cornerRadius = 32
@@ -122,8 +130,6 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         super.viewDidLoad()
         configureUI()
         bind()
-        
-        viewModel.updateDate(Date())
     }
     
     func configureUI() {
@@ -132,7 +138,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         view.addSubview(nextButton)
         view.addSubview(statsButton)
         view.addSubview(expenseLabel)
-        view.addSubview(incomeLabel)
+        //        view.addSubview(incomeLabel)
         view.addSubview(dividerView)
         view.addSubview(calendar)
         
@@ -142,7 +148,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         }
         
         headerLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(16)
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
             $0.leading.equalTo(prevButton.snp.trailing).offset(8)
         }
         
@@ -161,13 +167,14 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
             $0.top.equalTo(statsButton.snp.bottom).offset(12)
         }
         
-        incomeLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
-            $0.top.equalTo(expenseLabel.snp.bottom).offset(8)
-        }
+        // 수입 일단 제거
+        //        incomeLabel.snp.makeConstraints {
+        //            $0.leading.equalToSuperview().offset(16)
+        //            $0.top.equalTo(expenseLabel.snp.bottom).offset(8)
+        //        }
         
         dividerView.snp.makeConstraints {
-            $0.top.equalTo(incomeLabel.snp.bottom).offset(20)
+            $0.top.equalTo(expenseLabel.snp.bottom).offset(20)
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(6)
         }
@@ -204,10 +211,15 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         viewModel.currentDate
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] date in
+                guard let self = self else { return }
                 let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy년 MM월"
+                formatter.dateFormat = "MM월"
                 formatter.locale = Locale(identifier: "ko_KR")
-                self?.headerLabel.text = formatter.string(from: date)
+                self.headerLabel.text = formatter.string(from: date)
+                
+                if !Calendar.current.isDate(self.calendar.currentPage, equalTo: date, toGranularity: .month) {
+                    self.calendar.setCurrentPage(date, animated: true)
+                }
             })
             .disposed(by: disposeBag)
         
@@ -220,7 +232,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
             })
             .disposed(by: disposeBag)
     }
-
+    
     func calendar(_ calendar: FSCalendar, didSelect date: Date, at monthPosition: FSCalendarMonthPosition) {
         self.viewModel.selectedDate.accept(date)
         self.viewModel.isSheetPresent.accept(true)
