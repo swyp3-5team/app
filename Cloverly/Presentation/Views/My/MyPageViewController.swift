@@ -17,13 +17,13 @@ enum MyPageMenu: String, CaseIterable {
     case inquiry = "문의하기"
     case termsOfService = "서비스 이용약관"
     case privacyPolicy = "개인정보 처리방침"
-
+    
     var viewController: UIViewController {
         switch self {
         case .characterTone:
             return CharacterToneViewController(viewModel: MyViewModel())
         case .notice:
-            return NoticeViewController()
+            return NoticeViewController(viewModel: MyViewModel())
         case .termsOfService:
             return TermsOfServiceViewController()
         case .privacyPolicy:
