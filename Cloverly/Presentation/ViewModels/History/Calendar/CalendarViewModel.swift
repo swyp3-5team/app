@@ -33,6 +33,12 @@ final class CalendarViewModel {
     
     // 내역 수정
     let currentTransaction = BehaviorRelay<Transaction?>(value: nil)
+    let refreshTrigger = PublishRelay<Void>()
+    
+    // 내역-기록
+    let filteredTransactions = BehaviorRelay<[String: [Transaction]]>(value: [:])
+    let categories: [ExpenseCategory?] = [nil] + ExpenseCategory.allCases.map { $0 }
+    let selectedCategories = BehaviorRelay<Set<ExpenseCategory>>(value: [])
     
     let selectedIndex = BehaviorRelay<Int>(value: 1)
     private let disposeBag = DisposeBag()
@@ -42,12 +48,15 @@ final class CalendarViewModel {
     }
     
     func bind() {
-        currentDate
-            .distinctUntilChanged()
-            .subscribe(onNext: { [weak self] date in
-                self?.getTransactions(yearMonth: date)
-            })
-            .disposed(by: disposeBag)
+        Observable.merge(
+            currentDate.map { _ in },       // 날짜가 바뀔 때
+            refreshTrigger.map { _ in }     // 강제 새로고침 신호가 올 때
+        )
+        .withLatestFrom(currentDate)
+        .subscribe(onNext: { [weak self] date in
+            self?.getTransactions(yearMonth: date)
+        })
+        .disposed(by: disposeBag)
     }
     
     func updateDate(_ date: Date) {
@@ -78,6 +87,7 @@ final class CalendarViewModel {
                 
                 // 3. Relay에 저장
                 groupedTransactions.accept(grouped)
+                filteredTransactions.accept(grouped)
             } catch {
                 print("지출 내역 데이터 로드 실패: \(error)")
             }
@@ -100,6 +110,8 @@ final class CalendarViewModel {
         }
     }
     
+    
+    // 내역-수정
     func editName(_ name: String) {
         guard var current = currentTransaction.value else { return }
         current.place = name // 상호명 수정
@@ -139,5 +151,74 @@ final class CalendarViewModel {
     func updateTransaction() async throws {
         guard let current = currentTransaction.value else { return }
         try await transactionAPI.updateTransaction(transaction: current)
+    }
+    
+    // 내역-기록
+    func applyFilter() {
+        let origin = groupedTransactions.value
+        let selected = selectedCategories.value
+        
+        // 선택된게 없으면(빈 집합) -> "전체 보기"
+        if selected.isEmpty {
+            filteredTransactions.accept(origin)
+            return
+        }
+        
+        var newGrouped: [String: [Transaction]] = [:]
+        
+        for (date, list) in origin {
+            // ✨ [핵심 수정] 트랜잭션 내부의 상세 리스트 중 '가장 비싼 항목'의 카테고리를 기준으로 필터링
+            let filteredList = list.filter { transaction in
+                // 1. 가장 비싼 항목 찾기 (없으면 필터 대상에서 제외)
+                guard let maxItem = transaction.transactionInfoList.max(by: { $0.amount < $1.amount }) else {
+                    return false
+                }
+                
+                // 2. 그 항목의 카테고리 ID를 Enum으로 변환
+                guard let category = ExpenseCategory(rawValue: maxItem.categoryId) else {
+                    return false
+                }
+                
+                // 3. 선택된 카테고리 목록(Set)에 포함되는지 확인
+                return selected.contains(category)
+            }
+            
+            // 필터링 결과가 있는 날짜만 딕셔너리에 추가
+            if !filteredList.isEmpty {
+                newGrouped[date] = filteredList
+            }
+        }
+        
+        filteredTransactions.accept(newGrouped)
+    }
+    
+    // 내역-추가
+    func clearCurrentTransaction() {
+        // ID는 없거나 -1, 날짜는 오늘, 금액은 0원인 빈 객체를 만듭니다.
+        let emptyTransaction = Transaction(
+            trGroupId: -1, transactionDate: Date().toServerFormat, totalAmount: 0, payment: .card, emotion: .neutral, transactionInfoList: []
+        )
+        currentTransaction.accept(emptyTransaction)
+    }
+    
+    func saveTransaction() async throws {
+        guard let current = currentTransaction.value else { return }
+        
+        if current.trGroupId != -1 {
+            try await transactionAPI.updateTransaction(transaction: current)
+        } else {
+            let transactionDTOs = current.transactionInfoList.map { info in
+                return TransactionDTO(
+                    name: info.name,
+                    amount: info.amount,
+                    categoryName: info.categoryName
+                )
+            }
+            
+            let requestBody = TransactionRequest(place: current.place, transactionDate: current.transactionDate, payment: current.payment, paymentMemo: current.paymentMemo, emotion: current.emotion, transactions: transactionDTOs)
+            
+            print(requestBody)
+            try await transactionAPI.saveTransaction(requestBody: requestBody)
+        }
     }
 }
