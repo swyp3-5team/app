@@ -66,7 +66,7 @@ enum ExpenseCategory: Int, CaseIterable, Codable {
         case .dailyNecessity: return "🧹"
         case .beauty: return "💄"
         case .hobby: return "🧶"
-        case .shopping: return "🥂"
+        case .shopping: return "🛍️"
         case .housing: return "🏠"
         case .health: return "💪"
         case .selfDevelopment: return "📚"

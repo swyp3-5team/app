@@ -307,7 +307,11 @@ class ChatViewController: UIViewController {
                     let nav = UINavigationController(rootViewController: vc)
                     
                     if let sheet = nav.sheetPresentationController {
-                        sheet.detents = [.medium()]
+                        sheet.detents = [
+                            .custom(identifier: .init("threeFifths")) { context in
+                                context.maximumDetentValue * 3 / 5
+                            }
+                        ]
                     }
                     present(nav, animated: true)
                 } else {

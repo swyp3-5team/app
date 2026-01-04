@@ -64,6 +64,7 @@ class SaveModalViewController: UIViewController {
     private let contentValueLabel = UILabel()
     private let paymentMethodValueLabel = UILabel()
     private let categoryValueLabel = UILabel()
+    private let memoLabel = UILabel()
     
     private lazy var saveButton: UIButton = {
         let button = UIButton()
@@ -126,18 +127,20 @@ class SaveModalViewController: UIViewController {
     }
     
     func configureUI() {
+        view.backgroundColor = .gray10
         view.addSubview(titleLabel)
         view.addSubview(subtitleLabel)
         view.addSubview(xButton)
         view.addSubview(contentStackView)
         view.addSubview(saveButton)
         
-        addInfoRow(title: "상호명", valueLabel: storeNameValueLabel)
         addInfoRow(title: "금액", valueLabel: amountValueLabel)
-        addInfoRow(title: "결제일", valueLabel: dateValueLabel)
+        addInfoRow(title: "상호명", valueLabel: storeNameValueLabel)
+        addInfoRow(title: "날짜", valueLabel: dateValueLabel)
         addInfoRow(title: "감정", valueLabel: emotionValueLabel)
-        addInfoRow(title: "지출내역", valueLabel: contentValueLabel)
         addInfoRow(title: "결제수단", valueLabel: paymentMethodValueLabel)
+        addInfoRow(title: "메모", valueLabel: memoLabel)
+        addInfoRow(title: "지출내역", valueLabel: contentValueLabel)
         addInfoRow(title: "카테고리", valueLabel: categoryValueLabel)
         
         titleLabel.snp.makeConstraints {
@@ -158,7 +161,7 @@ class SaveModalViewController: UIViewController {
         contentStackView.snp.makeConstraints {
             $0.top.equalTo(subtitleLabel.snp.bottom).offset(24)
             $0.leading.equalToSuperview().offset(16)
-            $0.bottom.equalTo(saveButton.snp.top).offset(-33)
+            $0.bottom.equalTo(saveButton.snp.top).offset(-30)
         }
         
         saveButton.snp.makeConstraints {
@@ -201,13 +204,14 @@ class SaveModalViewController: UIViewController {
             .subscribe(onNext: { [weak self] info in
                 guard let self = self, let transactionInfo = info.transactionInfo else { return }
 
-                storeNameValueLabel.text = transactionInfo.place
+                storeNameValueLabel.text = transactionInfo.place ?? "미입력"
                 amountValueLabel.text = "\(transactionInfo.totalAmount)"
                 dateValueLabel.text = transactionInfo.transactionDate
                 emotionValueLabel.text = transactionInfo.emotion.displayName
                 contentValueLabel.text = transactionInfo.transactions.map { $0.name }.joined(separator: ", ")
                 paymentMethodValueLabel.text = transactionInfo.payment.displayName
                 categoryValueLabel.text = Array(Set(transactionInfo.transactions.map { $0.categoryName })).joined(separator: ", ")
+                memoLabel.text = transactionInfo.paymentMemo ?? "미입력"
             })
             .disposed(by: disposeBag)
     }
