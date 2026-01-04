@@ -33,7 +33,7 @@ class LoginViewController: UIViewController {
     }()
     
     private lazy var imageView: UIImageView = {
-        let imageView = UIImageView()
+        let imageView = UIImageView(image: UIImage(named: "login image"))
         imageView.contentMode = .scaleAspectFit
         return imageView
     }()
@@ -104,7 +104,7 @@ class LoginViewController: UIViewController {
         }
         
         imageView.snp.makeConstraints {
-            $0.top.equalTo(subtitleLabel.snp.bottom).offset(40)
+            $0.top.equalTo(subtitleLabel.snp.bottom).offset(79)
             $0.leading.trailing.equalToSuperview().inset(16)
         }
         
