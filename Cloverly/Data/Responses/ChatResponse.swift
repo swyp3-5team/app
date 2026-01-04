@@ -14,7 +14,6 @@ struct TransactionInfoDTO: nonisolated Codable {
     let paymentMemo: String?
     let totalAmount: Int
     let emotion: Emotion
-    let type: String
     let transactions: [TransactionDTO]
 }
 
