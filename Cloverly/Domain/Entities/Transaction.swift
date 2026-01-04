@@ -19,10 +19,10 @@ struct Transaction: nonisolated Codable {
 }
 
 struct TransactionInfo: nonisolated Codable {
-    let transactionId: Int
+    let transactionId: Int?
     var name: String
     var amount: Int
     var categoryId: Int
     var categoryName: String
-    var type: String
+    var type: String?
 }

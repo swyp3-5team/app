@@ -11,6 +11,7 @@ import Pageboy
 import SnapKit
 
 class HistoryTabViewController: TabmanViewController {
+    private let viewModel: CalendarViewModel
     private var viewControllers: [UIViewController] = []
     var statusBarHeight: CGFloat {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
@@ -19,9 +20,6 @@ class HistoryTabViewController: TabmanViewController {
         return 0
     }
     
-    let recordVC = RecordViewController()
-    let calendarVC = CalendarViewController()
-    
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "내역"
@@ -29,6 +27,15 @@ class HistoryTabViewController: TabmanViewController {
         label.textColor = .gray1
         return label
     }()
+    
+    init(viewModel: CalendarViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,9 +50,9 @@ class HistoryTabViewController: TabmanViewController {
             $0.top.equalTo(view.snp.top).offset(statusBarHeight + 15.5)
             $0.centerX.equalToSuperview()
         }
-        
-        viewControllers.append(recordVC)
-        viewControllers.append(calendarVC)
+
+        viewControllers.append(RecordViewController(viewModel: viewModel))
+        viewControllers.append(CalendarViewController(viewModel: viewModel))
         
         self.dataSource = self
         

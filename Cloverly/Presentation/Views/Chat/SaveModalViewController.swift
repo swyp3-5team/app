@@ -12,6 +12,7 @@ import RxCocoa
 
 class SaveModalViewController: UIViewController {
     private let viewModel: ChatViewModel
+    private let calendarViewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
     
     private let titleLabel: UILabel = {
@@ -79,7 +80,7 @@ class SaveModalViewController: UIViewController {
             Task {
                 do {
                     try await self.viewModel.saveTransaction()
-                    
+                    self.calendarViewModel.refreshTrigger.accept(())
                     self.viewModel.isSheetPresent.accept(false)
                     
                     parentVC?.showToast(
@@ -107,8 +108,9 @@ class SaveModalViewController: UIViewController {
         return button
     }()
     
-    init(viewModel: ChatViewModel) {
+    init(viewModel: ChatViewModel, calendarViewModel: CalendarViewModel) {
         self.viewModel = viewModel
+        self.calendarViewModel = calendarViewModel
         super.init(nibName: nil, bundle: nil)
     }
     

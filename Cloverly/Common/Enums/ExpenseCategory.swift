@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 // MARK: - 1. 지출 카테고리 (Expense)
 enum ExpenseCategory: Int, CaseIterable, Codable {
@@ -18,7 +19,7 @@ enum ExpenseCategory: Int, CaseIterable, Codable {
     case dailyNecessity = 7 // 생활용품
     case beauty = 8         // 미용
     case hobby = 9          // 취미
-    case gathering = 10     // 모임
+    case shopping = 10     // 쇼핑
     case housing = 11       // 주거
     case health = 12        // 건강
     case selfDevelopment = 13 // 자기계발
@@ -44,7 +45,7 @@ enum ExpenseCategory: Int, CaseIterable, Codable {
         case .dailyNecessity: return "생활용품"
         case .beauty: return "미용"
         case .hobby: return "취미"
-        case .gathering: return "모임"
+        case .shopping: return "쇼핑"
         case .housing: return "주거"
         case .health: return "건강"
         case .selfDevelopment: return "자기계발"
@@ -65,12 +66,24 @@ enum ExpenseCategory: Int, CaseIterable, Codable {
         case .dailyNecessity: return "🧹"
         case .beauty: return "💄"
         case .hobby: return "🧶"
-        case .gathering: return "🥂"
+        case .shopping: return "🥂"
         case .housing: return "🏠"
         case .health: return "💪"
         case .selfDevelopment: return "📚"
         case .pet: return "🐶"
         case .other: return "💭"
         }
+    }
+    
+    var color: UIColor {
+        UIColor(named: String(describing: self)) ?? .clear
+    }
+    
+    static func from(id: Int) -> ExpenseCategory {
+        return ExpenseCategory(rawValue: id) ?? .other
+    }
+    
+    var fullDisplay: String {
+        return "\(icon) \(name)"
     }
 }

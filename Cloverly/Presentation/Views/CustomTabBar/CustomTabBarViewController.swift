@@ -13,6 +13,7 @@ class CustomTabBarViewController: UITabBarController {
     
     private let customTabBar = CustomTabBar()
     private let disposeBag = DisposeBag()
+    private let calendarViewModel = CalendarViewModel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,8 +29,8 @@ class CustomTabBarViewController: UITabBarController {
     }
     
     func setupViewControllers() {
-        let homeVC = HomeViewController()
-        let historyVC = HistoryTabViewController()
+        let homeVC = HomeViewController(calendarViewModel: calendarViewModel)
+        let historyVC = HistoryTabViewController(viewModel: calendarViewModel)
         let myVC = MyPageViewController()
         
         viewControllers = [homeVC, historyVC, myVC]

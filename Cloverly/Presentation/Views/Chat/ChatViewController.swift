@@ -19,6 +19,7 @@ extension UINavigationController {
 }
 
 class ChatViewController: UIViewController {
+    private let calendarViewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
     private let viewModel = ChatViewModel()
     private let sizingCell = ChatCollectionViewCell()
@@ -89,6 +90,15 @@ class ChatViewController: UIViewController {
         stack.isHidden = true
         return stack
     }()
+    
+    init(calendarViewModel: CalendarViewModel) {
+        self.calendarViewModel = calendarViewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -293,7 +303,7 @@ class ChatViewController: UIViewController {
                 guard let self = self else { return }
                 
                 if isPresent {
-                    let vc = SaveModalViewController(viewModel: viewModel)
+                    let vc = SaveModalViewController(viewModel: viewModel, calendarViewModel: calendarViewModel)
                     let nav = UINavigationController(rootViewController: vc)
                     
                     if let sheet = nav.sheetPresentationController {

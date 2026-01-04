@@ -9,6 +9,8 @@ import UIKit
 import SnapKit
 
 class HomeViewController: UIViewController {
+    private let calendarViewModel: CalendarViewModel
+    
     var statusBarHeight: CGFloat {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             return windowScene.statusBarManager?.statusBarFrame.height ?? 0
@@ -91,11 +93,21 @@ class HomeViewController: UIViewController {
         button.configuration = config
         
         button.addAction(UIAction { [weak self] _ in
-            let vc = ChatViewController()
-            self?.navigationController?.pushViewController(vc, animated: true)
+            guard let self = self else { return }
+            let vc = ChatViewController(calendarViewModel: calendarViewModel)
+            self.navigationController?.pushViewController(vc, animated: true)
         }, for: .touchUpInside)
         return button
     }()
+    
+    init(calendarViewModel: CalendarViewModel) {
+        self.calendarViewModel = calendarViewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()

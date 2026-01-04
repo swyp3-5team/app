@@ -66,7 +66,6 @@ final class ChatViewModel {
             payment: info.payment,
             paymentMemo: info.paymentMemo,
             emotion: info.emotion,
-            type: info.type,
             transactions: info.transactions.map { item in
                 TransactionDTO(
                     name: item.name,
