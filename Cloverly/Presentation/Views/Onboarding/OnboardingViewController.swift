@@ -42,9 +42,9 @@ class OnboardingViewController: UIPageViewController {
     }
     
     private func setupPages() {
-        let page1 = OnboardingPageController(model: OnboardingModel(title: "대화로 쓰는 가계부", subtitle: "말하듯 입력하면 캐릭터가 정리해줘요", imageName: ""))
-        let page2 = OnboardingPageController(model: OnboardingModel(title: "입력은 더 간편하게", subtitle: "영수증을 찍거나 복사한 텍스트를\n붙여넣으면 자동으로 분류돼요", imageName: ""))
-        let page3 = OnboardingPageController(model: OnboardingModel(title: "예산으로 흐름을 잡아요", subtitle: "하루·주·월 예산을 설정해 관리해요", imageName: ""))
+        let page1 = OnboardingPageController(model: OnboardingModel(title: "대화로 쓰는 가계부", subtitle: "말하듯 입력하면 캐릭터가 정리해줘요", imageName: "onboarding 1"))
+        let page2 = OnboardingPageController(model: OnboardingModel(title: "입력은 더 간편하게", subtitle: "영수증을 찍거나 복사한 텍스트를\n붙여넣으면 자동으로 분류돼요", imageName: "onboarding 2"))
+        let page3 = OnboardingPageController(model: OnboardingModel(title: "예산으로 흐름을 잡아요", subtitle: "하루·주·월 예산을 설정해 관리해요", imageName: "onboarding 3"))
         
         pages = [page1, page2, page3]
     }
