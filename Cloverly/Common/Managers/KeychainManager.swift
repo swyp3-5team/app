@@ -47,6 +47,7 @@ class KeychainManager {
             kSecValueData: token.data(using: .utf8, allowLossyConversion: false) as Any
         ]
         
+        delete(key: key)
         let status = SecItemAdd(query, nil)
         if status != errSecSuccess {
             print("Keychain create error: \(status)")
