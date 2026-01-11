@@ -64,10 +64,9 @@ class RecordViewController: UIViewController {
         
         config.imagePlacement = .leading
         config.imagePadding = 4
+        config.cornerStyle = .capsule
         
         let button = UIButton(configuration: config)
-        button.layer.cornerRadius = 32
-        button.clipsToBounds = true
         
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
@@ -275,21 +274,16 @@ class RecordViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] amounts in
                 let total = amounts.values.reduce(0, +)
-                self?.expenseLabel.text = total > 0 ? "지출 -\(total.withComma)원" : "지출 0원"
+                self?.expenseLabel.text = total > 0 ? "-\(total.withComma)원" : "0원"
             })
             .disposed(by: disposeBag)
         
         viewModel.filteredTransactions
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] _ in
-                self?.tableView.reloadData()
-            })
-            .disposed(by: disposeBag)
-        
-        viewModel.selectedCategories
-            .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] categories in
-                self?.updateFilterButtonText(categories: categories)
+                guard let self = self else { return }
+                self.tableView.reloadData()
+                self.updateFilterButtonText(categories: self.viewModel.selectedCategories.value)
             })
             .disposed(by: disposeBag)
     }
@@ -312,6 +306,7 @@ class RecordViewController: UIViewController {
         container.foregroundColor = isFilterActive ? .green5 : .gray2
         
         config.attributedTitle = AttributedString(titleText, attributes: container)
+        config.image = isFilterActive ? nil : UIImage(named: "filter")
         
         filterButton.configuration = config
     }

@@ -75,10 +75,8 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         
         config.imagePlacement = .leading
         config.imagePadding = 4
-        
+        config.cornerStyle = .capsule
         let button = UIButton(configuration: config)
-        button.layer.cornerRadius = 32
-        button.clipsToBounds = true
         
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
@@ -238,11 +236,12 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         self.viewModel.isSheetPresent.accept(true)
     }
     
-    func calendar(_ calendar: FSCalendar, shouldSelect date: Date, at monthPosition: FSCalendarMonthPosition) -> Bool {
-        let dateString = dateFormatter.string(from: date)
-        
-        return viewModel.dailyTotalAmounts.value[dateString] != nil
-    }
+    // 내역 없는 날은 선택 안되게
+//    func calendar(_ calendar: FSCalendar, shouldSelect date: Date, at monthPosition: FSCalendarMonthPosition) -> Bool {
+//        let dateString = dateFormatter.string(from: date)
+//        
+//        return viewModel.dailyTotalAmounts.value[dateString] != nil
+//    }
     
     func calendar(_ calendar: FSCalendar, cellFor date: Date, at position: FSCalendarMonthPosition) -> FSCalendarCell {
         let cell = calendar.dequeueReusableCell(withIdentifier: CalendarCell.identifier, for: date, at: position) as! CalendarCell
