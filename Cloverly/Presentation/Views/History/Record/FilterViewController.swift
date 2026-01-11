@@ -107,7 +107,6 @@ class FilterViewController: UIViewController {
         super.viewDidLoad()
         configureUI()
         syncSelectionState()
-        isModalInPresentation = true
     }
     
     func configureUI() {

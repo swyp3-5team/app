@@ -57,7 +57,10 @@ class ExpenseListViewController: UIViewController {
         super.viewDidLoad()
         configureUI()
         bind()
-        isModalInPresentation = true
+        
+        if let sheet = self.sheetPresentationController {
+            sheet.delegate = self
+        }
     }
     
     func configureUI() {
@@ -124,5 +127,11 @@ extension ExpenseListViewController: UITableViewDataSource, UITableViewDelegate 
         let nav = UINavigationController(rootViewController: vc)
         nav.modalPresentationStyle = .fullScreen
         present(nav, animated: true)
+    }
+}
+
+extension ExpenseListViewController: UISheetPresentationControllerDelegate {
+    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        viewModel.isSheetPresent.accept(false)
     }
 }
