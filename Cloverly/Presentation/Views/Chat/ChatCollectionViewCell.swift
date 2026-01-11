@@ -154,6 +154,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
             timeLeadingConstraint.isActive = true
             timeTrailingConstraint.isActive = false
             messageTextView.backgroundColor = .green10
+            messageTextView.font = .customFont(.pretendardRegular, size: 16)
             
             messageTextView.layer.maskedCorners = [
                 .layerMinXMinYCorner,
@@ -167,6 +168,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
             timeLeadingConstraint.isActive = false
             timeTrailingConstraint.isActive = true
             messageTextView.backgroundColor = .gray9
+            messageTextView.font = .customFont(.pretendardMedium, size: 16)
             
             messageTextView.layer.maskedCorners = [
                 .layerMinXMinYCorner,
