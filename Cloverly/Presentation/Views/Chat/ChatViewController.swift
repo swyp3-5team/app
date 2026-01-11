@@ -309,7 +309,9 @@ class ChatViewController: UIViewController {
                     if let sheet = nav.sheetPresentationController {
                         sheet.detents = [
                             .custom(identifier: .init("threeFifths")) { context in
-                                context.maximumDetentValue * 3 / 5
+                                let screenWidth = UIScreen.main.bounds.width
+                                let ratio: CGFloat = screenWidth <= 375 ? 0.62 : 0.58
+                                return context.maximumDetentValue * ratio
                             }
                         ]
                     }
