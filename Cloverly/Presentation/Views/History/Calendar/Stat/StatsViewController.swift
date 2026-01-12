@@ -15,16 +15,6 @@ class StatsViewController: UIViewController {
     private let viewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
     
-    // ✨ 차트와 리스트가 공유할 색상 목록 (이미지 느낌의 파스텔톤)
-    private let chartColors: [UIColor] = [
-        UIColor(red: 0.2, green: 0.8, blue: 0.6, alpha: 1.0),  // 민트/초록 (식비)
-        UIColor(red: 1.0, green: 0.8, blue: 0.4, alpha: 1.0),  // 노랑 (쇼핑)
-        UIColor(red: 0.4, green: 0.6, blue: 1.0, alpha: 1.0),  // 파랑
-        UIColor(red: 0.2, green: 0.8, blue: 0.8, alpha: 1.0),  // 청록
-        UIColor(red: 1.0, green: 0.4, blue: 0.5, alpha: 1.0),  // 핑크/빨강
-        UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)   // 회색
-    ]
-    
     private let emptyStateLabel: UILabel = {
         let label = UILabel()
         label.text = "내역이 없습니다."
