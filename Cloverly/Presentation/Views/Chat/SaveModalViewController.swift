@@ -37,10 +37,10 @@ class SaveModalViewController: UIViewController {
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             
-            var current = self.viewModel.messages.value
+            var current = self.viewModel.ledgerMessages.value
             guard !current.isEmpty else { return }
             current.removeLast()
-            self.viewModel.messages.accept(current)
+            self.viewModel.ledgerMessages.accept(current)
             
             self.viewModel.isSheetPresent.accept(false)
         }, for: .touchUpInside)

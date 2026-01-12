@@ -247,7 +247,7 @@ class ChatViewController: UIViewController {
     }
     
     func bind() {
-        viewModel.messages
+        viewModel.currentMessagesStream
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] newMessages in
                 guard let self = self else { return }
@@ -258,28 +258,27 @@ class ChatViewController: UIViewController {
                     self.collectionView.backgroundView = nil
                 }
                 
-                let currentCount = self.collectionView.numberOfSections > 0 ? self.collectionView.numberOfItems(inSection: 0) : 0
+                let currentCount = self.collectionView.numberOfItems(inSection: 0)
                 let newCount = newMessages.count
                 
-                if currentCount == 0 || newCount <= currentCount {
+                if newCount == currentCount + 1 {
+                    // 메시지 1개 추가됨
+                    let indexPath = IndexPath(item: currentCount, section: 0)
+                    
+                    self.collectionView.performBatchUpdates({
+                        self.collectionView.insertItems(at: [indexPath])
+                    }) { _ in
+                        self.scrollToBottom(animated: true)
+                    }
+                } else {
+                    // 모드 변경, 대량 로딩, 삭제 등 -> 전체 갱신
                     self.collectionView.reloadData()
-                    self.scrollToBottom(animated: false)
-                    return
+                    self.collectionView.layoutIfNeeded()
+                    
+                    if newCount > 0 {
+                        self.scrollToBottom(animated: false) // 모드 변경시는 즉시 이동
+                    }
                 }
-                
-                var indexPaths: [IndexPath] = []
-                for i in currentCount..<newCount {
-                    indexPaths.append(IndexPath(item: i, section: 0))
-                }
-                
-                self.collectionView.performBatchUpdates({
-                    self.collectionView.insertItems(at: indexPaths)
-                }) { _ in
-                    self.scrollToBottom(animated: true)
-                }
-                // 버벅임 이슈 수정 필요
-                //                self.collectionView.reloadData()
-                //                self.scrollToBottom(animated: false)
                 
             })
             .disposed(by: disposeBag)
@@ -410,7 +409,7 @@ class ChatViewController: UIViewController {
 
 extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.messages.value.count
+        return viewModel.currentMessages.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -418,7 +417,7 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
             return UICollectionViewCell()
         }
         
-        let message = viewModel.messages.value[indexPath.row]
+        let message = viewModel.currentMessages[indexPath.row]
         UIView.performWithoutAnimation {
             cell.bind(with: message)
             cell.layoutIfNeeded()
@@ -428,7 +427,7 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let message = viewModel.messages.value[indexPath.item]
+        let message = viewModel.currentMessages[indexPath.item]
         
         sizingCell.bind(with: message)
         
@@ -466,7 +465,7 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         
-        if viewModel.messages.value.isEmpty {
+        if viewModel.currentMessages.isEmpty {
             return .zero
         }
         
@@ -484,8 +483,6 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
         dismiss(animated: true)
         
         if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage{
-            let message = Message(kind: .photo(image), chatType: .send)
-            self.viewModel.messages.accept(self.viewModel.messages.value + [message])
             self.viewModel.sendChat(image: image)
             self.viewModel.isSheetPresent.accept(true)
         }
@@ -518,8 +515,6 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
             provider.loadObject(ofClass: UIImage.self) { image, error in
                 DispatchQueue.main.async {
                     if let image = image as? UIImage {
-                        let message = Message(kind: .photo(image), chatType: .send)
-                        self.viewModel.messages.accept(self.viewModel.messages.value + [message])
                         self.viewModel.sendChat(image: image)
                     }
                 }

@@ -218,8 +218,6 @@ class InputBar: UIView {
             guard let self = self else { return }
             
             let inputText = self.textView.text ?? ""
-            let message = Message(kind: .text(inputText), chatType: .send)
-            self.viewModel.messages.accept(self.viewModel.messages.value + [message])
             self.viewModel.sendChat(message: inputText)
             
             textView.text = ""
