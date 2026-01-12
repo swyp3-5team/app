@@ -32,6 +32,40 @@ class ExpenseListViewController: UIViewController {
         return button
     }()
     
+    private lazy var addButton: UIButton = {
+        let button = UIButton()
+        var config = UIButton.Configuration.filled()
+
+        config.title = "내역 추가"
+        config.image = UIImage(named: "add icon")
+
+        config.imagePlacement = .leading
+        config.imagePadding = 4
+
+        config.baseForegroundColor = .gray1
+        config.baseBackgroundColor = .gray9
+        config.contentInsets = NSDirectionalEdgeInsets(top: 9, leading: 16, bottom: 9, trailing: 16)
+        
+        var titleAttr = AttributedString.init("내역 추가")
+        titleAttr.font = .customFont(.pretendardSemiBold, size: 16)
+        config.attributedTitle = titleAttr
+        
+        config.cornerStyle = .capsule
+        
+        button.configuration = config
+        
+        button.addAction(UIAction { [weak self] _ in
+            guard let self = self else { return }
+            viewModel.clearCurrentTransaction()
+            let vc = ExpenseHistoryViewController(viewModel: viewModel)
+            let nav = UINavigationController(rootViewController: vc)
+            nav.modalPresentationStyle = .fullScreen
+            present(nav, animated: true)
+        }, for: .touchUpInside)
+        
+        return button
+    }()
+    
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = .systemBackground
@@ -83,6 +117,15 @@ class ExpenseListViewController: UIViewController {
             $0.top.equalTo(titleLabel).offset(20)
             $0.leading.trailing.bottom.equalToSuperview()
         }
+        
+        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 60))
+        footerView.addSubview(addButton)
+        
+        addButton.snp.makeConstraints {
+            $0.center.equalToSuperview()
+        }
+        
+        tableView.tableFooterView = footerView
     }
     
     func bind() {
