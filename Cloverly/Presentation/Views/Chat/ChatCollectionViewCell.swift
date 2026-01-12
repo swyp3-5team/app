@@ -99,7 +99,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        stackView.widthAnchor.constraint(lessThanOrEqualToConstant: 250).isActive = true
+        stackView.widthAnchor.constraint(lessThanOrEqualToConstant: 208).isActive = true
         
         //        profileImageView.snp.makeConstraints {
         //            $0.top.equalToSuperview()
@@ -112,7 +112,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
         
         NSLayoutConstraint.activate([
             profileImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            profileImageView.centerYAnchor.constraint(equalTo: stackView.centerYAnchor),
+            profileImageView.bottomAnchor.constraint(equalTo: stackView.bottomAnchor),
             
             stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
             stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
