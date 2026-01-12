@@ -85,7 +85,7 @@ class ExpenseListViewCell: UITableViewCell {
     }
     
     func configure(with transaction: Transaction) {
-        titleLabel.text = transaction.place
+        titleLabel.text = transaction.place?.isEmpty == false ? transaction.place : "미입력"
         subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.transactionInfoList.max { $0.amount < $1.amount }?.categoryName ?? "내역 없음")"
         indicatorView.backgroundColor = transaction.transactionInfoList
             .max { $0.amount < $1.amount }
