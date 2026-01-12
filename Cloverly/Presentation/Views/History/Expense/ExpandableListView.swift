@@ -39,6 +39,7 @@ class ExpandableListView: UIView {
     private let listOpenImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage(named: "Chevron down"))
         imageView.contentMode = .scaleAspectFit
+        imageView.isHidden = true
         return imageView
     }()
     
@@ -59,6 +60,7 @@ class ExpandableListView: UIView {
     private let dividerView: UIView = {
         let view = UIView()
         view.backgroundColor = .gray9
+        view.isHidden = true
         return view
     }()
     
@@ -154,8 +156,20 @@ class ExpandableListView: UIView {
     
     // MARK: - Data Binding
     func configure(with transaction: Transaction) {
+        // 기존 뷰 제거 (초기화)
+        contentStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+
         let items = transaction.transactionInfoList
-        guard !items.isEmpty else { return }
+        
+        if items.isEmpty {
+            listLabel.text = ""
+            listOpenImageView.isHidden = true
+            dividerView.isHidden = true
+            return
+        }
+        
+        listOpenImageView.isHidden = false
+        dividerView.isHidden = false
         
         // 헤더 텍스트
         if items.count == 1 {
@@ -163,9 +177,6 @@ class ExpandableListView: UIView {
         } else {
             listLabel.text = "\(items[0].name) 외 \(items.count - 1)개"
         }
-        
-        // 기존 뷰 제거 (초기화)
-        contentStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
         
         // 상세 항목 추가
         for (index, item) in items.enumerated() {
@@ -204,8 +215,15 @@ class ExpandableListView: UIView {
         
         // ✨ [추가 4] 삭제 버튼에 액션 추가 (핵심!)
         deleteButton.addAction(UIAction { [weak self] _ in
-            // "나 (index)번째 줄 삭제 버튼 눌렸어!" 라고 외부로 알림
-            self?.onDeleteItem?(index)
+            // 삭제되는 애니메이션
+            UIView.animate(withDuration: 0.2, animations: {
+                view.alpha = 0
+                view.isHidden = true
+                self?.contentStackView.layoutIfNeeded()
+                
+            }, completion: { _ in
+                self?.onDeleteItem?(index)
+            })
         }, for: .touchUpInside)
         
         view.addSubview(contentStackView)
