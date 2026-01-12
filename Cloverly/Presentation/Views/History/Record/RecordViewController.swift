@@ -159,11 +159,11 @@ class RecordViewController: UIViewController {
     }()
     
     private lazy var tableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .grouped) // ✨ 헤더를 쓰려면 .grouped 추천
+        let tableView = UITableView(frame: .zero, style: .grouped)
         tableView.backgroundColor = .white
-        tableView.separatorStyle = .none // 구분선 제거 (이미지처럼 깔끔하게)
+        tableView.separatorStyle = .none
         tableView.register(ExpenseListViewCell.self, forCellReuseIdentifier: ExpenseListViewCell.identifier)
-        tableView.sectionHeaderTopPadding = 0 // 헤더 위 여백 제거
+        tableView.sectionHeaderTopPadding = 0
         
         tableView.delegate = self
         tableView.dataSource = self
@@ -186,26 +186,29 @@ class RecordViewController: UIViewController {
     }
     
     func configureUI() {
-        view.addSubview(prevButton)
-        view.addSubview(headerLabel)
-        view.addSubview(nextButton)
-        view.addSubview(statsButton)
-        view.addSubview(backgroundImageView)
-        view.addSubview(greetingLabel)
-        view.addSubview(expenseTextLabel)
-        view.addSubview(expenseLabel)
-        view.addSubview(filterButton)
-        view.addSubview(addButton)
         view.addSubview(tableView)
+
+        tableView.snp.makeConstraints {
+            $0.edges.equalTo(view.safeAreaLayoutGuide)
+        }
+        
+        // 헤더 추가
+        let headerContainer = UIView()
+        headerContainer.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 400)
+        
+        [prevButton, headerLabel, nextButton, statsButton, backgroundImageView,
+         greetingLabel, expenseTextLabel, expenseLabel, filterButton, addButton].forEach {
+            headerContainer.addSubview($0)
+        }
+        
+        headerLabel.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(20)
+            $0.leading.equalTo(prevButton.snp.trailing).offset(8)
+        }
         
         prevButton.snp.makeConstraints {
             $0.centerY.equalTo(headerLabel)
             $0.leading.equalToSuperview().offset(16)
-        }
-        
-        headerLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
-            $0.leading.equalTo(prevButton.snp.trailing).offset(8)
         }
         
         nextButton.snp.makeConstraints {
@@ -241,17 +244,20 @@ class RecordViewController: UIViewController {
         filterButton.snp.makeConstraints {
             $0.top.equalTo(backgroundImageView.snp.bottom).offset(30)
             $0.leading.equalToSuperview().offset(16)
+            $0.bottom.equalToSuperview().inset(14)
         }
         
         addButton.snp.makeConstraints {
             $0.centerY.equalTo(filterButton.snp.centerY)
             $0.trailing.equalToSuperview().offset(-16)
         }
-        
-        tableView.snp.makeConstraints {
-            $0.top.equalTo(addButton.snp.bottom).offset(14)
-            $0.leading.trailing.bottom.equalToSuperview()
-        }
+
+            // 3. 레이아웃 계산 후 헤더 등록
+            headerContainer.layoutIfNeeded()
+            let size = headerContainer.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+            headerContainer.frame.size.height = size.height
+            
+            tableView.tableHeaderView = headerContainer
     }
     
     private func bind() {
