@@ -12,15 +12,21 @@ import RxCocoa
 
 class TransactionInfoEditViewController: UIViewController {
     
+    enum Mode {
+        case add
+        case edit
+    }
+    
     // ✨ 수정 완료 후 데이터를 돌려줄 클로저
     var onSave: ((String, Int, Int) -> Void)?
     
     private let disposeBag = DisposeBag()
     
     // 초기 데이터 저장용
-    private var initialName: String?
-    private var initialAmount: Int?
-    private var selectedCategoryId = BehaviorRelay<Int?>(value: nil)
+    private let mode: Mode
+    private let initialName: String?
+    private let initialAmount: Int?
+    private let selectedCategoryId = BehaviorRelay<Int?>(value: nil)
     
     // MARK: - UI Components
     
@@ -89,9 +95,9 @@ class TransactionInfoEditViewController: UIViewController {
         return cv
     }()
     
-    private let saveButton: UIButton = {
+    private lazy var saveButton: UIButton = {
         let btn = UIButton()
-        btn.setTitle("추가", for: .normal)
+        btn.setTitle(mode == .add ? "추가" : "저장", for: .normal)
         btn.backgroundColor = .green5
         btn.layer.cornerRadius = 8
         return btn
@@ -101,7 +107,8 @@ class TransactionInfoEditViewController: UIViewController {
     private let categories = ExpenseCategory.allCases
     
     // MARK: - Init
-    init(name: String? = nil, amount: Int? = nil, categoryId: Int? = nil) {
+    init(mode: Mode = .add, name: String? = nil, amount: Int? = nil, categoryId: Int? = nil) {
+        self.mode = mode
         self.initialName = name
         self.initialAmount = amount
         self.selectedCategoryId.accept(categoryId)
@@ -176,8 +183,8 @@ class TransactionInfoEditViewController: UIViewController {
         }
         
         saveButton.snp.makeConstraints {
-            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
             $0.leading.trailing.equalToSuperview().inset(16)
+            $0.bottom.equalTo(view.safeAreaLayoutGuide)
             $0.height.equalTo(56)
         }
     }

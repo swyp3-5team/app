@@ -110,7 +110,6 @@ final class CalendarViewModel {
         Task {
             do {
                 let categoryStatisticsList = try await transactionAPI.getCategoryStatistics(yearMonth: yearMonthString)
-                print(categoryStatisticsList)
                 categoryStatistics.accept(categoryStatisticsList)
             } catch {
                 print("카테고리 통계 데이터 로드 실패: \(error)")

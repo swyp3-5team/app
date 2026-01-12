@@ -261,7 +261,7 @@ class ExpenseHistoryViewController: UIViewController {
         saveButton.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview().inset(16)
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
-            $0.height.equalTo(50)
+            $0.height.equalTo(56)
         }
     }
     
@@ -375,6 +375,7 @@ class ExpenseHistoryViewController: UIViewController {
             
             // ② 편집 화면 생성 (현재 값 주입)
             let editVC = TransactionInfoEditViewController(
+                mode: .edit,
                 name: targetItem.name,
                 amount: targetItem.amount,
                 categoryId: targetItem.categoryId
