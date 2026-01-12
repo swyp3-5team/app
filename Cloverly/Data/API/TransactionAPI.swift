@@ -48,7 +48,6 @@ final class TransactionAPI {
     func updateTransaction(transaction: Transaction) async throws {
         let url = "\(baseURL)/api/transaction-groups/\(transaction.trGroupId)"
         
-        print(transaction)
         _ = try await NetworkManager.shared.session.request(
                 url,
                 method: .put,
@@ -66,6 +65,16 @@ final class TransactionAPI {
             method: .post,
             parameters: requestBody,
             encoder: JSONParameterEncoder.default,
+        )
+        .validate()
+        .serializingData()
+        .value
+    }
+    
+    func deleteTransaction(trGroupId: Int) async throws {
+        _ = try await NetworkManager.shared.session.request(
+            "\(baseURL)/api/transaction-groups/delete/\(trGroupId)",
+            method: .delete,
         )
         .validate()
         .serializingData()

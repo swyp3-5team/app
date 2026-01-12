@@ -156,6 +156,31 @@ class ExpenseHistoryViewController: UIViewController {
         return button
     }()
     
+    private lazy var deleteButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("삭제", for: .normal)
+        button.setTitleColor(.gray1, for: .normal)
+        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.gray7.cgColor
+        button.layer.cornerRadius = 8
+        button.clipsToBounds = true
+        
+        button.addAction(UIAction { [weak self] _ in
+            self?.showDeleteAlert()
+        }, for: .touchUpInside)
+        
+        return button
+    }()
+    
+    private lazy var buttonStackView: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [deleteButton, saveButton])
+        stack.axis = .horizontal
+        stack.spacing = 8
+        stack.distribution = .fillEqually
+        return stack
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
@@ -207,7 +232,7 @@ class ExpenseHistoryViewController: UIViewController {
         view.addSubview(titleLabel)
         view.addSubview(xButton)
         view.addSubview(scrollView)
-        view.addSubview(saveButton)
+        view.addSubview(buttonStackView)
         
         titleLabel.snp.makeConstraints {
             $0.top.equalTo(view.snp.top).offset(statusBarHeight + 15.5)
@@ -258,7 +283,7 @@ class ExpenseHistoryViewController: UIViewController {
             $0.width.equalTo(scrollView.frameLayoutGuide)
         }
         
-        saveButton.snp.makeConstraints {
+        buttonStackView.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview().inset(16)
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
             $0.height.equalTo(56)
@@ -270,9 +295,11 @@ class ExpenseHistoryViewController: UIViewController {
         
         if current.trGroupId != -1 {
             self.titleLabel.text = "내역 수정"
+            self.deleteButton.isHidden = false
         } else {
             self.titleLabel.text = "내역 추가"
             self.amountTextField.text = nil
+            self.deleteButton.isHidden = true
         }
     }
     
@@ -452,6 +479,33 @@ class ExpenseHistoryViewController: UIViewController {
         // 3. 화면 이동 (Push)
         // 주의: 이 VC가 NavigationController 안에 있어야 push가 동작합니다.
         self.navigationController?.pushViewController(addVC, animated: true)
+    }
+    
+    private func showDeleteAlert() {
+        let alert = UIAlertController(
+            title: "내역을 삭제하시겠습니까?",
+            message: "",
+            preferredStyle: .alert
+        )
+        
+        let cancelAction = UIAlertAction(title: "취소", style: .cancel)
+        
+        let deleteAction = UIAlertAction(title: "삭제", style: .destructive) { [weak self] _ in
+            Task {
+                do {
+                    try await self?.viewModel.deleteTransaction()
+                    self?.viewModel.refreshTrigger.accept(())
+                    self?.dismiss(animated: true)
+                } catch {
+                    print("지출 삭제 실패: \(error)")
+                }
+            }
+        }
+        
+        alert.addAction(cancelAction)
+        alert.addAction(deleteAction)
+        
+        present(alert, animated: true)
     }
 }
 

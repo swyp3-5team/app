@@ -228,4 +228,9 @@ final class CalendarViewModel {
             try await transactionAPI.saveTransaction(requestBody: requestBody)
         }
     }
+    
+    func deleteTransaction() async throws {
+        guard let current = currentTransaction.value else { return }
+        try await transactionAPI.deleteTransaction(trGroupId: current.trGroupId)
+    }
 }
