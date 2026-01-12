@@ -419,7 +419,7 @@ class ExpenseHistoryViewController: UIViewController {
     private func presentAddTransactionView() {
         // 1. "추가" 모드이므로 빈 값으로 초기화해서 생성
         // (amount: 0, categoryId: 1 등 기본값 설정)
-        let addVC = TransactionInfoEditViewController(name: "", amount: 0, categoryId: 1)
+        let addVC = TransactionInfoEditViewController()
         
         // 2. 저장(Save) 콜백 처리
         addVC.onSave = { [weak self] newName, newAmount, newCategoryId in

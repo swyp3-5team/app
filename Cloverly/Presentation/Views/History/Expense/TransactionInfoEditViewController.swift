@@ -18,9 +18,9 @@ class TransactionInfoEditViewController: UIViewController {
     private let disposeBag = DisposeBag()
     
     // 초기 데이터 저장용
-    private var initialName: String
-    private var initialAmount: Int
-    private var selectedCategoryId: Int
+    private var initialName: String?
+    private var initialAmount: Int?
+    private var selectedCategoryId = BehaviorRelay<Int?>(value: nil)
     
     // MARK: - UI Components
     
@@ -54,7 +54,10 @@ class TransactionInfoEditViewController: UIViewController {
     private lazy var amountTextField: UITextField = {
         let tf = UITextField()
         tf.placeholder = "금액 입력"
-        tf.text = "\(initialAmount)"
+        
+        if let amount = initialAmount {
+            tf.text = "\(amount)"
+        }
         tf.font = .customFont(.pretendardRegular, size: 16)
         tf.keyboardType = .numberPad
         tf.borderStyle = .roundedRect
@@ -98,10 +101,10 @@ class TransactionInfoEditViewController: UIViewController {
     private let categories = ExpenseCategory.allCases
     
     // MARK: - Init
-    init(name: String, amount: Int, categoryId: Int) {
+    init(name: String? = nil, amount: Int? = nil, categoryId: Int? = nil) {
         self.initialName = name
         self.initialAmount = amount
-        self.selectedCategoryId = categoryId
+        self.selectedCategoryId.accept(categoryId)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -180,7 +183,7 @@ class TransactionInfoEditViewController: UIViewController {
     }
     
     private func selectInitialCategory() {
-        if let index = categories.firstIndex(where: { $0.rawValue == selectedCategoryId }) {
+        if let index = categories.firstIndex(where: { $0.rawValue == selectedCategoryId.value }) {
             let indexPath = IndexPath(item: index, section: 0)
             DispatchQueue.main.async {
                 self.collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
@@ -189,16 +192,41 @@ class TransactionInfoEditViewController: UIViewController {
     }
     
     private func bind() {
-        saveButton.rx.tap
-            .subscribe(onNext: { [weak self] in
+        let validation = Observable.combineLatest(
+            nameTextField.rx.text.orEmpty,
+            amountTextField.rx.text.orEmpty,
+            selectedCategoryId.asObservable()
+        )
+        .map { name, amount, categoryId in
+            return !name.isEmpty && !amount.isEmpty && categoryId != nil
+        }
+        .share(replay: 1)
+        
+        validation
+            .subscribe(onNext: { [weak self] validate in
                 guard let self = self else { return }
-                let name = self.nameTextField.text ?? ""
+                
+                self.saveButton.isEnabled = validate
+                self.saveButton.setTitleColor(validate ? .gray10 : .gray6, for: .normal)
+                self.saveButton.backgroundColor = validate ? .green5 : .gray8
+            })
+            .disposed(by: disposeBag)
+        
+        saveButton.rx.tap
+            .withLatestFrom(Observable.combineLatest(
+                nameTextField.rx.text.orEmpty,
+                amountTextField.rx.text.orEmpty,
+                selectedCategoryId.asObservable()
+            ))
+            .subscribe(onNext: { [weak self] name, amountText, categoryId in
+                guard let self = self, let categoryId = categoryId else { return }
+                
                 // 콤마 제거 후 Int 변환
-                let amountString = self.amountTextField.text?.replacingOccurrences(of: ",", with: "") ?? "0"
+                let amountString = amountText.replacingOccurrences(of: ",", with: "")
                 let amount = Int(amountString) ?? 0
                 
                 // 데이터 전달
-                self.onSave?(name, amount, self.selectedCategoryId)
+                self.onSave?(name, amount, categoryId)
                 self.navigationController?.popViewController(animated: true)
             })
             .disposed(by: disposeBag)
@@ -218,7 +246,7 @@ extension TransactionInfoEditViewController: UICollectionViewDataSource, UIColle
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        self.selectedCategoryId = categories[indexPath.item].rawValue
+        self.selectedCategoryId.accept(categories[indexPath.item].rawValue)
     }
 }
 
