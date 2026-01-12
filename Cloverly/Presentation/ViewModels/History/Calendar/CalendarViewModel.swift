@@ -39,6 +39,7 @@ final class CalendarViewModel {
     let filteredTransactions = BehaviorRelay<[String: [Transaction]]>(value: [:])
     let categories: [ExpenseCategory?] = [nil] + ExpenseCategory.allCases.map { $0 }
     let selectedCategories = BehaviorRelay<Set<ExpenseCategory>>(value: [])
+    var sortedDateKeys: [String] = []
     
     let selectedIndex = BehaviorRelay<Int>(value: 1)
     private let disposeBag = DisposeBag()
@@ -57,6 +58,13 @@ final class CalendarViewModel {
             self?.getTransactions(yearMonth: date)
         })
         .disposed(by: disposeBag)
+        
+        filteredTransactions
+            .map { $0.keys.sorted(by: >) }
+            .subscribe(onNext: { [weak self] keys in
+                self?.sortedDateKeys = keys
+            })
+            .disposed(by: disposeBag)
     }
     
     func updateDate(_ date: Date) {

@@ -320,8 +320,7 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
     
     // 2. 섹션당 행 개수
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let sortedKeys = getSortedDateKeys() // 정렬된 키 목록 가져오기
-        let dateKey = sortedKeys[section]    // 현재 섹션의 날짜 키
+        let dateKey = viewModel.sortedDateKeys[section]
         
         // 필터링된 데이터에서 해당 날짜의 리스트 꺼내기
         return viewModel.filteredTransactions.value[dateKey]?.count ?? 0
@@ -333,8 +332,7 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
             return UITableViewCell()
         }
         
-        let sortedKeys = getSortedDateKeys()
-        let dateKey = sortedKeys[indexPath.section] // ① 섹션 날짜 키 찾기
+        let dateKey = viewModel.sortedDateKeys[indexPath.section]
         
         // ② 해당 날짜의 데이터 리스트 가져오기
         if let transactions = viewModel.filteredTransactions.value[dateKey] {
@@ -343,6 +341,19 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
         }
         
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let dateKey = viewModel.sortedDateKeys[indexPath.section]
+        
+        if let transactions = viewModel.filteredTransactions.value[dateKey] {
+            let transaction = transactions[indexPath.row]
+            viewModel.currentTransaction.accept(transaction)
+            let vc = ExpenseHistoryViewController(viewModel: viewModel)
+            let nav = UINavigationController(rootViewController: vc)
+            nav.modalPresentationStyle = .fullScreen
+            present(nav, animated: true)
+        }
     }
     
     // 4. 헤더 뷰
@@ -355,11 +366,10 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
         label.textColor = .gray3
         
         // ① 정렬된 키 목록에서 현재 섹션의 날짜 가져오기
-        let sortedKeys = getSortedDateKeys()
-        let dateString = sortedKeys[section]
+        let dateKey = viewModel.sortedDateKeys[section]
         
         // ② 포맷팅
-        label.text = formatDateForHeader(dateString)
+        label.text = formatDateForHeader(dateKey)
         
         headerView.addSubview(label)
         label.snp.makeConstraints {
@@ -369,11 +379,7 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
         
         return headerView
     }
-    
-    private func getSortedDateKeys() -> [String] {
-        return viewModel.filteredTransactions.value.keys.sorted(by: >)
-    }
-    
+
     private func formatDateForHeader(_ dateString: String) -> String {
         let inputFormatter = DateFormatter()
         inputFormatter.dateFormat = "yyyy-MM-dd"
