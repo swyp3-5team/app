@@ -108,7 +108,6 @@ class StatsViewController: UIViewController {
         view.addSubview(dateLabel)
         view.addSubview(totalAmount)
         view.addSubview(dividerView)
-        view.addSubview(pieChartView)
         view.addSubview(categoryTableView)
         view.addSubview(emptyStateLabel)
         
@@ -128,14 +127,8 @@ class StatsViewController: UIViewController {
             $0.height.equalTo(6)
         }
         
-        pieChartView.snp.makeConstraints {
-            $0.top.equalTo(dividerView.snp.bottom).offset(40)
-            $0.centerX.equalToSuperview()
-            $0.width.height.equalTo(200) // 차트 크기 적당히 조절
-        }
-        
         categoryTableView.snp.makeConstraints {
-            $0.top.equalTo(pieChartView.snp.bottom).offset(40)
+            $0.top.equalTo(dividerView.snp.bottom)
             $0.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
         }
         
@@ -145,12 +138,25 @@ class StatsViewController: UIViewController {
         }
         
         emptyStateLabel.snp.makeConstraints {
-            $0.center.equalTo(pieChartView)
+            $0.top.equalTo(dividerView.snp.bottom).offset(40)
+            $0.centerX.equalToSuperview()
         }
         
+        // 차트 테이블뷰 헤더에
         let marker = CircleMarkerView()
         marker.chartView = pieChartView // 필수 연결
         pieChartView.marker = marker
+        
+        let headerContainer = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 280))
+        headerContainer.addSubview(pieChartView)
+        
+        pieChartView.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(40)
+            $0.centerX.equalToSuperview()
+            $0.width.height.equalTo(200)
+        }
+        
+        categoryTableView.tableHeaderView = headerContainer
     }
     
     func bind() {
