@@ -34,7 +34,7 @@ class TransactionInfoEditViewController: UIViewController {
     private let nameTitleLabel: UILabel = {
         let label = UILabel()
         label.text = "지출 내역"
-        label.font = .customFont(.pretendardMedium, size: 14)
+        label.font = .customFont(.pretendardSemiBold, size: 14)
         label.textColor = .gray2
         return label
     }()
@@ -43,8 +43,14 @@ class TransactionInfoEditViewController: UIViewController {
         let tf = UITextField()
         tf.placeholder = "지출내역 입력"
         tf.text = initialName
-        tf.font = .customFont(.pretendardRegular, size: 16)
-        tf.borderStyle = .roundedRect
+        tf.font = .customFont(.pretendardRegular, size: 14)
+        tf.layer.borderColor = UIColor.gray8.cgColor
+        tf.layer.borderWidth = 1
+        tf.layer.cornerRadius = 8
+        tf.clipsToBounds = true
+        
+        tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
+        tf.leftViewMode = .always
         return tf
     }()
     
@@ -52,7 +58,7 @@ class TransactionInfoEditViewController: UIViewController {
     private let amountTitleLabel: UILabel = {
         let label = UILabel()
         label.text = "금액"
-        label.font = .customFont(.pretendardMedium, size: 14)
+        label.font = .customFont(.pretendardSemiBold, size: 14)
         label.textColor = .gray2
         return label
     }()
@@ -64,9 +70,15 @@ class TransactionInfoEditViewController: UIViewController {
         if let amount = initialAmount {
             tf.text = "\(amount)"
         }
-        tf.font = .customFont(.pretendardRegular, size: 16)
+        tf.font = .customFont(.pretendardRegular, size: 14)
         tf.keyboardType = .numberPad
-        tf.borderStyle = .roundedRect
+        tf.layer.borderColor = UIColor.gray8.cgColor
+        tf.layer.borderWidth = 1
+        tf.layer.cornerRadius = 8
+        tf.clipsToBounds = true
+        
+        tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
+        tf.leftViewMode = .always
         return tf
     }()
     
@@ -74,7 +86,7 @@ class TransactionInfoEditViewController: UIViewController {
     private let categoryTitleLabel: UILabel = {
         let label = UILabel()
         label.text = "카테고리"
-        label.font = .customFont(.pretendardMedium, size: 14)
+        label.font = .customFont(.pretendardSemiBold, size: 14)
         label.textColor = .gray2
         return label
     }()
@@ -155,7 +167,7 @@ class TransactionInfoEditViewController: UIViewController {
         nameTextField.snp.makeConstraints {
             $0.top.equalTo(nameTitleLabel.snp.bottom).offset(8)
             $0.leading.equalToSuperview().offset(16)
-            $0.width.equalTo(160)
+            $0.width.equalTo(amountTextField.snp.width)
             $0.height.equalTo(48)
         }
         
@@ -172,7 +184,7 @@ class TransactionInfoEditViewController: UIViewController {
         }
         
         categoryTitleLabel.snp.makeConstraints {
-            $0.top.equalTo(nameTextField.snp.bottom).offset(30)
+            $0.top.equalTo(nameTextField.snp.bottom).offset(24)
             $0.leading.equalToSuperview().offset(16)
         }
         
