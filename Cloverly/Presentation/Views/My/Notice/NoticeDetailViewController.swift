@@ -15,7 +15,7 @@ class NoticeDetailViewController: UIViewController {
     // 제목
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = .customFont(.pretendardBold, size: 20)
+        label.font = .customFont(.pretendardMedium, size: 16)
         label.textColor = .gray1
         label.numberOfLines = 0
         return label
@@ -67,7 +67,7 @@ class NoticeDetailViewController: UIViewController {
         view.addSubview(contentTextView)
         
         titleLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(24)
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(16)
             $0.leading.trailing.equalToSuperview().inset(16)
         }
         
