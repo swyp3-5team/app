@@ -210,10 +210,19 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] date in
                 guard let self = self else { return }
-                let formatter = DateFormatter()
-                formatter.dateFormat = "MM월"
-                formatter.locale = Locale(identifier: "ko_KR")
-                self.headerLabel.text = formatter.string(from: date)
+                let dateFormatter = DateFormatter()
+                dateFormatter.locale = Locale(identifier: "ko_KR")
+                
+                let currentYear = Calendar.current.component(.year, from: Date())
+                let targetYear = Calendar.current.component(.year, from: date)
+                
+                if currentYear == targetYear {
+                    dateFormatter.dateFormat = "M월"
+                } else {
+                    dateFormatter.dateFormat = "yy년 M월"
+                }
+                
+                self.headerLabel.text = dateFormatter.string(from: date)
                 
                 if !Calendar.current.isDate(self.calendar.currentPage, equalTo: date, toGranularity: .month) {
                     self.calendar.setCurrentPage(date, animated: true)

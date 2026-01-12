@@ -260,8 +260,16 @@ class RecordViewController: UIViewController {
             .observe(on: MainScheduler.instance) // UI 업데이트니까 메인 스레드 보장
             .subscribe(onNext: { [weak self] date in
                 let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "M월" // "01월"이 싫으면 "M월"로
                 dateFormatter.locale = Locale(identifier: "ko_KR")
+                
+                let currentYear = Calendar.current.component(.year, from: Date())
+                let targetYear = Calendar.current.component(.year, from: date)
+                
+                if currentYear == targetYear {
+                    dateFormatter.dateFormat = "M월"
+                } else {
+                    dateFormatter.dateFormat = "yy년 M월"
+                }
                 
                 self?.headerLabel.text = dateFormatter.string(from: date)
                 
