@@ -10,6 +10,7 @@ import DGCharts
 import SnapKit
 import RxSwift
 import RxCocoa
+import FirebaseAnalytics
 
 class StatsViewController: UIViewController {
     private let viewModel: CalendarViewModel
@@ -92,6 +93,15 @@ class StatsViewController: UIViewController {
         navigationItem.title = "통계"
         
         viewModel.getCategoryStatistics(yearMonth: viewModel.currentDate.value)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        Analytics.logEvent(AnalyticsEventScreenView, parameters: [
+            AnalyticsParameterScreenName: "statistics",
+            AnalyticsParameterScreenClass: "StatsViewController"
+        ])
     }
     
     func configureUI() {

@@ -8,6 +8,7 @@
 import Foundation
 import RxSwift
 import RxCocoa
+import FirebaseAnalytics
 
 final class CalendarViewModel {
     let transactionAPI = TransactionAPI()
@@ -228,6 +229,10 @@ final class CalendarViewModel {
             
             print(requestBody)
             try await transactionAPI.saveTransaction(requestBody: requestBody)
+            
+            Analytics.logEvent("transaction_saved", parameters: [
+                "source": "manual"
+            ])
         }
     }
     

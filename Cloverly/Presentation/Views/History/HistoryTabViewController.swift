@@ -9,6 +9,7 @@ import UIKit
 import Tabman
 import Pageboy
 import SnapKit
+import FirebaseAnalytics
 
 class HistoryTabViewController: TabmanViewController {
     private let viewModel: CalendarViewModel
@@ -41,6 +42,15 @@ class HistoryTabViewController: TabmanViewController {
         super.viewDidLoad()
         configureUI()
 //        self.isScrollEnabled = false // 탭바 스와이프 비활성화
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        Analytics.logEvent(AnalyticsEventScreenView, parameters: [
+            AnalyticsParameterScreenName: "history",
+            AnalyticsParameterScreenClass: "HistoryTabViewController"
+        ])
     }
     
     func configureUI() {

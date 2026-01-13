@@ -8,6 +8,7 @@
 import UIKit
 import RxSwift
 import RxCocoa
+import FirebaseAnalytics
 
 final class ChatViewModel {
     let ledgerMessages = BehaviorRelay<[Message]>(value: [])
@@ -120,6 +121,10 @@ final class ChatViewModel {
         )
         
         try await api.saveTransaction(requestBody: requestBody)
+        
+        Analytics.logEvent("transaction_saved", parameters: [
+            "source": "chat"
+        ])
         
         let message = Message(kind: .text("\(chatResponse.value?.message ?? "저장 완료")"), chatType: .receive)
         var currentMessages = ledgerMessages.value
