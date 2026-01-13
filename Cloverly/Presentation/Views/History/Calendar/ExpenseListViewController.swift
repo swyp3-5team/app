@@ -14,6 +14,13 @@ class ExpenseListViewController: UIViewController {
     private let viewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
     
+    var statusBarHeight: CGFloat {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            return windowScene.statusBarManager?.statusBarFrame.height ?? 0
+        }
+        return 0
+    }
+    
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.textColor = .gray1
@@ -97,21 +104,24 @@ class ExpenseListViewController: UIViewController {
         }
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        guard let navBar = navigationController?.navigationBar else { return }
+        let navBarFrameInView = navBar.convert(navBar.bounds, to: view)
+
+        // navBar에 맞추기
+        titleLabel.snp.remakeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.centerY.equalTo(navBarFrameInView.midY)
+        }
+    }
+    
     func configureUI() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: xButton)
         view.backgroundColor = .gray10
         view.addSubview(titleLabel)
-        view.addSubview(xButton)
         view.addSubview(tableView)
-        
-        titleLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
-            $0.top.equalToSuperview().offset(24)
-        }
-        
-        xButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
-            $0.centerY.equalTo(titleLabel)
-        }
         
         tableView.snp.makeConstraints {
             $0.top.equalTo(titleLabel).offset(20)

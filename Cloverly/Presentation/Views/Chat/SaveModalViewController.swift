@@ -126,11 +126,24 @@ class SaveModalViewController: UIViewController {
         bind()
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        guard let navBar = navigationController?.navigationBar else { return }
+        let navBarFrameInView = navBar.convert(navBar.bounds, to: view)
+
+        titleLabel.snp.remakeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.centerY.equalTo(navBarFrameInView.midY)
+        }
+    }
+    
     func configureUI() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: xButton)
+        
         view.backgroundColor = .gray10
         view.addSubview(titleLabel)
         view.addSubview(subtitleLabel)
-        view.addSubview(xButton)
         view.addSubview(contentStackView)
         view.addSubview(saveButton)
         
@@ -143,19 +156,9 @@ class SaveModalViewController: UIViewController {
         addInfoRow(title: "지출내역", valueLabel: contentValueLabel)
         addInfoRow(title: "카테고리", valueLabel: categoryValueLabel)
         
-        titleLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
-            $0.top.equalToSuperview().offset(24)
-        }
-        
         subtitleLabel.snp.makeConstraints {
             $0.leading.equalTo(titleLabel.snp.leading)
             $0.top.equalTo(titleLabel.snp.bottom).offset(4)
-        }
-        
-        xButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
-            $0.centerY.equalTo(titleLabel)
         }
         
         contentStackView.snp.makeConstraints {

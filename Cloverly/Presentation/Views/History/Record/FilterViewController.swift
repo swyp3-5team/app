@@ -109,25 +109,27 @@ class FilterViewController: UIViewController {
         syncSelectionState()
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        guard let navBar = navigationController?.navigationBar else { return }
+        let navBarFrameInView = navBar.convert(navBar.bounds, to: view)
+
+        titleLabel.snp.remakeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.centerY.equalTo(navBarFrameInView.midY)
+        }
+    }
+    
     func configureUI() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: xButton)
         view.backgroundColor = .gray10
         view.addSubview(titleLabel)
-        view.addSubview(xButton)
         view.addSubview(subtitleLabel)
         view.addSubview(collectionView)
         view.addSubview(resetButton)
         view.addSubview(applyButton)
-        
-        titleLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
-            $0.top.equalToSuperview().offset(24)
-        }
-        
-        xButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
-            $0.centerY.equalTo(titleLabel)
-        }
-        
+
         subtitleLabel.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.top.equalTo(titleLabel.snp.bottom).offset(24)

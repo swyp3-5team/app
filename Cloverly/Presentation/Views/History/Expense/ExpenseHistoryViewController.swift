@@ -21,13 +21,6 @@ class ExpenseHistoryViewController: UIViewController {
     
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
-    var statusBarHeight: CGFloat {
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            return windowScene.statusBarManager?.statusBarFrame.height ?? 0
-        }
-        return 0
-    }
-    
     private lazy var scrollView: UIScrollView = {
         let view = UIScrollView()
         view.showsVerticalScrollIndicator = false
@@ -191,6 +184,9 @@ class ExpenseHistoryViewController: UIViewController {
     func configureUI() {
         view.backgroundColor = .systemBackground
         
+        navigationItem.titleView = titleLabel
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: xButton)
+        
         dateContainerView.addSubview(datePicker)
         
         // 4. 오토레이아웃 (피커를 껍데기 왼쪽에 붙이기)
@@ -219,20 +215,8 @@ class ExpenseHistoryViewController: UIViewController {
         stackView.addArrangedSubview(memoSection)
         
         scrollView.addSubview(stackView)
-        view.addSubview(titleLabel)
-        view.addSubview(xButton)
         view.addSubview(scrollView)
         view.addSubview(buttonStackView)
-        
-        titleLabel.snp.makeConstraints {
-            $0.top.equalTo(view.snp.top).offset(statusBarHeight + 15.5)
-            $0.centerX.equalToSuperview()
-        }
-        
-        xButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
-            $0.centerY.equalTo(titleLabel)
-        }
         
         nameTextField.snp.makeConstraints {
             $0.height.equalTo(48)
@@ -254,12 +238,8 @@ class ExpenseHistoryViewController: UIViewController {
             $0.height.equalTo(48)
         }
         
-//        expandableListView.snp.makeConstraints {
-//            $0.height.equalTo(48)
-//        }
-        
         scrollView.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(16)
+            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             $0.leading.trailing.equalToSuperview().inset(16)
             $0.bottom.equalTo(saveButton.snp.top).offset(-10)
         }
