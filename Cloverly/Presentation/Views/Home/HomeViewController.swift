@@ -29,12 +29,27 @@ class HomeViewController: UIViewController {
         case 18..<22:
             return "오늘 하루 수고했어요 🌟"
         default:
-            return "아직 안 주무셨군요? 🌙"
+            return "아직 안 주무셨군요? 💤"
+        }
+    }
+    
+    private var timeBasedBackgroundImageName: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+
+        switch hour {
+        case 6..<12:
+            return "background_morning"
+        case 12..<18:
+            return "background_afternoon"
+        case 18..<22:
+            return "background_evening"
+        default:
+            return "background_night"
         }
     }
     
     private lazy var backgroundImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "background"))
+        let imageView = UIImageView(image: UIImage(named: timeBasedBackgroundImageName))
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         return imageView
