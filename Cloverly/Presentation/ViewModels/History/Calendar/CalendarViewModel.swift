@@ -39,6 +39,7 @@ final class CalendarViewModel {
     let filteredTransactions = BehaviorRelay<[String: [Transaction]]>(value: [:])
     let categories: [ExpenseCategory?] = [nil] + ExpenseCategory.allCases.map { $0 }
     let selectedCategories = BehaviorRelay<Set<ExpenseCategory>>(value: [])
+    var tempSelectedCategories: Set<ExpenseCategory> = [] // 적용 전까지 선택한 카테고리를 담을 변수
     var sortedDateKeys: [String] = []
     
     let selectedIndex = BehaviorRelay<Int>(value: 1)

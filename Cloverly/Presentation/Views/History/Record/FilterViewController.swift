@@ -66,12 +66,16 @@ class FilterViewController: UIViewController {
         button.clipsToBounds = true
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
-            viewModel.selectedCategories.accept([])
-            collectionView.reloadData()
+            self.viewModel.tempSelectedCategories.removeAll()
             
+            if let selectedItems = self.collectionView.indexPathsForSelectedItems {
+                for indexPath in selectedItems {
+                    self.collectionView.deselectItem(at: indexPath, animated: true)
+                }
+            }
             // "전체" 다시 선택
             let indexPath = IndexPath(item: 0, section: 0)
-            collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .top)
+            self.collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .top)
         }, for: .touchUpInside)
         
         return button
@@ -87,7 +91,8 @@ class FilterViewController: UIViewController {
         button.backgroundColor = .green5
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
-            viewModel.applyFilter()
+            self.viewModel.selectedCategories.accept(self.viewModel.tempSelectedCategories)
+            self.viewModel.applyFilter()
             dismiss(animated: true)
         }, for: .touchUpInside)
         
@@ -105,6 +110,7 @@ class FilterViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        viewModel.tempSelectedCategories = viewModel.selectedCategories.value
         configureUI()
         syncSelectionState()
     }
@@ -157,7 +163,7 @@ class FilterViewController: UIViewController {
     }
     
     private func syncSelectionState() {
-        let selected = viewModel.selectedCategories.value
+        let selected = viewModel.tempSelectedCategories
         
         if selected.isEmpty {
             // 선택된게 없으면 "전체(0번)" 선택
@@ -200,7 +206,7 @@ extension FilterViewController: UICollectionViewDataSource, UICollectionViewDele
         // A. "전체 내역(0번)"을 눌렀을 때
         if indexPath.item == 0 {
             // 다른 모든 선택 해제
-            viewModel.selectedCategories.accept([]) // 데이터 비움
+            viewModel.tempSelectedCategories.removeAll()
             
             // UI에서도 0번 빼고 다 선택 해제
             for i in 1..<viewModel.categories.count {
@@ -218,9 +224,7 @@ extension FilterViewController: UICollectionViewDataSource, UICollectionViewDele
         
         // 2. ViewModel Set에 추가
         if let category = viewModel.categories[indexPath.item] {
-            var currentSet = viewModel.selectedCategories.value
-            currentSet.insert(category)
-            viewModel.selectedCategories.accept(currentSet)
+            viewModel.tempSelectedCategories.insert(category)
         }
     }
     
@@ -234,12 +238,10 @@ extension FilterViewController: UICollectionViewDataSource, UICollectionViewDele
         
         // B. 일반 카테고리 해제
         if let category = viewModel.categories[indexPath.item] {
-            var currentSet = viewModel.selectedCategories.value
-            currentSet.remove(category)
-            viewModel.selectedCategories.accept(currentSet)
+            viewModel.tempSelectedCategories.remove(category)
             
             // 만약 다 끄고 아무것도 안 남았다면? -> 자동으로 "전체" 선택
-            if currentSet.isEmpty {
+            if viewModel.tempSelectedCategories.isEmpty {
                 collectionView.selectItem(at: IndexPath(item: 0, section: 0), animated: true, scrollPosition: [])
             }
         }
