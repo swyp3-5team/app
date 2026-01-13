@@ -69,20 +69,11 @@ class ExpenseHistoryViewController: UIViewController {
     
     private let emotionGridView = EmotionGridView()
     
-    let amountTextField: UITextField = {
-        let textField = UITextField()
-        textField.keyboardType = .numberPad
-        textField.placeholder = "금액 입력"
-        textField.textColor = .gray1
-        textField.font = .customFont(.pretendardRegular, size: 14)
-        textField.layer.borderColor = UIColor.gray8.cgColor
-        textField.layer.borderWidth = 1
-        textField.layer.cornerRadius = 8
-        textField.clipsToBounds = true
-        
-        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
-        textField.leftViewMode = .always
-        return textField
+    let amountLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .gray6
+        label.font = .customFont(.pretendardSemiBold, size: 18)
+        return label
     }()
     
     private let dateContainerView: UIView = {
@@ -209,24 +200,23 @@ class ExpenseHistoryViewController: UIViewController {
             // 너비나 높이는 굳이 안 잡아도 compact 스타일이 알아서 잡습니다.
         }
         
-        let amountSection = FormItemView(title: "금액", content: amountTextField)
+        let categoryMethodSection = FormItemView(title: "지출내역", content: expandableListView, showActionBtn: true)
         let nameSection = FormItemView(title: "상호명", content: nameTextField)
         let paymentDateSection = FormItemView(title: "날짜", content: dateContainerView)
         let emojiSection = FormItemView(title: "감정", content: emotionGridView)
         let paymentMethodSection = FormItemView(title: "결제수단", content: paymentDropDown)
         let memoSection = FormItemView(title: "메모", content: memoTextField)
-        let categoryMethodSection = FormItemView(title: "지출내역", content: expandableListView, showActionBtn: true)
         categoryMethodSection.onAction = { [weak self] in
-                self?.presentAddTransactionView()
-            }
+            self?.presentAddTransactionView()
+        }
         
-        stackView.addArrangedSubview(amountSection)
+        stackView.addArrangedSubview(amountLabel)
+        stackView.addArrangedSubview(categoryMethodSection)
         stackView.addArrangedSubview(nameSection)
         stackView.addArrangedSubview(paymentDateSection)
         stackView.addArrangedSubview(emojiSection)
         stackView.addArrangedSubview(paymentMethodSection)
         stackView.addArrangedSubview(memoSection)
-        stackView.addArrangedSubview(categoryMethodSection)
         
         scrollView.addSubview(stackView)
         view.addSubview(titleLabel)
@@ -248,7 +238,7 @@ class ExpenseHistoryViewController: UIViewController {
             $0.height.equalTo(48)
         }
         
-        amountTextField.snp.makeConstraints {
+        amountLabel.snp.makeConstraints {
             $0.height.equalTo(48)
         }
         
@@ -298,7 +288,6 @@ class ExpenseHistoryViewController: UIViewController {
             self.deleteButton.isHidden = false
         } else {
             self.titleLabel.text = "내역 추가"
-            self.amountTextField.text = nil
             self.deleteButton.isHidden = true
         }
     }
@@ -316,7 +305,7 @@ class ExpenseHistoryViewController: UIViewController {
             .subscribe(onNext: { [weak self] transaction in
                 guard let self = self else { return }
                 self.nameTextField.text = transaction.place ?? ""
-                self.amountTextField.text = "\(transaction.totalAmount.withComma)" // 콤마 포맷팅 필요 시 .withComma 사용
+                self.amountLabel.text = "총 금액 \(transaction.totalAmount.withComma)원" // 콤마 포맷팅 필요 시 .withComma 사용
                 self.memoTextField.text = transaction.paymentMemo
                 
                 // 커스텀 뷰 초기값
@@ -336,14 +325,6 @@ class ExpenseHistoryViewController: UIViewController {
         nameTextField.rx.text.orEmpty
             .distinctUntilChanged()
             .bind(onNext: viewModel.editName)
-            .disposed(by: disposeBag)
-        
-        // 2. 금액 (Amount)
-        amountTextField.rx.text.orEmpty
-            .distinctUntilChanged()
-            .map { $0.replacingOccurrences(of: ",", with: "") } // 콤마 제거
-            .compactMap { Int($0) } // 숫자로 변환
-            .bind(onNext: viewModel.editAmount)
             .disposed(by: disposeBag)
         
         // 3. 날짜 (Date)
@@ -384,7 +365,7 @@ class ExpenseHistoryViewController: UIViewController {
             // ③ 금액(totalAmount)도 바뀌었을 테니 재계산 (선택 사항이지만 추천)
             let newTotal = currentData.transactionInfoList.reduce(0) { $0 + $1.amount }
             currentData.totalAmount = newTotal
-            self.amountTextField.text = "\(newTotal.withComma)"
+            self.amountLabel.text = "총 금액 \(newTotal.withComma)원"
             
             // ④ 수정된 데이터를 다시 ViewModel에 덮어씌움 (상태 저장)
             self.viewModel.currentTransaction.accept(currentData)
@@ -430,7 +411,7 @@ class ExpenseHistoryViewController: UIViewController {
                 updatedTransaction.totalAmount = updatedTransaction.transactionInfoList.reduce(0) { $0 + $1.amount }
                 
                 // C. 텍스트필드 UI 업데이트 (총액이 바꼈으니까)
-                self.amountTextField.text = "\(updatedTransaction.totalAmount.withComma)"
+                self.amountLabel.text = "총 금액 \(updatedTransaction.totalAmount.withComma)원"
                 
                 // D. 뷰모델에 수정된 전체 데이터 다시 덮어씌우기
                 self.viewModel.currentTransaction.accept(updatedTransaction)
@@ -471,7 +452,7 @@ class ExpenseHistoryViewController: UIViewController {
             currentData.totalAmount = currentData.transactionInfoList.reduce(0) { $0 + $1.amount }
             
             // D. 화면 및 데이터 업데이트
-            self.amountTextField.text = "\(currentData.totalAmount.withComma)" // 콤마 포맷
+            self.amountLabel.text = "총 금액 \(currentData.totalAmount.withComma)원" // 콤마 포맷
             self.viewModel.currentTransaction.accept(currentData)
             self.expandableListView.configure(with: currentData)
         }
