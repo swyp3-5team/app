@@ -26,6 +26,16 @@ class ExpandableListView: UIView {
         return stack
     }()
     
+    private let emptyStateLabel: UILabel = {
+        let label = UILabel()
+        label.text = "지출내역이 없습니다"
+        label.textColor = .lightGray
+        label.font = .systemFont(ofSize: 14)
+        label.textAlignment = .center
+        label.isHidden = true
+        return label
+    }()
+    
     // 2. 헤더 영역
     private let headerContainer = UIView()
     
@@ -87,6 +97,7 @@ class ExpandableListView: UIView {
     private func setupUI() {
         // 1. 메인 스택뷰를 뷰에 꽉 차게 넣음
         addSubview(mainStackView)
+        addSubview(emptyStateLabel)
         mainStackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
@@ -101,7 +112,7 @@ class ExpandableListView: UIView {
         headerContainer.addSubview(listOpenImageView)
         
         headerContainer.snp.makeConstraints {
-            $0.height.equalTo(50) // 헤더 높이 고정
+            $0.height.equalTo(48) // 헤더 높이 고정
         }
         
         listLabel.snp.makeConstraints {
@@ -118,6 +129,11 @@ class ExpandableListView: UIView {
         // 4. 구분선 높이 설정
         dividerView.snp.makeConstraints {
             $0.height.equalTo(1)
+        }
+        
+        emptyStateLabel.snp.makeConstraints {
+            $0.top.equalToSuperview()
+            $0.leading.equalToSuperview().offset(16)
         }
     }
     
@@ -162,14 +178,35 @@ class ExpandableListView: UIView {
         let items = transaction.transactionInfoList
         
         if items.isEmpty {
+            emptyStateLabel.isHidden = false
             listLabel.text = ""
             listOpenImageView.isHidden = true
             dividerView.isHidden = true
+            contentStackView.isHidden = true
+            
+            // 비어있을때는 바로 접히게
+            UIView.performWithoutAnimation {
+                isExpanded = false
+            }
+            
+            headerContainer.snp.updateConstraints {
+                $0.height.equalTo(24)
+            }
+            
+            headerContainer.isUserInteractionEnabled = false
+            
             return
         }
         
+        emptyStateLabel.isHidden = true
         listOpenImageView.isHidden = false
         dividerView.isHidden = false
+        
+        headerContainer.snp.updateConstraints {
+            $0.height.equalTo(48)
+        }
+        
+        headerContainer.isUserInteractionEnabled = true
         
         // 헤더 텍스트
         if items.count == 1 {
