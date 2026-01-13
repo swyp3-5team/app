@@ -25,7 +25,7 @@ class EmptyStateView: UIView {
         return iv
     }()
     
-    private let messageLabel: UILabel = {
+    let messageLabel: UILabel = {
         let label = UILabel()
         label.text = "지출 내역을 입력해주세요!"
         label.textColor = .gray1

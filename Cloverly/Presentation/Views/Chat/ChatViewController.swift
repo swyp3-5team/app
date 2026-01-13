@@ -253,7 +253,15 @@ class ChatViewController: UIViewController {
                 guard let self = self else { return }
                 
                 if newMessages.isEmpty {
-                    self.collectionView.backgroundView = EmptyStateView() // 아까 만든 뷰 클래스
+                    let mode = ChatMode(index: viewModel.selectedIndex.value)
+                    let emptyStateView = EmptyStateView()
+                    
+                    if mode == .receipt {
+                        emptyStateView.messageLabel.text = "지출 내역을 입력해주세요!"
+                    } else {
+                        emptyStateView.messageLabel.text = "오늘 하루 어땠어요?"
+                    }
+                    self.collectionView.backgroundView = emptyStateView
                 } else {
                     self.collectionView.backgroundView = nil
                 }
