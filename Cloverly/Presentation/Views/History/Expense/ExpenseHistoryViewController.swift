@@ -320,6 +320,32 @@ class ExpenseHistoryViewController: UIViewController {
                 }
             })
             .disposed(by: disposeBag)
+        
+        // 저장 버튼 활성화 validation
+        let validation = Observable.combineLatest(
+            nameTextField.rx.text.orEmpty,
+            viewModel.currentTransaction.map { $0?.emotion },
+            viewModel.currentTransaction.map { $0?.payment },
+            viewModel.currentTransaction.map { $0?.transactionInfoList ?? [] }
+        )
+        .map { name, emotion, payment, items in
+            let hasName = !name.isEmpty
+            let emotionSelected = (emotion != nil)
+            let paymentSelected = (payment != nil)
+            let hasItems = !items.isEmpty
+            
+            return hasName && emotionSelected && paymentSelected && hasItems
+        }
+        
+        validation
+            .subscribe(onNext: { [weak self] validate in
+                guard let self = self else { return }
+                
+                self.saveButton.isEnabled = validate
+                self.saveButton.setTitleColor(validate ? .gray10 : .gray6, for: .normal)
+                self.saveButton.backgroundColor = validate ? .green5 : .gray8
+            })
+            .disposed(by: disposeBag)
 
         // 1. 상호명 (Name)
         nameTextField.rx.text.orEmpty

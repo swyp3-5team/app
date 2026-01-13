@@ -219,7 +219,6 @@ class TransactionInfoEditViewController: UIViewController {
         .map { name, amount, categoryId in
             return !name.isEmpty && !amount.isEmpty && categoryId != nil
         }
-        .share(replay: 1)
         
         validation
             .subscribe(onNext: { [weak self] validate in
