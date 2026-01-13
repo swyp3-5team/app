@@ -41,7 +41,7 @@ class LoginViewController: UIViewController {
     private lazy var kakaoLoginButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: "Btn_Kakao_Login"), for: .normal)
-        button.imageView?.contentMode = .scaleAspectFill
+        button.imageView?.contentMode = .scaleAspectFit
         button.addAction(UIAction { [weak self] _ in
             self?.viewModel.kakaoLogin()
         }, for: .touchUpInside)
@@ -51,7 +51,7 @@ class LoginViewController: UIViewController {
     private lazy var appleLoginButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: "Btn_Apple_Login"), for: .normal)
-        button.imageView?.contentMode = .scaleAspectFill
+        button.imageView?.contentMode = .scaleAspectFit
         button.addAction(UIAction { [weak self] _ in
             self?.didTapAppleLogin()
         }, for: .touchUpInside)
