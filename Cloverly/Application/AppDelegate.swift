@@ -7,6 +7,7 @@
 
 import UIKit
 import KakaoSDKCommon
+import FirebaseCore
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -14,9 +15,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        FirebaseApp.configure()
+        
         let kakaoNativeAppKey = Bundle.main.infoDictionary?["NATIVE_APP_KEY"] as? String ?? ""
         KakaoSDK.initSDK(appKey: kakaoNativeAppKey)
+        
         Thread.sleep(forTimeInterval: 1)
+        
         return true
     }
 

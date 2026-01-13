@@ -10,6 +10,7 @@
 		3CB535492F0785AE0006D32A /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = 3CB535482F0785AE0006D32A /* DGCharts */; };
 		C20C8C322F043B100093B69B /* FSCalendar in Frameworks */ = {isa = PBXBuildFile; productRef = C20C8C312F043B100093B69B /* FSCalendar */; };
 		C20C8C352F043B590093B69B /* Tabman in Frameworks */ = {isa = PBXBuildFile; productRef = C20C8C342F043B590093B69B /* Tabman */; };
+		C23F6B3A2F168E6A009BD442 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C23F6B392F168E6A009BD442 /* FirebaseAnalytics */; };
 		C27EFB712F00E36F00144665 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = C27EFB702F00E36F00144665 /* Lottie */; };
 		C2876D492EEB01E100231C37 /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C2876D482EEB01E100231C37 /* KakaoSDKAuth */; };
 		C2876D4B2EEB01E100231C37 /* KakaoSDKCommon in Frameworks */ = {isa = PBXBuildFile; productRef = C2876D4A2EEB01E100231C37 /* KakaoSDKCommon */; };
@@ -84,6 +85,7 @@
 				C2876D492EEB01E100231C37 /* KakaoSDKAuth in Frameworks */,
 				C2876D992EEB070100231C37 /* RxSwift in Frameworks */,
 				C29A8AF72EF1A07700C58C0A /* SnapKit in Frameworks */,
+				C23F6B3A2F168E6A009BD442 /* FirebaseAnalytics in Frameworks */,
 				C20C8C352F043B590093B69B /* Tabman in Frameworks */,
 				C20C8C322F043B100093B69B /* FSCalendar in Frameworks */,
 				C2876D972EEB070100231C37 /* RxCocoa in Frameworks */,
@@ -158,6 +160,7 @@
 				C20C8C312F043B100093B69B /* FSCalendar */,
 				C20C8C342F043B590093B69B /* Tabman */,
 				3CB535482F0785AE0006D32A /* DGCharts */,
+				C23F6B392F168E6A009BD442 /* FirebaseAnalytics */,
 			);
 			productName = Cloverly;
 			productReference = C2876C202EEAFD3300231C37 /* Cloverly.app */;
@@ -250,6 +253,7 @@
 				C20C8C302F043B100093B69B /* XCRemoteSwiftPackageReference "FSCalendar" */,
 				C20C8C332F043B590093B69B /* XCRemoteSwiftPackageReference "Tabman" */,
 				3CB535472F0785AE0006D32A /* XCRemoteSwiftPackageReference "Charts" */,
+				C23F6B382F168E6A009BD442 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C2876C212EEAFD3300231C37 /* Products */;
@@ -332,7 +336,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Cloverly/Cloverly.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 4C5QZ5DXV6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Cloverly/Info.plist;
@@ -354,6 +358,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -370,7 +375,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Cloverly/Cloverly.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 4C5QZ5DXV6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Cloverly/Info.plist;
@@ -392,6 +397,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -678,6 +684,14 @@
 				minimumVersion = 4.0.0;
 			};
 		};
+		C23F6B382F168E6A009BD442 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
+		};
 		C27EFB6F2F00E36F00144665 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airbnb/lottie-ios";
@@ -727,6 +741,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C20C8C332F043B590093B69B /* XCRemoteSwiftPackageReference "Tabman" */;
 			productName = Tabman;
+		};
+		C23F6B392F168E6A009BD442 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C23F6B382F168E6A009BD442 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
 		};
 		C27EFB702F00E36F00144665 /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
