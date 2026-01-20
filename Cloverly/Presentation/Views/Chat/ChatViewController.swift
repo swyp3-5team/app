@@ -492,7 +492,6 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
         
         if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage{
             self.viewModel.sendChat(image: image)
-            self.viewModel.isSheetPresent.accept(true)
         }
     }
     
