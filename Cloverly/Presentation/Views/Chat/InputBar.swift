@@ -31,7 +31,6 @@ class InputBar: UIView {
     
     lazy var placeholderLabel: UILabel = {
         let label = UILabel()
-        label.text = "오늘의 소비 내역을 알려주세요!"
         label.font = .customFont(.pretendardMedium, size: 16)
         label.textColor = .gray7
         label.sizeToFit()
@@ -209,9 +208,17 @@ class InputBar: UIView {
             .disposed(by: disposeBag)
         
         viewModel.selectedIndex
-            .map { $0 == 1 }
             .distinctUntilChanged()
-            .bind(to: pasteButton.rx.isHidden)
+            .subscribe(onNext: { [weak self] index in
+                guard let self = self else { return }
+                
+                pasteButton.isHidden = (index == 1)
+                
+                let mode = ChatMode(index: viewModel.selectedIndex.value)
+                let nickname = AuthViewModel.shared.currentUser.value?.nickName ?? "사용자"
+                
+                placeholderLabel.text = mode == .receipt ? "오늘의 소비 내역을 알려주세요!" : "\(nickname)님의 일상을 공유해주세요!"
+            })
             .disposed(by: disposeBag)
         
         sendButton.addAction(UIAction { [weak self] _ in
