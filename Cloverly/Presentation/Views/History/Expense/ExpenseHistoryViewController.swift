@@ -65,7 +65,7 @@ class ExpenseHistoryViewController: UIViewController {
     let amountLabel: UILabel = {
         let label = UILabel()
         label.textColor = .gray6
-        label.font = .customFont(.pretendardSemiBold, size: 18)
+        label.font = .customFont(.pretendardSemiBold, size: 24)
         return label
     }()
     
@@ -286,6 +286,7 @@ class ExpenseHistoryViewController: UIViewController {
                 guard let self = self else { return }
                 self.nameTextField.text = transaction.place ?? ""
                 self.amountLabel.text = "총 금액 \(transaction.totalAmount.withComma)원" // 콤마 포맷팅 필요 시 .withComma 사용
+                self.amountLabel.textColor = transaction.totalAmount == 0 ? .gray6 : .gray1
                 self.memoTextField.text = transaction.paymentMemo
                 
                 // 커스텀 뷰 초기값
@@ -372,6 +373,7 @@ class ExpenseHistoryViewController: UIViewController {
             let newTotal = currentData.transactionInfoList.reduce(0) { $0 + $1.amount }
             currentData.totalAmount = newTotal
             self.amountLabel.text = "총 금액 \(newTotal.withComma)원"
+            self.amountLabel.textColor = newTotal == 0 ? .gray6 : .gray1
             
             // ④ 수정된 데이터를 다시 ViewModel에 덮어씌움 (상태 저장)
             self.viewModel.currentTransaction.accept(currentData)
@@ -418,6 +420,8 @@ class ExpenseHistoryViewController: UIViewController {
                 
                 // C. 텍스트필드 UI 업데이트 (총액이 바꼈으니까)
                 self.amountLabel.text = "총 금액 \(updatedTransaction.totalAmount.withComma)원"
+                self.amountLabel.textColor = updatedTransaction.totalAmount == 0 ? .gray6 : .gray1
+                
                 
                 // D. 뷰모델에 수정된 전체 데이터 다시 덮어씌우기
                 self.viewModel.currentTransaction.accept(updatedTransaction)
@@ -459,6 +463,7 @@ class ExpenseHistoryViewController: UIViewController {
             
             // D. 화면 및 데이터 업데이트
             self.amountLabel.text = "총 금액 \(currentData.totalAmount.withComma)원" // 콤마 포맷
+            self.amountLabel.textColor = currentData.totalAmount == 0 ? .gray6 : .gray1
             self.viewModel.currentTransaction.accept(currentData)
             self.expandableListView.configure(with: currentData)
         }
