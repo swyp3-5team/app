@@ -1,0 +1,531 @@
+//
+//  ChatViewController.swift
+//  Cloverly
+//
+//  Created by 이인호 on 12/11/25.
+//
+
+import UIKit
+import RxSwift
+import RxCocoa
+import SnapKit
+import PhotosUI
+import Lottie
+
+extension UINavigationController {
+    open override func viewWillLayoutSubviews() {
+        navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+    }
+}
+
+class ChatViewController: UIViewController {
+    private let calendarViewModel: CalendarViewModel
+    private let disposeBag = DisposeBag()
+    private let viewModel = ChatViewModel()
+    private let sizingCell = ChatCollectionViewCell()
+    private lazy var inputBar = InputBar(viewModel: viewModel)
+    
+    lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["가계부", "대화"], cornerRadius: 17)
+    
+    var overlayWindow: UIWindow?
+    
+    private lazy var imagePicker: UIImagePickerController = {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        return imagePicker
+    }()
+    
+    var isAtBottom: Bool {
+        let offsetY = collectionView.contentOffset.y
+        let contentHeight = collectionView.contentSize.height
+        let frameHeight = collectionView.frame.size.height
+        return offsetY >= contentHeight - frameHeight - 10
+    }
+
+    private lazy var collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+        layout.minimumLineSpacing = 20
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.register(ChatCollectionViewCell.self, forCellWithReuseIdentifier: ChatCollectionViewCell.identifier)
+        cv.delegate = self
+        cv.dataSource = self
+        cv.keyboardDismissMode = .interactive
+        
+        return cv
+    }()
+    
+    private lazy var lottieView: LottieAnimationView = {
+        let animationView = LottieAnimationView(name: "loadingSpinner")
+        
+        animationView.loopMode = .loop
+        animationView.contentMode = .scaleAspectFit
+        animationView.animationSpeed = 1.0
+        
+        return animationView
+    }()
+    
+    private let statusLabel: UILabel = {
+        let label = UILabel()
+        label.text = "영수증 인식중"
+        label.font = .customFont(.pretendardSemiBold, size: 14)
+        label.textColor = .gray10
+        label.textAlignment = .center
+        return label
+    }()
+    
+    private lazy var loadingStackView: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [lottieView, statusLabel])
+        stack.axis = .vertical
+        stack.spacing = 0
+        stack.alignment = .center
+        stack.distribution = .fill
+        stack.backgroundColor = .gray1.withAlphaComponent(0.2)
+        stack.layer.cornerRadius = 16
+        stack.clipsToBounds = true
+        
+        stack.layoutMargins = UIEdgeInsets(top: 6, left: 25, bottom: 14, right: 25)
+        stack.isLayoutMarginsRelativeArrangement = true
+        
+        stack.isHidden = true
+        return stack
+    }()
+    
+    init(calendarViewModel: CalendarViewModel) {
+        self.calendarViewModel = calendarViewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        configure()
+        bind()
+        textBind()
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
+        
+        let backImage = UIImage(named: "Chevron left")
+        navigationController?.navigationBar.backIndicatorImage = backImage
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = backImage
+        navigationController?.navigationBar.tintColor = .gray1
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillChangeFrame),
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil
+        )
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+    
+        if !UserDefaults.standard.bool(forKey: "hasSeenCoachMark") {
+            showCoachMark()
+            UserDefaults.standard.set(true, forKey: "hasSeenCoachMark")
+        }
+    }
+    
+    func showCoachMark() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        
+        let newWindow = NoFocusWindow(windowScene: windowScene)
+        newWindow.frame = windowScene.coordinateSpace.bounds
+        newWindow.backgroundColor = .clear
+        newWindow.windowLevel = .statusBar + 1
+        
+        let coachView = CoachMarkView(frame: newWindow.bounds)
+        
+        var cutouts: [(CGRect, CGFloat)] = []
+        
+        // 상단 Segmented Control
+        if let segFrame = self.segmented.superview?.convert(self.segmented.frame, to: nil) {
+            let finalSegRect = segFrame.insetBy(dx: -10, dy: -11)
+            cutouts.append((finalSegRect, finalSegRect.height / 2))
+        }
+        
+        // 버튼들이 포함된 배열
+        let targetButtons = [self.inputBar.galleryButton, self.inputBar.cameraButton, self.inputBar.pasteButton]
+        var combinedFrame: CGRect = .null
+        
+        for button in targetButtons {
+            guard let frame = button.superview?.convert(button.frame, to: nil) else { continue }
+            
+            if combinedFrame.isNull {
+                combinedFrame = frame
+            } else {
+                combinedFrame = combinedFrame.union(frame)
+            }
+        }
+        
+        let fixedFrame = CGRect(
+            x: combinedFrame.origin.x,
+            y: UIScreen.main.bounds.height - 78,
+            width: combinedFrame.width,
+            height: combinedFrame.height
+        )
+        
+        let finalBtnRect = fixedFrame.insetBy(dx: -6, dy: -6)
+        
+        cutouts.append((finalBtnRect, finalBtnRect.height / 2))
+
+        coachView.setCutouts(cutouts)
+        
+        coachView.onDismiss = { [weak self] in
+            self?.overlayWindow = nil
+        }
+        
+        newWindow.addSubview(coachView)
+        newWindow.isHidden = false
+        self.overlayWindow = newWindow
+    }
+    
+    override var inputAccessoryView: UIView? {
+        return inputBar
+    }
+    
+    override var canBecomeFirstResponder: Bool {
+        return true
+    }
+    
+    @objc func dismissKeyboard() {
+        //        view.window?.endEditing(true)
+        inputBar.textView.resignFirstResponder()
+    }
+    
+    func configure() {
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(collectionView)
+        view.addSubview(loadingStackView)
+        view.backgroundColor = .systemBackground
+        
+        collectionView.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
+            $0.leading.trailing.bottom.equalToSuperview()
+        }
+        
+        segmented.snp.makeConstraints {
+            $0.width.equalTo(120)
+            $0.height.equalTo(34)
+        }
+        
+        loadingStackView.snp.makeConstraints {
+            $0.center.equalToSuperview()
+        }
+        
+        collectionView.register(
+            DateHeaderView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: DateHeaderView.id
+        )
+        
+        navigationItem.titleView = segmented
+    }
+    
+    func textBind() {
+        inputBar.heightUpdateNeeded
+            .asDriver(onErrorJustReturn: ())
+            .drive(onNext: { [weak self] _ in
+                self?.updateInputBarHeight()
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    func bind() {
+        viewModel.currentMessagesStream
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] newMessages in
+                guard let self = self else { return }
+                
+                if newMessages.isEmpty {
+                    let mode = ChatMode(index: viewModel.selectedIndex.value)
+                    let emptyStateView = EmptyStateView()
+                    
+                    if mode == .receipt {
+                        emptyStateView.messageLabel.text = "지출 내역을 입력해주세요!"
+                    } else {
+                        emptyStateView.messageLabel.text = "오늘 하루 어땠어요?"
+                    }
+                    self.collectionView.backgroundView = emptyStateView
+                } else {
+                    self.collectionView.backgroundView = nil
+                }
+                
+                let currentCount = self.collectionView.numberOfItems(inSection: 0)
+                let newCount = newMessages.count
+                
+                if newCount == currentCount + 1 {
+                    // 메시지 1개 추가됨
+                    let indexPath = IndexPath(item: currentCount, section: 0)
+                    
+                    self.collectionView.performBatchUpdates({
+                        self.collectionView.insertItems(at: [indexPath])
+                    }) { _ in
+                        self.scrollToBottom(animated: true)
+                    }
+                } else {
+                    // 모드 변경, 대량 로딩, 삭제 등 -> 전체 갱신
+                    self.collectionView.reloadData()
+                    self.collectionView.layoutIfNeeded()
+                    
+                    if newCount > 0 {
+                        self.scrollToBottom(animated: false) // 모드 변경시는 즉시 이동
+                    }
+                }
+                
+            })
+            .disposed(by: disposeBag)
+        
+        inputBar.rx.cameraButtonTap
+            .subscribe(onNext: { [weak self] in
+                self?.openCamera()
+            })
+            .disposed(by: disposeBag)
+        
+        inputBar.rx.gallaryButtonTap
+            .subscribe(onNext: { [weak self] in
+                self?.openPicker()
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.isSheetPresent
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] isPresent in
+                guard let self = self else { return }
+                
+                if isPresent {
+                    let vc = SaveModalViewController(viewModel: viewModel, calendarViewModel: calendarViewModel)
+                    let nav = UINavigationController(rootViewController: vc)
+                    
+                    if let sheet = nav.sheetPresentationController {
+                        sheet.detents = [
+                            .custom(identifier: .init("threeFifths")) { context in
+                                let screenWidth = UIScreen.main.bounds.width
+                                let ratio: CGFloat = screenWidth <= 375 ? 0.61 : 0.59
+                                return context.maximumDetentValue * ratio
+                            }
+                        ]
+                    }
+                    present(nav, animated: true)
+                } else {
+                    self.becomeFirstResponder()
+                    dismiss(animated: true)
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.isLoading
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] isLoading in
+                guard let self = self else { return }
+                
+                if isLoading {
+                    self.loadingStackView.isHidden = false
+                    self.lottieView.play()
+                    
+                    // 로딩 중엔 다른 버튼 못 누르게 막기
+                    self.view.isUserInteractionEnabled = false
+                } else {
+                    self.lottieView.stop() // 배터리 절약을 위해 stop
+                    self.loadingStackView.isHidden = true
+                    self.view.isUserInteractionEnabled = true
+                }
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    @objc func keyboardWillChangeFrame(_ notification: Notification) {
+        guard
+            let userInfo = notification.userInfo,
+            let frame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
+            let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        else { return }
+        
+        let keyboardHeight = frame.height
+        
+        let bottomInset: CGFloat
+        
+        if keyboardHeight > 0 {
+            bottomInset = keyboardHeight /*- 간격 없이 딱 view.safeAreaInsets.bottom*/
+        } else {
+            bottomInset = inputBar.frame.height
+        }
+        
+        UIView.animate(withDuration: duration) {
+            self.collectionView.contentInset.bottom = bottomInset
+            self.collectionView.verticalScrollIndicatorInsets.bottom = bottomInset
+            
+            if self.isAtBottom {
+                self.scrollToBottom(animated: false)
+            }
+        }
+    }
+    
+    func scrollToBottom(animated: Bool = true) {
+        let section = 0
+        let itemCount = collectionView.numberOfItems(inSection: section)
+        guard itemCount > 0 else { return }
+        
+        let indexPath = IndexPath(item: itemCount - 1, section: section)
+        
+        collectionView.layoutIfNeeded()
+        collectionView.scrollToItem(at: indexPath, at: .bottom, animated: animated)
+    }
+    
+    func updateInputBarHeight() {
+        let oldHeight = inputBar.frame.height
+        
+        // 높이 갱신 요청
+        inputBar.invalidateIntrinsicContentSize()
+        inputBar.layoutIfNeeded() // 즉시 반영
+        
+        let newHeight = inputBar.frame.height
+        
+        // 변화량 계산 (예: 50 -> 70이면 +20)
+        let diff = newHeight - oldHeight
+        
+        guard diff != 0 else { return }
+        
+        UIView.animate(withDuration: 0.2) {
+            self.collectionView.contentInset.bottom += diff
+            self.collectionView.verticalScrollIndicatorInsets.bottom += diff
+            
+            if self.isAtBottom {
+                self.scrollToBottom(animated: false)
+            }
+            
+            self.view.layoutIfNeeded()
+        }
+    }
+}
+
+extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return viewModel.currentMessages.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChatCollectionViewCell.identifier, for: indexPath) as? ChatCollectionViewCell else {
+            return UICollectionViewCell()
+        }
+        
+        let message = viewModel.currentMessages[indexPath.row]
+        UIView.performWithoutAnimation {
+            cell.bind(with: message)
+            cell.layoutIfNeeded()
+        }
+        
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let message = viewModel.currentMessages[indexPath.item]
+        
+        sizingCell.bind(with: message)
+        
+        let targetSize = CGSize(width: view.bounds.width, height: UIView.layoutFittingCompressedSize.height)
+        
+        let exactSize = sizingCell.contentView.systemLayoutSizeFitting(
+            targetSize,
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+        )
+        
+        return exactSize
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        
+        if kind == UICollectionView.elementKindSectionHeader {
+            let header = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: DateHeaderView.id,
+                for: indexPath
+            ) as! DateHeaderView
+            
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy년 MM월 dd일 EEEE"
+            formatter.locale = Locale(identifier: "ko_KR")
+            let todayString = formatter.string(from: Date())
+            
+            header.dateLabel.text = "\(todayString)"
+            
+            return header
+        }
+        return UICollectionReusableView()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        
+        if viewModel.currentMessages.isEmpty {
+            return .zero
+        }
+        
+        return CGSize(width: collectionView.frame.width, height: 50)
+    }
+}
+
+extension ChatViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate, PHPickerViewControllerDelegate {
+    func openCamera() {
+        imagePicker.sourceType = .camera
+        present(imagePicker, animated: false, completion: nil)
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        dismiss(animated: true)
+        
+        if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage{
+            self.viewModel.sendChat(image: image)
+        }
+    }
+    
+    func openLibrary(){
+        imagePicker.sourceType = .photoLibrary
+        //        imagePicker.allowsEditing = true
+        present(imagePicker, animated: false, completion: nil)
+    }
+    
+    func openPicker() {
+        var config = PHPickerConfiguration()
+        config.filter = .images
+        config.selectionLimit = 1
+        
+        let phPicker = PHPickerViewController(configuration: config)
+        phPicker.delegate = self
+        dismissKeyboard()
+        present(phPicker, animated: true, completion: nil)
+    }
+    
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        
+        guard let result = results.first else { return }
+        
+        let provider = result.itemProvider
+        if provider.canLoadObject(ofClass: UIImage.self) {
+            provider.loadObject(ofClass: UIImage.self) { image, error in
+                DispatchQueue.main.async {
+                    if let image = image as? UIImage {
+                        self.viewModel.sendChat(image: image)
+                    }
+                }
+            }
+        }
+    }
+}

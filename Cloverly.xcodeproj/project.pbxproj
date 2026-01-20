@@ -1,0 +1,788 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3CB535492F0785AE0006D32A /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = 3CB535482F0785AE0006D32A /* DGCharts */; };
+		C20C8C322F043B100093B69B /* FSCalendar in Frameworks */ = {isa = PBXBuildFile; productRef = C20C8C312F043B100093B69B /* FSCalendar */; };
+		C20C8C352F043B590093B69B /* Tabman in Frameworks */ = {isa = PBXBuildFile; productRef = C20C8C342F043B590093B69B /* Tabman */; };
+		C23F6B3A2F168E6A009BD442 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C23F6B392F168E6A009BD442 /* FirebaseAnalytics */; };
+		C27EFB712F00E36F00144665 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = C27EFB702F00E36F00144665 /* Lottie */; };
+		C2876D492EEB01E100231C37 /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C2876D482EEB01E100231C37 /* KakaoSDKAuth */; };
+		C2876D4B2EEB01E100231C37 /* KakaoSDKCommon in Frameworks */ = {isa = PBXBuildFile; productRef = C2876D4A2EEB01E100231C37 /* KakaoSDKCommon */; };
+		C2876D4D2EEB01E100231C37 /* KakaoSDKUser in Frameworks */ = {isa = PBXBuildFile; productRef = C2876D4C2EEB01E100231C37 /* KakaoSDKUser */; };
+		C2876D972EEB070100231C37 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = C2876D962EEB070100231C37 /* RxCocoa */; };
+		C2876D992EEB070100231C37 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C2876D982EEB070100231C37 /* RxSwift */; };
+		C29A8AF72EF1A07700C58C0A /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = C29A8AF62EF1A07700C58C0A /* SnapKit */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C2876C372EEAFD3500231C37 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C2876C182EEAFD3300231C37 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C2876C1F2EEAFD3300231C37;
+			remoteInfo = Cloverly;
+		};
+		C2876C412EEAFD3500231C37 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C2876C182EEAFD3300231C37 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C2876C1F2EEAFD3300231C37;
+			remoteInfo = Cloverly;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		C2876C202EEAFD3300231C37 /* Cloverly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cloverly.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C2876C362EEAFD3500231C37 /* CloverlyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CloverlyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C2876C402EEAFD3500231C37 /* CloverlyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CloverlyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C2876C482EEAFD3500231C37 /* Exceptions for "Cloverly" folder in "Cloverly" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C2876C1F2EEAFD3300231C37 /* Cloverly */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		C2876C222EEAFD3300231C37 /* Cloverly */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C2876C482EEAFD3500231C37 /* Exceptions for "Cloverly" folder in "Cloverly" target */,
+			);
+			path = Cloverly;
+			sourceTree = "<group>";
+		};
+		C2876C392EEAFD3500231C37 /* CloverlyTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CloverlyTests;
+			sourceTree = "<group>";
+		};
+		C2876C432EEAFD3500231C37 /* CloverlyUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CloverlyUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C2876C1D2EEAFD3300231C37 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C2876D4B2EEB01E100231C37 /* KakaoSDKCommon in Frameworks */,
+				C27EFB712F00E36F00144665 /* Lottie in Frameworks */,
+				3CB535492F0785AE0006D32A /* DGCharts in Frameworks */,
+				C2876D492EEB01E100231C37 /* KakaoSDKAuth in Frameworks */,
+				C2876D992EEB070100231C37 /* RxSwift in Frameworks */,
+				C29A8AF72EF1A07700C58C0A /* SnapKit in Frameworks */,
+				C23F6B3A2F168E6A009BD442 /* FirebaseAnalytics in Frameworks */,
+				C20C8C352F043B590093B69B /* Tabman in Frameworks */,
+				C20C8C322F043B100093B69B /* FSCalendar in Frameworks */,
+				C2876D972EEB070100231C37 /* RxCocoa in Frameworks */,
+				C2876D4D2EEB01E100231C37 /* KakaoSDKUser in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C2876C332EEAFD3500231C37 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C2876C3D2EEAFD3500231C37 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C2876C172EEAFD3300231C37 = {
+			isa = PBXGroup;
+			children = (
+				C2876C222EEAFD3300231C37 /* Cloverly */,
+				C2876C392EEAFD3500231C37 /* CloverlyTests */,
+				C2876C432EEAFD3500231C37 /* CloverlyUITests */,
+				C2876C212EEAFD3300231C37 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C2876C212EEAFD3300231C37 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C2876C202EEAFD3300231C37 /* Cloverly.app */,
+				C2876C362EEAFD3500231C37 /* CloverlyTests.xctest */,
+				C2876C402EEAFD3500231C37 /* CloverlyUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C2876C1F2EEAFD3300231C37 /* Cloverly */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C2876C492EEAFD3500231C37 /* Build configuration list for PBXNativeTarget "Cloverly" */;
+			buildPhases = (
+				C2876C1C2EEAFD3300231C37 /* Sources */,
+				C2876C1D2EEAFD3300231C37 /* Frameworks */,
+				C2876C1E2EEAFD3300231C37 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C2876C222EEAFD3300231C37 /* Cloverly */,
+			);
+			name = Cloverly;
+			packageProductDependencies = (
+				C2876D482EEB01E100231C37 /* KakaoSDKAuth */,
+				C2876D4A2EEB01E100231C37 /* KakaoSDKCommon */,
+				C2876D4C2EEB01E100231C37 /* KakaoSDKUser */,
+				C2876D962EEB070100231C37 /* RxCocoa */,
+				C2876D982EEB070100231C37 /* RxSwift */,
+				C29A8AF62EF1A07700C58C0A /* SnapKit */,
+				C27EFB702F00E36F00144665 /* Lottie */,
+				C20C8C312F043B100093B69B /* FSCalendar */,
+				C20C8C342F043B590093B69B /* Tabman */,
+				3CB535482F0785AE0006D32A /* DGCharts */,
+				C23F6B392F168E6A009BD442 /* FirebaseAnalytics */,
+			);
+			productName = Cloverly;
+			productReference = C2876C202EEAFD3300231C37 /* Cloverly.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C2876C352EEAFD3500231C37 /* CloverlyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C2876C4E2EEAFD3500231C37 /* Build configuration list for PBXNativeTarget "CloverlyTests" */;
+			buildPhases = (
+				C2876C322EEAFD3500231C37 /* Sources */,
+				C2876C332EEAFD3500231C37 /* Frameworks */,
+				C2876C342EEAFD3500231C37 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C2876C382EEAFD3500231C37 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C2876C392EEAFD3500231C37 /* CloverlyTests */,
+			);
+			name = CloverlyTests;
+			packageProductDependencies = (
+			);
+			productName = CloverlyTests;
+			productReference = C2876C362EEAFD3500231C37 /* CloverlyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C2876C3F2EEAFD3500231C37 /* CloverlyUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C2876C512EEAFD3500231C37 /* Build configuration list for PBXNativeTarget "CloverlyUITests" */;
+			buildPhases = (
+				C2876C3C2EEAFD3500231C37 /* Sources */,
+				C2876C3D2EEAFD3500231C37 /* Frameworks */,
+				C2876C3E2EEAFD3500231C37 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C2876C422EEAFD3500231C37 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C2876C432EEAFD3500231C37 /* CloverlyUITests */,
+			);
+			name = CloverlyUITests;
+			packageProductDependencies = (
+			);
+			productName = CloverlyUITests;
+			productReference = C2876C402EEAFD3500231C37 /* CloverlyUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C2876C182EEAFD3300231C37 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2610;
+				LastUpgradeCheck = 2610;
+				TargetAttributes = {
+					C2876C1F2EEAFD3300231C37 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					C2876C352EEAFD3500231C37 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = C2876C1F2EEAFD3300231C37;
+					};
+					C2876C3F2EEAFD3500231C37 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = C2876C1F2EEAFD3300231C37;
+					};
+				};
+			};
+			buildConfigurationList = C2876C1B2EEAFD3300231C37 /* Build configuration list for PBXProject "Cloverly" */;
+			developmentRegion = ko;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				ko,
+			);
+			mainGroup = C2876C172EEAFD3300231C37;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C2876D472EEB01E100231C37 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
+				C2876D952EEB070100231C37 /* XCRemoteSwiftPackageReference "RxSwift" */,
+				C29A8AF52EF1A07700C58C0A /* XCRemoteSwiftPackageReference "SnapKit" */,
+				C27EFB6F2F00E36F00144665 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				C20C8C302F043B100093B69B /* XCRemoteSwiftPackageReference "FSCalendar" */,
+				C20C8C332F043B590093B69B /* XCRemoteSwiftPackageReference "Tabman" */,
+				3CB535472F0785AE0006D32A /* XCRemoteSwiftPackageReference "Charts" */,
+				C23F6B382F168E6A009BD442 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = C2876C212EEAFD3300231C37 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C2876C1F2EEAFD3300231C37 /* Cloverly */,
+				C2876C352EEAFD3500231C37 /* CloverlyTests */,
+				C2876C3F2EEAFD3500231C37 /* CloverlyUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C2876C1E2EEAFD3300231C37 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C2876C342EEAFD3500231C37 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C2876C3E2EEAFD3500231C37 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C2876C1C2EEAFD3300231C37 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C2876C322EEAFD3500231C37 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C2876C3C2EEAFD3500231C37 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C2876C382EEAFD3500231C37 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C2876C1F2EEAFD3300231C37 /* Cloverly */;
+			targetProxy = C2876C372EEAFD3500231C37 /* PBXContainerItemProxy */;
+		};
+		C2876C422EEAFD3500231C37 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C2876C1F2EEAFD3300231C37 /* Cloverly */;
+			targetProxy = C2876C412EEAFD3500231C37 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		C2876C4A2EEAFD3500231C37 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Cloverly/Cloverly.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4C5QZ5DXV6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Cloverly/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "영수증을 촬영하여 내용을 자동으로 인식하고 가계부에 기록하기 위해 카메라 접근이 필요합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범에 저장된 영수증 이미지를 불러와 내용을 자동으로 인식하고 가계부에 기록하기 위해 카메라 접근이 필요합니다.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.swyp3-team5.EmotionLedger";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		C2876C4B2EEAFD3500231C37 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Cloverly/Cloverly.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4C5QZ5DXV6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Cloverly/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "영수증을 촬영하여 내용을 자동으로 인식하고 가계부에 기록하기 위해 카메라 접근이 필요합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범에 저장된 영수증 이미지를 불러와 내용을 자동으로 인식하고 가계부에 기록하기 위해 카메라 접근이 필요합니다.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.swyp3-team5.EmotionLedger";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		C2876C4C2EEAFD3500231C37 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = C2876C222EEAFD3300231C37 /* Cloverly */;
+			baseConfigurationReferenceRelativePath = dev.xcconfig;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 4C5QZ5DXV6;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		C2876C4D2EEAFD3500231C37 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = C2876C222EEAFD3300231C37 /* Cloverly */;
+			baseConfigurationReferenceRelativePath = prod.xcconfig;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 4C5QZ5DXV6;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		C2876C4F2EEAFD3500231C37 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4C5QZ5DXV6;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.swyp3-team5.CloverlyTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cloverly.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Cloverly";
+			};
+			name = Debug;
+		};
+		C2876C502EEAFD3500231C37 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4C5QZ5DXV6;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.swyp3-team5.CloverlyTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cloverly.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Cloverly";
+			};
+			name = Release;
+		};
+		C2876C522EEAFD3500231C37 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4C5QZ5DXV6;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.swyp3-team5.CloverlyUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Cloverly;
+			};
+			name = Debug;
+		};
+		C2876C532EEAFD3500231C37 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4C5QZ5DXV6;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.swyp3-team5.CloverlyUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Cloverly;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C2876C1B2EEAFD3300231C37 /* Build configuration list for PBXProject "Cloverly" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C2876C4C2EEAFD3500231C37 /* Debug */,
+				C2876C4D2EEAFD3500231C37 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C2876C492EEAFD3500231C37 /* Build configuration list for PBXNativeTarget "Cloverly" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C2876C4A2EEAFD3500231C37 /* Debug */,
+				C2876C4B2EEAFD3500231C37 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C2876C4E2EEAFD3500231C37 /* Build configuration list for PBXNativeTarget "CloverlyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C2876C4F2EEAFD3500231C37 /* Debug */,
+				C2876C502EEAFD3500231C37 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C2876C512EEAFD3500231C37 /* Build configuration list for PBXNativeTarget "CloverlyUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C2876C522EEAFD3500231C37 /* Debug */,
+				C2876C532EEAFD3500231C37 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3CB535472F0785AE0006D32A /* XCRemoteSwiftPackageReference "Charts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ChartsOrg/Charts";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.0;
+			};
+		};
+		C20C8C302F043B100093B69B /* XCRemoteSwiftPackageReference "FSCalendar" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/WenchaoD/FSCalendar.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.8.4;
+			};
+		};
+		C20C8C332F043B590093B69B /* XCRemoteSwiftPackageReference "Tabman" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/uias/Tabman";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
+		C23F6B382F168E6A009BD442 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
+		};
+		C27EFB6F2F00E36F00144665 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
+		C2876D472EEB01E100231C37 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kakao/kakao-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.26.0;
+			};
+		};
+		C2876D952EEB070100231C37 /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.9.1;
+			};
+		};
+		C29A8AF52EF1A07700C58C0A /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3CB535482F0785AE0006D32A /* DGCharts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3CB535472F0785AE0006D32A /* XCRemoteSwiftPackageReference "Charts" */;
+			productName = DGCharts;
+		};
+		C20C8C312F043B100093B69B /* FSCalendar */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C20C8C302F043B100093B69B /* XCRemoteSwiftPackageReference "FSCalendar" */;
+			productName = FSCalendar;
+		};
+		C20C8C342F043B590093B69B /* Tabman */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C20C8C332F043B590093B69B /* XCRemoteSwiftPackageReference "Tabman" */;
+			productName = Tabman;
+		};
+		C23F6B392F168E6A009BD442 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C23F6B382F168E6A009BD442 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		C27EFB702F00E36F00144665 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C27EFB6F2F00E36F00144665 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+		C2876D482EEB01E100231C37 /* KakaoSDKAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C2876D472EEB01E100231C37 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDKAuth;
+		};
+		C2876D4A2EEB01E100231C37 /* KakaoSDKCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C2876D472EEB01E100231C37 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDKCommon;
+		};
+		C2876D4C2EEB01E100231C37 /* KakaoSDKUser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C2876D472EEB01E100231C37 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDKUser;
+		};
+		C2876D962EEB070100231C37 /* RxCocoa */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C2876D952EEB070100231C37 /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxCocoa;
+		};
+		C2876D982EEB070100231C37 /* RxSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C2876D952EEB070100231C37 /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxSwift;
+		};
+		C29A8AF62EF1A07700C58C0A /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C29A8AF52EF1A07700C58C0A /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = C2876C182EEAFD3300231C37 /* Project object */;
+}
