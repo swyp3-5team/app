@@ -13,10 +13,15 @@ import RxCocoa
 class ExpenseHistoryViewController: UIViewController {
     private let viewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
+    private var originalContentOffset: CGPoint = .zero
     
     init(viewModel: CalendarViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -175,6 +180,52 @@ class ExpenseHistoryViewController: UIViewController {
         tap.cancelsTouchesInView = false
         tap.delegate = self
         view.addGestureRecognizer(tap)
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillShow),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillHide),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
+    }
+
+    @objc private func keyboardWillShow(_ notification: Notification) {
+        guard
+            let userInfo = notification.userInfo,
+            let keyboardFrame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue
+        else { return }
+        
+        originalContentOffset = scrollView.contentOffset
+        
+        fitScrollingMinDistance(keyboardHeight: keyboardFrame.height)
+    }
+    
+    private func fitScrollingMinDistance(keyboardHeight: CGFloat) {
+        let superView = view.window ?? scrollView
+        let textFieldBottomY = memoTextField.convert(memoTextField.bounds, to: superView).maxY
+        let visibleAreaHeight = superView.frame.height - keyboardHeight
+        let minDistance = 24.0
+        let offsetY = textFieldBottomY + minDistance - visibleAreaHeight
+        
+        guard offsetY > 0 else { return }
+        
+        let currentContentOffset = scrollView.contentOffset
+        scrollView.setContentOffset(
+            CGPoint(x: currentContentOffset.x, y: currentContentOffset.y + offsetY),
+            animated: true
+        )
+        scrollView.layoutIfNeeded()
+    }
+    
+    @objc func keyboardWillHide(_ notification: Notification) {
+        scrollView.setContentOffset(originalContentOffset, animated: true)
     }
     
     @objc func dismissKeyboard() {
