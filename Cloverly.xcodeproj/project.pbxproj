@@ -18,6 +18,7 @@
 		C2876D972EEB070100231C37 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = C2876D962EEB070100231C37 /* RxCocoa */; };
 		C2876D992EEB070100231C37 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C2876D982EEB070100231C37 /* RxSwift */; };
 		C29A8AF72EF1A07700C58C0A /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = C29A8AF62EF1A07700C58C0A /* SnapKit */; };
+		C29CBEFB2F227DF80068AE60 /* SDWebImageWebPCoder in Frameworks */ = {isa = PBXBuildFile; productRef = C29CBEFA2F227DF80068AE60 /* SDWebImageWebPCoder */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,6 +82,7 @@
 			files = (
 				C2876D4B2EEB01E100231C37 /* KakaoSDKCommon in Frameworks */,
 				C27EFB712F00E36F00144665 /* Lottie in Frameworks */,
+				C29CBEFB2F227DF80068AE60 /* SDWebImageWebPCoder in Frameworks */,
 				3CB535492F0785AE0006D32A /* DGCharts in Frameworks */,
 				C2876D492EEB01E100231C37 /* KakaoSDKAuth in Frameworks */,
 				C2876D992EEB070100231C37 /* RxSwift in Frameworks */,
@@ -161,6 +163,7 @@
 				C20C8C342F043B590093B69B /* Tabman */,
 				3CB535482F0785AE0006D32A /* DGCharts */,
 				C23F6B392F168E6A009BD442 /* FirebaseAnalytics */,
+				C29CBEFA2F227DF80068AE60 /* SDWebImageWebPCoder */,
 			);
 			productName = Cloverly;
 			productReference = C2876C202EEAFD3300231C37 /* Cloverly.app */;
@@ -254,6 +257,7 @@
 				C20C8C332F043B590093B69B /* XCRemoteSwiftPackageReference "Tabman" */,
 				3CB535472F0785AE0006D32A /* XCRemoteSwiftPackageReference "Charts" */,
 				C23F6B382F168E6A009BD442 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				C29CBEF92F227DF80068AE60 /* XCRemoteSwiftPackageReference "SDWebImageWebPCoder" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C2876C212EEAFD3300231C37 /* Products */;
@@ -724,6 +728,14 @@
 				minimumVersion = 5.7.1;
 			};
 		};
+		C29CBEF92F227DF80068AE60 /* XCRemoteSwiftPackageReference "SDWebImageWebPCoder" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImageWebPCoder";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.15.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -781,6 +793,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C29A8AF52EF1A07700C58C0A /* XCRemoteSwiftPackageReference "SnapKit" */;
 			productName = SnapKit;
+		};
+		C29CBEFA2F227DF80068AE60 /* SDWebImageWebPCoder */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C29CBEF92F227DF80068AE60 /* XCRemoteSwiftPackageReference "SDWebImageWebPCoder" */;
+			productName = SDWebImageWebPCoder;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
