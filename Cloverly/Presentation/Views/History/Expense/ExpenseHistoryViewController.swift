@@ -14,6 +14,7 @@ class ExpenseHistoryViewController: UIViewController {
     private let viewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
     private var originalContentOffset: CGPoint = .zero
+    private var isScrolledForKeyboard = false
     
     init(viewModel: CalendarViewModel) {
         self.viewModel = viewModel
@@ -197,13 +198,17 @@ class ExpenseHistoryViewController: UIViewController {
     }
 
     @objc private func keyboardWillShow(_ notification: Notification) {
+        guard memoTextField.isFirstResponder else { return }
         guard
             let userInfo = notification.userInfo,
             let keyboardFrame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue
         else { return }
         
-        originalContentOffset = scrollView.contentOffset
-        
+        if !isScrolledForKeyboard {
+            originalContentOffset = scrollView.contentOffset
+            isScrolledForKeyboard = true
+        }
+
         fitScrollingMinDistance(keyboardHeight: keyboardFrame.height)
     }
     
@@ -225,6 +230,8 @@ class ExpenseHistoryViewController: UIViewController {
     }
     
     @objc func keyboardWillHide(_ notification: Notification) {
+        guard isScrolledForKeyboard else { return }
+        isScrolledForKeyboard = false
         scrollView.setContentOffset(originalContentOffset, animated: true)
     }
     
