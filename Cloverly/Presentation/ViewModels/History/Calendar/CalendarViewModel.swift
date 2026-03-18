@@ -93,6 +93,8 @@ final class CalendarViewModel {
                 let grouped = Dictionary(grouping: transactionList) { transaction -> String in
                     // 어떤 키로 묶을지 정함 (날짜를 문자열로 변환해서 Key로 사용)
                     return transaction.transactionDate
+                }.mapValues { transactions in
+                    Array(transactions.reversed())
                 }
                 
                 // 3. Relay에 저장
