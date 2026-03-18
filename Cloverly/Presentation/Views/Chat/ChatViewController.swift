@@ -317,7 +317,7 @@ class ChatViewController: UIViewController {
                         sheet.detents = [
                             .custom(identifier: .init("threeFifths")) { context in
                                 let screenWidth = UIScreen.main.bounds.width
-                                let ratio: CGFloat = screenWidth <= 375 ? 0.61 : 0.59
+                                let ratio: CGFloat = screenWidth <= 375 ? 0.65 : 0.6
                                 return context.maximumDetentValue * ratio
                             }
                         ]
