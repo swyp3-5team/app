@@ -43,6 +43,13 @@ class CategoryTableViewCell: UITableViewCell {
         return label
     }()
     
+    private let chevronImageView: UIImageView = {
+        let iv = UIImageView()
+        iv.contentMode = .scaleAspectFit
+        iv.image = UIImage(named: "Chevron right gray")
+        return iv
+    }()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         configureUI()
@@ -58,6 +65,7 @@ class CategoryTableViewCell: UITableViewCell {
         contentView.addSubview(titleLabel)
         contentView.addSubview(percentageLabel)
         contentView.addSubview(priceLabel)
+        contentView.addSubview(chevronImageView)
         
         indicatorView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
@@ -76,6 +84,11 @@ class CategoryTableViewCell: UITableViewCell {
         }
         
         priceLabel.snp.makeConstraints {
+            $0.trailing.equalTo(chevronImageView.snp.leading).offset(-4)
+            $0.centerY.equalToSuperview()
+        }
+        
+        chevronImageView.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-16)
             $0.centerY.equalToSuperview()
         }

@@ -67,6 +67,7 @@ class StatsViewController: UIViewController {
     
     private lazy var categoryTableView: UITableView = {
         let tableView = UITableView()
+        tableView.backgroundColor = .systemBackground
         tableView.dataSource = self
         tableView.delegate = self
         tableView.separatorStyle = .none
@@ -105,6 +106,7 @@ class StatsViewController: UIViewController {
     }
     
     func configureUI() {
+        view.backgroundColor = .systemBackground
         view.addSubview(dateLabel)
         view.addSubview(totalAmount)
         view.addSubview(dividerView)
@@ -218,7 +220,13 @@ extension StatsViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         viewModel.categoryStatistics.value.count
     }
-    
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let item = viewModel.categoryStatistics.value[indexPath.row]
+        let vc = CategoryExpenseViewController(viewModel: viewModel, categoryId: item.categoryId, categoryName: item.categoryName)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: CategoryTableViewCell.identifier, for: indexPath) as? CategoryTableViewCell else {
             return UITableViewCell()

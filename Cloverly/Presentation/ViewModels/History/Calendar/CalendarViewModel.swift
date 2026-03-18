@@ -31,6 +31,7 @@ final class CalendarViewModel {
     
     // 내역-통계
     let categoryStatistics = BehaviorRelay<[CategoryStatistic]>(value: [])
+    let categoryTransactions = BehaviorRelay<[ExpenseTransaction]>(value: [])
     
     // 내역 수정
     let currentTransaction = BehaviorRelay<Transaction?>(value: nil)
@@ -116,10 +117,23 @@ final class CalendarViewModel {
                 let categoryStatisticsList = try await transactionAPI.getCategoryStatistics(yearMonth: yearMonthString)
                 let sortedList = categoryStatisticsList.sorted { $0.totalAmount > $1.totalAmount }
                 categoryStatistics.accept(sortedList)
-                
-                print(categoryStatistics.value)
             } catch {
                 print("카테고리 통계 데이터 로드 실패: \(error)")
+            }
+        }
+    }
+    
+    func getCategoryTransactions(yearMonth: Date, categoryId: Int) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        let yearMonthString = formatter.string(from: yearMonth)
+
+        Task {
+            do {
+                let transactions = try await transactionAPI.getCategoryTransactions(yearMonth: yearMonthString, categoryId: categoryId)
+                categoryTransactions.accept(transactions)
+            } catch {
+                print("카테고리별 지출 내역 조회 실패: \(error)")
             }
         }
     }

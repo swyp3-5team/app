@@ -92,4 +92,11 @@ class ExpenseListViewCell: UITableViewCell {
             .map { ExpenseCategory.from(id: $0.categoryId).color }
         priceLabel.text = "-\(transaction.totalAmount.withComma)원"
     }
+
+    func configure(with transaction: ExpenseTransaction, color: UIColor) {
+        titleLabel.text = transaction.name.isEmpty ? "미입력" : transaction.name
+        subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.payment.displayName)"
+        indicatorView.backgroundColor = color
+        priceLabel.text = "-\(transaction.amount.withComma)원"
+    }
 }
