@@ -377,7 +377,7 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
         
         let label = UILabel()
         label.font = Typography.b7.uiFont
-        label.textColor = .gray3
+        label.textColor = .gray5
         
         // ① 정렬된 키 목록에서 현재 섹션의 날짜 가져오기
         let dateKey = viewModel.sortedDateKeys[section]
