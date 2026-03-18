@@ -176,50 +176,63 @@ class ExpandableListView: UIView {
         contentStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         let items = transaction.transactionInfoList
-        
+
         if items.isEmpty {
             emptyStateLabel.isHidden = false
             listLabel.text = ""
             listOpenImageView.isHidden = true
             dividerView.isHidden = true
             contentStackView.isHidden = true
-            
+            headerContainer.isHidden = false
+
             // 비어있을때는 바로 접히게
             UIView.performWithoutAnimation {
                 isExpanded = false
             }
-            
+
             headerContainer.snp.updateConstraints {
                 $0.height.equalTo(24)
             }
-            
+
             headerContainer.isUserInteractionEnabled = false
-            
+
             return
         }
-        
+
         emptyStateLabel.isHidden = true
-        listOpenImageView.isHidden = false
         dividerView.isHidden = false
-        
-        headerContainer.snp.updateConstraints {
-            $0.height.equalTo(48)
-        }
-        
-        headerContainer.isUserInteractionEnabled = true
-        
-        // 헤더 텍스트
-        if items.count == 1 {
-            listLabel.text = items[0].name
-        } else {
-            listLabel.text = "\(items[0].name) 외 \(items.count - 1)개"
-        }
-        
+
         // 상세 항목 추가
         for (index, item) in items.enumerated() {
-            // createRowView에 index를 같이 넘겨줌
             let rowView = createRowView(name: item.name, amount: item.amount, index: index)
             contentStackView.addArrangedSubview(rowView)
+        }
+
+        if items.count == 1 {
+            // 헤더 숨기고 내용 바로 표시 (토글 불필요)
+            headerContainer.isHidden = true
+            headerContainer.isUserInteractionEnabled = false
+            contentStackView.isHidden = false
+            contentStackView.alpha = 1.0
+        } else {
+            // 항목 2개 이상: 헤더 + 접기/펼치기
+            let wasHidingHeader = headerContainer.isHidden
+            headerContainer.isHidden = false
+            listOpenImageView.isHidden = false
+            headerContainer.isUserInteractionEnabled = true
+            listLabel.text = "\(items[0].name) 외 \(items.count - 1)개"
+
+            headerContainer.snp.updateConstraints {
+                $0.height.equalTo(48)
+            }
+
+            // 1개 → 2개 이상 전환 시에만 접힌 상태로 초기화
+            // 이미 multi-item 상태에서 추가/삭제하는 경우엔 현재 펼침 상태 유지
+            if wasHidingHeader {
+                UIView.performWithoutAnimation {
+                    isExpanded = false
+                }
+            }
         }
     }
     
