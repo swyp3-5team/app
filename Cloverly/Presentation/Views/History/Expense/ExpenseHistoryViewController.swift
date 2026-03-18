@@ -304,18 +304,16 @@ class ExpenseHistoryViewController: UIViewController {
         
         // 저장 버튼 활성화 validation
         let validation = Observable.combineLatest(
-            nameTextField.rx.text.orEmpty,
             viewModel.currentTransaction.map { $0?.emotion },
             viewModel.currentTransaction.map { $0?.payment },
             viewModel.currentTransaction.map { $0?.transactionInfoList ?? [] }
         )
-        .map { name, emotion, payment, items in
-            let hasName = !name.isEmpty
+        .map { emotion, payment, items in
             let emotionSelected = (emotion != nil)
             let paymentSelected = (payment != nil)
             let hasItems = !items.isEmpty
             
-            return hasName && emotionSelected && paymentSelected && hasItems
+            return emotionSelected && paymentSelected && hasItems
         }
         
         validation
