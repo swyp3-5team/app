@@ -14,6 +14,8 @@ class ChatCollectionViewCell: UICollectionViewCell {
     private var trailingConstraint: NSLayoutConstraint!
     private var timeLeadingConstraint: NSLayoutConstraint!
     private var timeTrailingConstraint: NSLayoutConstraint!
+    private var receiveWidthConstraint: NSLayoutConstraint!
+    private var sendWidthConstraint: NSLayoutConstraint!
     
     lazy var stackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [messageImageView, messageTextView])
@@ -99,7 +101,9 @@ class ChatCollectionViewCell: UICollectionViewCell {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        stackView.widthAnchor.constraint(lessThanOrEqualToConstant: 208).isActive = true
+        let containerWidth = UIScreen.main.bounds.width - 32
+        receiveWidthConstraint = stackView.widthAnchor.constraint(lessThanOrEqualToConstant: containerWidth * 0.67)
+        sendWidthConstraint = stackView.widthAnchor.constraint(lessThanOrEqualToConstant: containerWidth * 0.82)
         
         //        profileImageView.snp.makeConstraints {
         //            $0.top.equalToSuperview()
@@ -153,6 +157,8 @@ class ChatCollectionViewCell: UICollectionViewCell {
             trailingConstraint.isActive = false
             timeLeadingConstraint.isActive = true
             timeTrailingConstraint.isActive = false
+            sendWidthConstraint.isActive = false
+            receiveWidthConstraint.isActive = true
             messageTextView.backgroundColor = .green10
             messageTextView.font = .customFont(.pretendardRegular, size: 16)
             
@@ -167,6 +173,8 @@ class ChatCollectionViewCell: UICollectionViewCell {
             trailingConstraint.isActive = true
             timeLeadingConstraint.isActive = false
             timeTrailingConstraint.isActive = true
+            receiveWidthConstraint.isActive = false
+            sendWidthConstraint.isActive = true
             messageTextView.backgroundColor = .gray9
             messageTextView.font = .customFont(.pretendardMedium, size: 16)
             
