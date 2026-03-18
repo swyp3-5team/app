@@ -203,15 +203,17 @@ class ExpandableListView: UIView {
         dividerView.isHidden = false
 
         // 상세 항목 추가
+        let isSingleItem = items.count == 1
         for (index, item) in items.enumerated() {
-            let rowView = createRowView(name: item.name, amount: item.amount, index: index)
+            let rowView = createRowView(name: item.name, amount: item.amount, index: index, isSingleItem: isSingleItem)
             contentStackView.addArrangedSubview(rowView)
         }
 
-        if items.count == 1 {
+        if isSingleItem {
             // 헤더 숨기고 내용 바로 표시 (토글 불필요)
             headerContainer.isHidden = true
             headerContainer.isUserInteractionEnabled = false
+            contentStackView.layoutMargins = UIEdgeInsets(top: 16, left: 0, bottom: 16, right: 0)
             contentStackView.isHidden = false
             contentStackView.alpha = 1.0
         } else {
@@ -226,6 +228,8 @@ class ExpandableListView: UIView {
                 $0.height.equalTo(48)
             }
 
+            contentStackView.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 16, right: 10)
+
             // 1개 → 2개 이상 전환 시에만 접힌 상태로 초기화
             // 이미 multi-item 상태에서 추가/삭제하는 경우엔 현재 펼침 상태 유지
             if wasHidingHeader {
@@ -236,19 +240,20 @@ class ExpandableListView: UIView {
         }
     }
     
-    private func createRowView(name: String, amount: Int, index: Int) -> UIView {
+    private func createRowView(name: String, amount: Int, index: Int, isSingleItem: Bool = false) -> UIView {
         let view = UIView()
-        
+
         let nameLabel = UILabel()
         nameLabel.text = name
-        nameLabel.font = .customFont(.pretendardRegular, size: 14)
+        nameLabel.font = isSingleItem ? .customFont(.pretendardSemiBold, size: 16) : .customFont(.pretendardRegular, size: 14)
         nameLabel.textColor = .gray1
-        
+
         let amountLabel = UILabel()
         amountLabel.text = "\(amount.withComma)원"
         amountLabel.font = .customFont(.pretendardMedium, size: 14)
         amountLabel.textColor = .gray4
-        
+        amountLabel.isHidden = isSingleItem
+
         // (참고: 라벨이 정의된 후에 스택뷰를 만들어야 에러가 안 납니다)
         let contentStackView = UIStackView(arrangedSubviews: [nameLabel, amountLabel])
         contentStackView.axis = .vertical
