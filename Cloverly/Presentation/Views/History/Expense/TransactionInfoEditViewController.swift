@@ -31,11 +31,11 @@ class TransactionInfoEditViewController: UIViewController {
     // MARK: - UI Components
     
     // 이름 입력 필드
-    private let nameTitleLabel: UILabel = {
-        let label = UILabel()
+    private let nameTitleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "지출 내역"
-        label.font = .customFont(.pretendardSemiBold, size: 14)
         label.textColor = .gray2
+        label.typography = .b5
         return label
     }()
     
@@ -43,7 +43,7 @@ class TransactionInfoEditViewController: UIViewController {
         let tf = UITextField()
         tf.placeholder = "지출내역 입력"
         tf.text = initialName
-        tf.font = .customFont(.pretendardRegular, size: 14)
+        tf.font = Typography.b7.uiFont
         tf.layer.borderColor = UIColor.gray8.cgColor
         tf.layer.borderWidth = 1
         tf.layer.cornerRadius = 8
@@ -55,11 +55,11 @@ class TransactionInfoEditViewController: UIViewController {
     }()
     
     // 금액 입력 필드
-    private let amountTitleLabel: UILabel = {
-        let label = UILabel()
+    private let amountTitleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "금액"
-        label.font = .customFont(.pretendardSemiBold, size: 14)
         label.textColor = .gray2
+        label.typography = .b5
         return label
     }()
     
@@ -70,7 +70,7 @@ class TransactionInfoEditViewController: UIViewController {
         if let amount = initialAmount {
             tf.text = "\(amount)"
         }
-        tf.font = .customFont(.pretendardRegular, size: 14)
+        tf.font = Typography.b7.uiFont
         tf.keyboardType = .numberPad
         tf.layer.borderColor = UIColor.gray8.cgColor
         tf.layer.borderWidth = 1
@@ -83,11 +83,11 @@ class TransactionInfoEditViewController: UIViewController {
     }()
     
     // 카테고리 타이틀
-    private let categoryTitleLabel: UILabel = {
-        let label = UILabel()
+    private let categoryTitleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "카테고리"
-        label.font = .customFont(.pretendardSemiBold, size: 14)
         label.textColor = .gray2
+        label.typography = .b5
         return label
     }()
     

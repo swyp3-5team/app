@@ -87,18 +87,18 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         return button
     }()
     
-    private let expenseLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 18)
+    private let expenseLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .t1
         return label
     }()
     
-    private let incomeLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 18)
+    private let incomeLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .green5
         label.text = "수입 0원"
+        label.typography = .t1
         return label
     }()
     

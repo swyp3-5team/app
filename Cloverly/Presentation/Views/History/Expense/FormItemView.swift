@@ -9,10 +9,10 @@ import UIKit
 import SnapKit
 
 class FormItemView: UIView {
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 14)
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray2
+        label.typography = .b5
         return label
     }()
     
@@ -20,7 +20,7 @@ class FormItemView: UIView {
         let btn = UIButton()
         btn.setTitle("추가", for: .normal)
         btn.setTitleColor(.blueConfirm, for: .normal)
-        btn.titleLabel?.font = .customFont(.pretendardSemiBold, size: 14)
+        btn.titleLabel?.font = Typography.b5.uiFont
         btn.isHidden = true
         return btn
     }()

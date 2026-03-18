@@ -18,10 +18,10 @@ class EmotionCell: UICollectionViewCell {
     }()
     
     // 텍스트 (일상, 만족 등)
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardRegular, size: 14)
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray2
+        label.typography = .b7
         label.textAlignment = .center
         return label
     }()
@@ -67,12 +67,12 @@ class EmotionCell: UICollectionViewCell {
             // ✅ 선택됨: 초록색 테두리 + 검은 글씨
             contentView.layer.borderColor = UIColor.green5.cgColor
             titleLabel.textColor = .gray1
-            titleLabel.font = .customFont(.pretendardSemiBold, size: 14)
+            titleLabel.typography = .b5
         } else {
             // ⬜️ 해제됨: 회색 테두리 + 회색 글씨
             contentView.layer.borderColor = UIColor.gray8.cgColor
             titleLabel.textColor = .gray2
-            titleLabel.font = .customFont(.pretendardRegular, size: 14)
+            titleLabel.typography = .b7
         }
     }
     

@@ -19,10 +19,10 @@ class TermCheckControl: UIControl {
         return iv
     }()
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardRegular, size: 14)
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray3
+        label.typography = .b7
         return label
     }()
     

@@ -67,19 +67,19 @@ class NicknameInputViewController: UIViewController {
     private let viewModel = AuthViewModel.shared
     private let disposeBag = DisposeBag()
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "닉네임을 입력해주세요"
         label.textColor = .gray1
-        label.font = .customFont(.pretendardSemiBold, size: 22)
+        label.typography = .h2
         return label
     }()
     
-    private let subtitleLabel: UILabel = {
-        let label = UILabel()
+    private let subtitleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "원하는 닉네임을 자유롭게 입력해주세요"
         label.textColor = .gray3
-        label.font = .customFont(.pretendardRegular, size: 16)
+        label.typography = .b3
         return label
     }()
     
@@ -87,18 +87,18 @@ class NicknameInputViewController: UIViewController {
         let textField = UITextField()
         textField.placeholder = "10글자 이하의 닉네임"
         textField.textColor = .gray1
-        textField.font = .customFont(.pretendardRegular, size: 14)
+        textField.font = Typography.b7.uiFont
         textField.layer.borderColor = UIColor.gray8.cgColor
         textField.layer.borderWidth = 1
         textField.layer.cornerRadius = 8
         textField.clipsToBounds = true
-        
+
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
         textField.leftViewMode = .always
-        
+
         return textField
     }()
-    
+
     private lazy var resetButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: "Reset icon"), for: .normal)
@@ -114,9 +114,9 @@ class NicknameInputViewController: UIViewController {
         return imageView
     }()
     
-    private let confirmLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardRegular, size: 12)
+    private let confirmLabel: AppLabel = {
+        let label = AppLabel()
+        label.typography = .l3
         label.isHidden = true
         return label
     }()
@@ -125,19 +125,19 @@ class NicknameInputViewController: UIViewController {
         let button = UIButton()
         button.setTitle("시작", for: .normal)
         button.setTitleColor(UIColor.gray, for: .normal)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.titleLabel?.font = Typography.b1.uiFont
         button.layer.cornerRadius = 8
         button.clipsToBounds = true
-        
+
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
-            
+
             guard let nickname = self.nicknameTextField.text?.trimmingCharacters(in: .whitespaces),
                   !nickname.isEmpty else {
                 print("닉네임을 입력해주세요!")
                 return
             }
-            
+
             viewModel.saveUser(nickname: nickname)
             
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,

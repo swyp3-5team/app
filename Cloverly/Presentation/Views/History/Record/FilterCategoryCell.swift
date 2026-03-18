@@ -11,9 +11,9 @@ import SnapKit
 class FilterCategoryCell: UICollectionViewCell {
     static let identifier = "FilterCategoryCell"
     
-    private let label: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardRegular, size: 14)
+    private let label: AppLabel = {
+        let label = AppLabel()
+        label.typography = .b7
         label.textAlignment = .center
         return label
     }()

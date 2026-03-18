@@ -19,18 +19,18 @@ class ExpenseListViewCell: UITableViewCell {
         return view
     }()
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardMedium, size: 16)
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .b2
         label.textAlignment = .center
         return label
     }()
-    
-    private let subtitleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardRegular, size: 14)
+
+    private let subtitleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray4
+        label.typography = .b7
         label.textAlignment = .center
         return label
     }()
@@ -44,10 +44,10 @@ class ExpenseListViewCell: UITableViewCell {
         return stack
     }()
 
-    private let priceLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 18)
+    private let priceLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .t1
         label.textAlignment = .center
         return label
     }()

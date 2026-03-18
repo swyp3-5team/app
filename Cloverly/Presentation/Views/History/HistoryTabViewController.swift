@@ -21,11 +21,11 @@ class HistoryTabViewController: TabmanViewController {
         return 0
     }
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "내역"
-        label.font = .customFont(.pretendardSemiBold, size: 18)
         label.textColor = .gray1
+        label.typography = .t1
         return label
     }()
     

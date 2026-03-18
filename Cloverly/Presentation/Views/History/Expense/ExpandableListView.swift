@@ -39,10 +39,10 @@ class ExpandableListView: UIView {
     // 2. 헤더 영역
     private let headerContainer = UIView()
     
-    private let listLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 16)
+    private let listLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .b1
         return label
     }()
     
@@ -243,15 +243,15 @@ class ExpandableListView: UIView {
     private func createRowView(name: String, amount: Int, index: Int, isSingleItem: Bool = false) -> UIView {
         let view = UIView()
 
-        let nameLabel = UILabel()
+        let nameLabel = AppLabel()
         nameLabel.text = name
-        nameLabel.font = isSingleItem ? .customFont(.pretendardSemiBold, size: 16) : .customFont(.pretendardRegular, size: 14)
         nameLabel.textColor = .gray1
+        nameLabel.typography = isSingleItem ? .b1 : .b7
 
-        let amountLabel = UILabel()
+        let amountLabel = AppLabel()
         amountLabel.text = "\(amount.withComma)원"
-        amountLabel.font = .customFont(.pretendardMedium, size: 14)
         amountLabel.textColor = .gray4
+        amountLabel.typography = .b6
         amountLabel.isHidden = isSingleItem
 
         // (참고: 라벨이 정의된 후에 스택뷰를 만들어야 에러가 안 납니다)

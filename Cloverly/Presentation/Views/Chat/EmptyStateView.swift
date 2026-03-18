@@ -25,11 +25,11 @@ class EmptyStateView: UIView {
         return iv
     }()
     
-    let messageLabel: UILabel = {
-        let label = UILabel()
+    let messageLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "지출 내역을 입력해주세요!"
         label.textColor = .gray1
-        label.font = .customFont(.pretendardSemiBold, size: 22)
+        label.typography = .h2
         label.textAlignment = .center
         return label
     }()

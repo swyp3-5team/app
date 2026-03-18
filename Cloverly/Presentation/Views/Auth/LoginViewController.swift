@@ -15,19 +15,19 @@ class LoginViewController: UIViewController {
     private let viewModel = AuthViewModel.shared
     private let disposeBag = DisposeBag()
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "오늘의 감정도, 지출도"
-        label.font = .customFont(.pretendardSemiBold, size: 22)
         label.textColor = .gray1
+        label.typography = .h2
         return label
     }()
     
-    private let subtitleLabel: UILabel = {
-        let label = UILabel()
+    private let subtitleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "클로버리와 함께 정리해요"
-        label.font = .customFont(.pretendardRegular, size: 16)
         label.textColor = .gray3
+        label.typography = .b3
         label.numberOfLines = 0
         return label
     }()

@@ -16,27 +16,27 @@ class StatsViewController: UIViewController {
     private let viewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
     
-    private let emptyStateLabel: UILabel = {
-        let label = UILabel()
+    private let emptyStateLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "내역이 없습니다."
-        label.font = .customFont(.pretendardMedium, size: 16)
         label.textColor = .gray
+        label.typography = .b2
         label.textAlignment = .center
         label.isHidden = true // 처음엔 숨겨둠
         return label
     }()
     
-    private let dateLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardMedium, size: 14)
+    private let dateLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray3
+        label.typography = .b6
         return label
     }()
     
-    private let totalAmount: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 24)
+    private let totalAmount: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .h1
         return label
     }()
     

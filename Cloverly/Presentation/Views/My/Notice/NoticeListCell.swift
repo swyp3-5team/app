@@ -11,18 +11,18 @@ import SnapKit
 class NoticeListCell: UITableViewCell {
     static let identifier = "NoticeListCell"
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardMedium, size: 16)
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .b2
         label.numberOfLines = 1
         return label
     }()
-    
-    private let dateLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardRegular, size: 14)
+
+    private let dateLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray5
+        label.typography = .b7
         return label
     }()
     

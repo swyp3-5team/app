@@ -65,11 +65,11 @@ class ChatViewController: UIViewController {
         return animationView
     }()
     
-    private let statusLabel: UILabel = {
-        let label = UILabel()
+    private let statusLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "영수증 인식중"
-        label.font = .customFont(.pretendardSemiBold, size: 14)
         label.textColor = .gray10
+        label.typography = .b5
         label.textAlignment = .center
         return label
     }()

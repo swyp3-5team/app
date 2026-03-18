@@ -83,28 +83,28 @@ class RecordViewController: UIViewController {
         return imageView
     }()
     
-    private lazy var greetingLabel: UILabel = {
-        let label = UILabel()
+    private lazy var greetingLabel: AppLabel = {
+        let label = AppLabel()
         let nickname = AuthViewModel.shared.currentUser.value?.nickName ?? "사용자"
         label.text = "\(nickname)님, 만나서 반가워요!\n이번 달 지출 내역을 확인해보세요"
-        label.font = .customFont(.pretendardSemiBold, size: 16)
         label.textColor = .gray1
+        label.typography = .b1
         label.numberOfLines = 0
         return label
     }()
     
-    private let expenseTextLabel: UILabel = {
-        let label = UILabel()
+    private let expenseTextLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "지출"
-        label.font = .customFont(.pretendardMedium, size: 14)
         label.textColor = .gray4
+        label.typography = .b6
         return label
     }()
     
-    private let expenseLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 22)
+    private let expenseLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .h2
         return label
     }()
     
@@ -119,7 +119,7 @@ class RecordViewController: UIViewController {
         
         let attributes: AttributeContainer = {
             var container = AttributeContainer()
-            container.font = .customFont(.pretendardSemiBold, size: 14)
+            container.font = Typography.b5.uiFont
             return container
         }()
 
@@ -146,7 +146,7 @@ class RecordViewController: UIViewController {
         let button = UIButton()
         button.setTitle("내역 추가", for: .normal)
         button.setTitleColor(.blueConfirm, for: .normal)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 14)
+        button.titleLabel?.font = Typography.b5.uiFont
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             viewModel.clearCurrentTransaction()
@@ -316,7 +316,7 @@ class RecordViewController: UIViewController {
         guard var config = filterButton.configuration else { return }
         
         var container = AttributeContainer()
-        container.font = .customFont(.pretendardSemiBold, size: 14)
+        container.font = Typography.b5.uiFont
         container.foregroundColor = isFilterActive ? .green5 : .gray2
         
         config.attributedTitle = AttributedString(titleText, attributes: container)
@@ -376,7 +376,7 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
         headerView.backgroundColor = .white
         
         let label = UILabel()
-        label.font = .customFont(.pretendardRegular, size: 14)
+        label.font = Typography.b7.uiFont
         label.textColor = .gray3
         
         // ① 정렬된 키 목록에서 현재 섹션의 날짜 가져오기

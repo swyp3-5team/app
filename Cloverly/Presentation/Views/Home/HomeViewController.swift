@@ -69,11 +69,11 @@ class HomeViewController: UIViewController {
         return imageView
     }()
     
-    private lazy var greetingLabel: UILabel = {
-        let label = UILabel()
+    private lazy var greetingLabel: AppLabel = {
+        let label = AppLabel()
         label.text = timeBasedMessage
-        label.font = .customFont(.pretendardSemiBold, size: 24)
         label.textColor = .gray10
+        label.typography = .h1
         label.textAlignment = .center
         label.numberOfLines = 0
         return label
@@ -100,7 +100,7 @@ class HomeViewController: UIViewController {
         config.baseBackgroundColor = .gray10
         
         var titleAttr = AttributedString.init("채팅 시작")
-        titleAttr.font = .customFont(.pretendardSemiBold, size: 16)
+        titleAttr.font = Typography.b1.uiFont
         config.attributedTitle = titleAttr
         
         config.cornerStyle = .capsule

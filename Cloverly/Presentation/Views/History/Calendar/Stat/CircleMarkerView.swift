@@ -24,18 +24,18 @@ class CircleMarkerView: MarkerView {
     }()
     
     // 2. 카테고리 이름 (예: 식비)
-    private let nameLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 12)
+    private let nameLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .l2
         label.textAlignment = .center
         return label
     }()
-    
+
     // 3. 퍼센트 (예: 21%)
-    private let percentLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 16)
+    private let percentLabel: AppLabel = {
+        let label = AppLabel()
+        label.typography = .b1
         label.textAlignment = .center
         return label
     }()

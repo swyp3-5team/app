@@ -14,11 +14,11 @@ class FilterViewController: UIViewController {
     private let viewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
     
-    private lazy var titleLabel: UILabel = {
-        let label = UILabel()
+    private lazy var titleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "필터"
         label.textColor = .gray1
-        label.font = .customFont(.pretendardSemiBold, size: 18)
+        label.typography = .t1
         return label
     }()
     
@@ -32,11 +32,11 @@ class FilterViewController: UIViewController {
         return button
     }()
     
-    private lazy var subtitleLabel: UILabel = {
-        let label = UILabel()
+    private lazy var subtitleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "카테고리"
         label.textColor = .gray2
-        label.font = .customFont(.pretendardSemiBold, size: 14)
+        label.typography = .b5
         return label
     }()
     
@@ -59,7 +59,7 @@ class FilterViewController: UIViewController {
         let button = UIButton()
         button.setTitle("초기화", for: .normal)
         button.setTitleColor(.gray1, for: .normal)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.titleLabel?.font = Typography.b1.uiFont
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.gray7.cgColor
         button.layer.cornerRadius = 8
@@ -85,7 +85,7 @@ class FilterViewController: UIViewController {
         let button = UIButton()
         button.setTitle("적용", for: .normal)
         button.setTitleColor(.gray10, for: .normal)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.titleLabel?.font = Typography.b1.uiFont
         button.layer.cornerRadius = 8
         button.clipsToBounds = true
         button.backgroundColor = .green5

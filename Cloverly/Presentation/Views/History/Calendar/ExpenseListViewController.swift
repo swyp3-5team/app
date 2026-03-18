@@ -21,10 +21,10 @@ class ExpenseListViewController: UIViewController {
         return 0
     }
     
-    private lazy var titleLabel: UILabel = {
-        let label = UILabel()
+    private lazy var titleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
-        label.font = .customFont(.pretendardSemiBold, size: 18)
+        label.typography = .t1
         return label
     }()
     

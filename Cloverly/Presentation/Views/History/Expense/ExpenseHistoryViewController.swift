@@ -27,11 +27,11 @@ class ExpenseHistoryViewController: UIViewController {
         return view
     }()
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "내역 수정"
-        label.font = .customFont(.pretendardSemiBold, size: 18)
         label.textColor = .gray1
+        label.typography = .t1
         return label
     }()
     
@@ -49,7 +49,7 @@ class ExpenseHistoryViewController: UIViewController {
         let textField = UITextField()
         textField.placeholder = "상호명 입력"
         textField.textColor = .gray1
-        textField.font = .customFont(.pretendardRegular, size: 14)
+        textField.font = Typography.b7.uiFont
         textField.layer.borderColor = UIColor.gray8.cgColor
         textField.layer.borderWidth = 1
         textField.layer.cornerRadius = 8
@@ -62,10 +62,10 @@ class ExpenseHistoryViewController: UIViewController {
     
     private let emotionGridView = EmotionGridView()
     
-    let amountLabel: UILabel = {
-        let label = UILabel()
+    let amountLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray6
-        label.font = .customFont(.pretendardSemiBold, size: 24)
+        label.typography = .h1
         return label
     }()
     
@@ -92,7 +92,7 @@ class ExpenseHistoryViewController: UIViewController {
         let textField = UITextField()
         textField.placeholder = "메모 입력"
         textField.textColor = .gray1
-        textField.font = .customFont(.pretendardRegular, size: 14)
+        textField.font = Typography.b7.uiFont
         textField.layer.borderColor = UIColor.gray8.cgColor
         textField.layer.borderWidth = 1
         textField.layer.cornerRadius = 8
@@ -121,7 +121,7 @@ class ExpenseHistoryViewController: UIViewController {
         let button = UIButton()
         button.setTitle("저장", for: .normal)
         button.setTitleColor(.gray10, for: .normal)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.titleLabel?.font = Typography.b1.uiFont
         button.layer.cornerRadius = 8
         button.clipsToBounds = true
         button.backgroundColor = .green5
@@ -144,7 +144,7 @@ class ExpenseHistoryViewController: UIViewController {
         let button = UIButton()
         button.setTitle("삭제", for: .normal)
         button.setTitleColor(.gray1, for: .normal)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.titleLabel?.font = Typography.b1.uiFont
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.gray7.cgColor
         button.layer.cornerRadius = 8

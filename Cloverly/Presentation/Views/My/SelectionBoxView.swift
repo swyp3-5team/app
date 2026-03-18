@@ -10,10 +10,10 @@ import SnapKit
 
 class SelectionBoxView: UIView {
     
-    private let imojiLabel = UILabel()
-    private let titleLabel = UILabel()
-    private let subtitleLabel: UILabel = {
-        let label = UILabel()
+    private let imojiLabel = AppLabel()
+    private let titleLabel = AppLabel()
+    private let subtitleLabel: AppLabel = {
+        let label = AppLabel()
         label.numberOfLines = 0
         return label
     }()
@@ -66,22 +66,22 @@ class SelectionBoxView: UIView {
         if isSelectedBox {
             // 선택됨: 초록색 테두리 + 채워진 이미지
             self.layer.borderColor = UIColor.green5.cgColor
-            self.titleLabel.font = .customFont(.pretendardSemiBold, size: 16)
             self.titleLabel.textColor = .gray1
-            
-            self.subtitleLabel.font = .customFont(.pretendardRegular, size: 14)
+            self.titleLabel.typography = .b1
+
             self.subtitleLabel.textColor = .gray2
-            
+            self.subtitleLabel.typography = .b7
+
             self.checkImageView.image = UIImage(named: "Radio Buttons enabled")
         } else {
             // 꺼짐: 회색 테두리 + 빈 이미지
             self.layer.borderColor = UIColor.gray8.cgColor
-            self.titleLabel.font = .customFont(.pretendardRegular, size: 16)
             self.titleLabel.textColor = .gray5
-            
-            self.subtitleLabel.font = .customFont(.pretendardRegular, size: 14)
+            self.titleLabel.typography = .b3
+
             self.subtitleLabel.textColor = .gray6
-            
+            self.subtitleLabel.typography = .b7
+
             self.checkImageView.image = UIImage(named: "Radio Buttons disabled")
         }
     }

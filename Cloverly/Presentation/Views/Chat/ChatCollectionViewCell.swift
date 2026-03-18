@@ -35,8 +35,8 @@ class ChatCollectionViewCell: UICollectionViewCell {
         return imageView
     }()
     
-    let messageTextView: UITextView = {
-        let textView = UITextView()
+    let messageTextView: AppTextView = {
+        let textView = AppTextView()
         textView.text = "Sample"
         textView.textColor = .gray1
         textView.backgroundColor = .white
@@ -46,8 +46,8 @@ class ChatCollectionViewCell: UICollectionViewCell {
         textView.isScrollEnabled = false
         textView.textContainerInset = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
         textView.textContainer.lineFragmentPadding = 0
-        textView.font = .customFont(.pretendardRegular, size: 16)
-        
+        textView.typography = .b3
+
         return textView
     }()
     
@@ -57,16 +57,16 @@ class ChatCollectionViewCell: UICollectionViewCell {
         return view
     }()
     
-    let timeLabel: UILabel = {
-        let label = UILabel()
+    let timeLabel: AppLabel = {
+        let label = AppLabel()
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "a h:mm"
 
         let timeString = formatter.string(from: Date())
-        
+
         label.textColor = .gray2
-        label.font = .customFont(.pretendardRegular, size: 12)
+        label.typography = .l3
         label.text = "\(timeString)"
         return label
     }()
@@ -160,7 +160,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
             sendWidthConstraint.isActive = false
             receiveWidthConstraint.isActive = true
             messageTextView.backgroundColor = .green10
-            messageTextView.font = .customFont(.pretendardRegular, size: 16)
+            messageTextView.typography = .b3
             
             messageTextView.layer.maskedCorners = [
                 .layerMinXMinYCorner,
@@ -176,7 +176,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
             receiveWidthConstraint.isActive = false
             sendWidthConstraint.isActive = true
             messageTextView.backgroundColor = .gray9
-            messageTextView.font = .customFont(.pretendardMedium, size: 16)
+            messageTextView.typography = .b2
             
             messageTextView.layer.maskedCorners = [
                 .layerMinXMinYCorner,

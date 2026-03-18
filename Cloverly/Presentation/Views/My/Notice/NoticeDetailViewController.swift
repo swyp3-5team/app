@@ -13,19 +13,19 @@ class NoticeDetailViewController: UIViewController {
     private let notice: Notice
     
     // 제목
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardMedium, size: 16)
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .b2
         label.numberOfLines = 0
         return label
     }()
     
     // 날짜
-    private let dateLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardRegular, size: 14)
+    private let dateLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray3
+        label.typography = .b7
         return label
     }()
     
@@ -37,10 +37,10 @@ class NoticeDetailViewController: UIViewController {
     }()
     
     // 내용 (스크롤 가능)
-    private let contentTextView: UITextView = {
-        let view = UITextView()
-        view.font = .customFont(.pretendardRegular, size: 15)
+    private let contentTextView: AppTextView = {
+        let view = AppTextView()
         view.textColor = .gray1
+        view.typography = .b4
         view.isEditable = false // 읽기 전용
         view.showsVerticalScrollIndicator = false
         return view
