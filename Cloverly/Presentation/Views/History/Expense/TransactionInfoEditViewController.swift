@@ -92,18 +92,19 @@ class TransactionInfoEditViewController: UIViewController {
     }()
     
     // 카테고리 컬렉션뷰
-    private lazy var collectionView: UICollectionView = {
+    private lazy var collectionView: SelfSizingCollectionView = {
         let layout = LeftAlignedCollectionViewFlowLayout()
         layout.minimumLineSpacing = 12
         layout.minimumInteritemSpacing = 8
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
-        
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+
+        let cv = SelfSizingCollectionView(frame: .zero, collectionViewLayout: layout)
         cv.backgroundColor = .clear
+        cv.isScrollEnabled = false
         cv.register(FilterCategoryCell.self, forCellWithReuseIdentifier: FilterCategoryCell.identifier)
         cv.dataSource = self
         cv.delegate = self
-        cv.allowsMultipleSelection = false // 단일 선택
+        cv.allowsMultipleSelection = false
         return cv
     }()
     
@@ -190,8 +191,7 @@ class TransactionInfoEditViewController: UIViewController {
         
         collectionView.snp.makeConstraints {
             $0.top.equalTo(categoryTitleLabel.snp.bottom).offset(16)
-            $0.leading.trailing.equalToSuperview().offset(16)
-            $0.height.equalTo(200)
+            $0.leading.trailing.equalToSuperview().inset(16)
         }
         
         saveButton.snp.makeConstraints {

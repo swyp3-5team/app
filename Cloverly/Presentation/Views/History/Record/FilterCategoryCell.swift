@@ -13,6 +13,7 @@ class FilterCategoryCell: UICollectionViewCell {
     
     private let label: AppLabel = {
         let label = AppLabel()
+        label.textColor = .gray1
         label.typography = .b7
         label.textAlignment = .center
         return label
@@ -40,11 +41,12 @@ class FilterCategoryCell: UICollectionViewCell {
     
     private func setupUI() {
         contentView.layer.borderWidth = 1
+        contentView.backgroundColor = .white
         contentView.layer.masksToBounds = true
         
         contentView.addSubview(label)
         label.snp.makeConstraints {
-            $0.top.bottom.equalToSuperview().inset(8)
+            $0.top.bottom.equalToSuperview().inset(10)
             $0.leading.trailing.equalToSuperview().inset(16) // 좌우 여백
         }
         
@@ -57,15 +59,24 @@ class FilterCategoryCell: UICollectionViewCell {
     
     private func updateAppearance() {
         if isSelected {
-            // 선택됨: 초록색 테두리 + 검은 글씨 (또는 디자인에 맞춰 수정)
-            contentView.backgroundColor = .white
-            contentView.layer.borderColor = UIColor.green5.cgColor // 메인 컬러
-            label.textColor = .black
+            contentView.layer.borderColor = UIColor.green5.cgColor
+            label.typography = .b5
         } else {
-            // 선택 안됨: 회색 테두리 + 회색 글씨
-            contentView.backgroundColor = .white
             contentView.layer.borderColor = UIColor.gray8.cgColor
-            label.textColor = .gray1
+            label.typography = .b7
+        }
+    }
+}
+
+class SelfSizingCollectionView: UICollectionView {
+    override var intrinsicContentSize: CGSize {
+        return collectionViewLayout.collectionViewContentSize
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        if bounds.size != intrinsicContentSize {
+            invalidateIntrinsicContentSize()
         }
     }
 }
