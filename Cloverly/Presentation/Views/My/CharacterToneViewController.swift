@@ -49,7 +49,7 @@ class CharacterToneViewController: UIViewController {
         boxA.setContents(
             imoji: "🥹",
             title: "공감형",
-            subtitle: "“너 오늘 진짜 애썼구나..\n그래서 보상하고 싶었던 거지?”"
+            subtitle: "“너 오늘 진짜 애썼구나..\n그래서 보상받고 싶었던 거지?”"
         )
         
         boxB.setContents(
