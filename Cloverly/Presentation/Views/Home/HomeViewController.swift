@@ -7,6 +7,8 @@
 
 import UIKit
 import SnapKit
+import SDWebImage
+import SDWebImageWebPCoder
 
 class HomeViewController: UIViewController {
     private let calendarViewModel: CalendarViewModel
@@ -38,20 +40,34 @@ class HomeViewController: UIViewController {
 
         switch hour {
         case 6..<12:
-            return "background_morning"
+            return "morning"
         case 12..<18:
-            return "background_afternoon"
+            return "afternoon"
         case 18..<22:
-            return "background_evening"
+            return "evening"
         default:
-            return "background_night"
+            return "night"
         }
     }
     
-    private lazy var backgroundImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: timeBasedBackgroundImageName))
+    private lazy var backgroundImageView: SDAnimatedImageView = {
+        let imageView = SDAnimatedImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
+        
+        if let path = Bundle.main.path(forResource: timeBasedBackgroundImageName, ofType: "webp"),
+           let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
+           let animatedImage = SDAnimatedImage(data: data) {
+            
+            imageView.image = animatedImage
+            imageView.autoPlayAnimatedImage = true
+            imageView.shouldCustomLoopCount = false
+            imageView.clearBufferWhenStopped = false
+            imageView.maxBufferSize = 0
+            
+            imageView.animationRepeatCount = 0
+        }
+        
         return imageView
     }()
     
@@ -138,7 +154,7 @@ class HomeViewController: UIViewController {
         view.addSubview(typeLogoImageView)
         view.addSubview(bubbleImageView)
         view.addSubview(greetingLabel)
-        view.addSubview(characterImageView)
+//        view.addSubview(characterImageView) // 미사용
         view.addSubview(chatButton)
         
         backgroundImageView.snp.makeConstraints {
@@ -160,11 +176,11 @@ class HomeViewController: UIViewController {
             $0.top.equalTo(bubbleImageView.snp.top).offset(22)
         }
         
-        characterImageView.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(105)
-            $0.trailing.equalToSuperview().offset(-104)
-            $0.bottom.equalTo(chatButton.snp.top).offset(-60)
-        }
+//        characterImageView.snp.makeConstraints {
+//            $0.leading.equalToSuperview().offset(105)
+//            $0.trailing.equalToSuperview().offset(-104)
+//            $0.bottom.equalTo(chatButton.snp.top).offset(-60)
+//        }
         
         chatButton.snp.makeConstraints {
             $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
