@@ -85,7 +85,7 @@ class ExpenseListViewCell: UITableViewCell {
     }
     
     func configure(with transaction: Transaction) {
-        titleLabel.text = transaction.place?.isEmpty == false ? transaction.place : "미입력"
+        titleLabel.text = transaction.place?.nilIfNullOrEmpty ?? "미입력"
         subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.transactionInfoList.max { $0.amount < $1.amount }?.categoryName ?? "내역 없음")"
         indicatorView.backgroundColor = transaction.transactionInfoList
             .max { $0.amount < $1.amount }
@@ -94,7 +94,7 @@ class ExpenseListViewCell: UITableViewCell {
     }
 
     func configure(with transaction: ExpenseTransaction, color: UIColor) {
-        titleLabel.text = transaction.name.isEmpty ? "미입력" : transaction.name
+        titleLabel.text = transaction.name.nilIfNullOrEmpty ?? "미입력"
         subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.payment.displayName)"
         indicatorView.backgroundColor = color
         priceLabel.text = "-\(transaction.amount.withComma)원"
