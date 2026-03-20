@@ -14,7 +14,8 @@ final class CalendarViewModel {
     let transactionAPI = TransactionAPI()
     
     // 내역-달력
-    let dailyTotalAmounts = BehaviorRelay<[String: Int]>(value: [:])
+    let monthlyExpenseAmounts = BehaviorRelay<[String: Int]>(value: [:])
+    let monthlyIncomeAmounts = BehaviorRelay<[String: Int]>(value: [:])
     let currentDate = BehaviorRelay<Date>(value: Date())
     
     // 내역-달력-일자 모달
@@ -83,13 +84,19 @@ final class CalendarViewModel {
             do {
                 let transactionList = try await transactionAPI.getTransactions(yearMonth: yearMonthString)
                 
-                var tempAmounts: [String: Int] = [:]
+                var tempExpense: [String: Int] = [:]
+                var tempIncome: [String: Int] = [:]
                 for transaction in transactionList {
-                    // 딕셔너리에 금액 누적 (기존 값 + 현재 값)
-                    tempAmounts[transaction.transactionDate, default: 0] += transaction.totalAmount
+                    let type = transaction.transactionInfoList.first?.type
+                    if type == "INCOME" {
+                        tempIncome[transaction.transactionDate, default: 0] += transaction.totalAmount
+                    } else {
+                        tempExpense[transaction.transactionDate, default: 0] += transaction.totalAmount
+                    }
                 }
-                
-                dailyTotalAmounts.accept(tempAmounts)
+
+                monthlyExpenseAmounts.accept(tempExpense)
+                monthlyIncomeAmounts.accept(tempIncome)
                 
                 let grouped = Dictionary(grouping: transactionList) { transaction -> String in
                     // 어떤 키로 묶을지 정함 (날짜를 문자열로 변환해서 Key로 사용)

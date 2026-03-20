@@ -18,6 +18,13 @@ class CalendarCell: FSCalendarCell {
         label.textColor = .gray4
         return label
     }()
+
+    private let incomeLabel: UILabel = {
+        let label = UILabel()
+        label.font = .customFont(.pretendardRegular, size: 10)
+        label.textColor = .green5
+        return label
+    }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -39,18 +46,26 @@ class CalendarCell: FSCalendarCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         expenseLabel.text = nil
+        incomeLabel.text = nil
     }
-    
+
     private func configureUI() {
         contentView.addSubview(expenseLabel)
-        
+        contentView.addSubview(incomeLabel)
+
         expenseLabel.snp.remakeConstraints {
             $0.top.equalTo(self.titleLabel.snp.bottom).offset(2)
             $0.centerX.equalToSuperview()
         }
+
+        incomeLabel.snp.remakeConstraints {
+            $0.top.equalTo(expenseLabel.snp.bottom).offset(1)
+            $0.centerX.equalToSuperview()
+        }
     }
-    
-    func configure(with expense: String) {
+
+    func configure(expense: String, income: String) {
         expenseLabel.text = expense
+        incomeLabel.text = income
     }
 }

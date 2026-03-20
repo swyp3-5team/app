@@ -83,16 +83,6 @@ class RecordViewController: UIViewController {
         return imageView
     }()
     
-    private lazy var greetingLabel: AppLabel = {
-        let label = AppLabel()
-        let nickname = AuthViewModel.shared.currentUser.value?.nickName ?? "사용자"
-        label.text = "\(nickname)님, 만나서 반가워요!\n이번 달 지출 내역을 확인해보세요"
-        label.textColor = .gray1
-        label.typography = .b1
-        label.numberOfLines = 0
-        return label
-    }()
-    
     private let expenseTextLabel: AppLabel = {
         let label = AppLabel()
         label.text = "지출"
@@ -104,6 +94,21 @@ class RecordViewController: UIViewController {
     private let expenseLabel: AppLabel = {
         let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .h2
+        return label
+    }()
+    
+    private let incomeTextLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "수입"
+        label.textColor = .gray4
+        label.typography = .b6
+        return label
+    }()
+    
+    private let incomeLabel: AppLabel = {
+        let label = AppLabel()
+        label.textColor = .green5
         label.typography = .h2
         return label
     }()
@@ -197,7 +202,7 @@ class RecordViewController: UIViewController {
         headerContainer.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 400)
         
         [prevButton, headerLabel, nextButton, statsButton, backgroundImageView,
-         greetingLabel, expenseTextLabel, expenseLabel, filterButton, addButton].forEach {
+         expenseTextLabel, expenseLabel, incomeTextLabel, incomeLabel, filterButton, addButton].forEach {
             headerContainer.addSubview($0)
         }
         
@@ -226,17 +231,22 @@ class RecordViewController: UIViewController {
             $0.top.equalTo(statsButton.snp.bottom).offset(24)
         }
         
-        greetingLabel.snp.makeConstraints {
+        expenseTextLabel.snp.makeConstraints {
             $0.top.equalTo(backgroundImageView.snp.top).offset(20)
             $0.leading.equalTo(backgroundImageView.snp.leading).offset(16)
         }
         
-        expenseTextLabel.snp.makeConstraints {
-            $0.bottom.equalTo(expenseLabel.snp.top).offset(-4)
+        expenseLabel.snp.makeConstraints {
+            $0.top.equalTo(expenseTextLabel.snp.bottom).offset(4)
             $0.leading.equalTo(backgroundImageView.snp.leading).offset(16)
         }
         
-        expenseLabel.snp.makeConstraints {
+        incomeTextLabel.snp.makeConstraints {
+            $0.bottom.equalTo(incomeLabel.snp.top).offset(-4)
+            $0.leading.equalTo(backgroundImageView.snp.leading).offset(16)
+        }
+        
+        incomeLabel.snp.makeConstraints {
             $0.bottom.equalTo(backgroundImageView.snp.bottom).offset(-20)
             $0.leading.equalTo(backgroundImageView.snp.leading).offset(16)
         }
@@ -284,11 +294,19 @@ class RecordViewController: UIViewController {
             })
             .disposed(by: disposeBag)
         
-        viewModel.dailyTotalAmounts
+        viewModel.monthlyExpenseAmounts
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] amounts in
                 let total = amounts.values.reduce(0, +)
                 self?.expenseLabel.text = total > 0 ? "-\(total.withComma)원" : "0원"
+            })
+            .disposed(by: disposeBag)
+
+        viewModel.monthlyIncomeAmounts
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] amounts in
+                let total = amounts.values.reduce(0, +)
+                self?.incomeLabel.text = total > 0 ? "+\(total.withComma)원" : "0원"
             })
             .disposed(by: disposeBag)
         

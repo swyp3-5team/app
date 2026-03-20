@@ -90,7 +90,8 @@ class ExpenseListViewCell: UITableViewCell {
         indicatorView.backgroundColor = transaction.transactionInfoList
             .max { $0.amount < $1.amount }
             .map { ExpenseCategory.from(id: $0.categoryId).color }
-        priceLabel.text = "-\(transaction.totalAmount.withComma)원"
+        let isIncome = transaction.transactionInfoList.first?.type == "INCOME"
+        priceLabel.text = isIncome ? "\(transaction.totalAmount.withComma)원" : "-\(transaction.totalAmount.withComma)원"
     }
 
     func configure(with transaction: ExpenseTransaction, color: UIColor) {
