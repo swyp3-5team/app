@@ -20,9 +20,9 @@ class InputBar: UIView {
     
     let heightUpdateNeeded = PublishRelay<Void>()
     
-    lazy var textView: AppTextView = {
-        let textView = AppTextView()
-        textView.typography = .b2
+    lazy var textView: UITextView = {
+        let textView = UITextView()
+        textView.font = .customFont(.pretendardMedium, size: 16)
         textView.isScrollEnabled = false
         textView.delegate = self
         textView.pasteDelegate = self
