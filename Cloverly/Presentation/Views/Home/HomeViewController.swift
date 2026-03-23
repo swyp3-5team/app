@@ -7,8 +7,7 @@
 
 import UIKit
 import SnapKit
-import SDWebImage
-import SDWebImageWebPCoder
+import AVFoundation
 
 class HomeViewController: UIViewController {
     private let calendarViewModel: CalendarViewModel
@@ -35,7 +34,7 @@ class HomeViewController: UIViewController {
         }
     }
     
-    private var timeBasedBackgroundImageName: String {
+    private var timeBasedBackgroundVideoName: String {
         let hour = Calendar.current.component(.hour, from: Date())
 
         switch hour {
@@ -46,29 +45,17 @@ class HomeViewController: UIViewController {
         case 18..<22:
             return "evening"
         default:
-            return "night"
+            return "morning"
         }
     }
-    
-    private lazy var backgroundImageView: SDAnimatedImageView = {
-        let imageView = SDAnimatedImageView()
-        imageView.contentMode = .scaleAspectFill
-        imageView.clipsToBounds = true
-        
-        if let path = Bundle.main.path(forResource: timeBasedBackgroundImageName, ofType: "webp"),
-           let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
-           let animatedImage = SDAnimatedImage(data: data) {
-            
-            imageView.image = animatedImage
-            imageView.autoPlayAnimatedImage = true
-            imageView.shouldCustomLoopCount = false
-            imageView.clearBufferWhenStopped = false
-            imageView.maxBufferSize = 0
-            
-            imageView.animationRepeatCount = 0
-        }
-        
-        return imageView
+
+    private var player: AVPlayer?
+    private var playerLayer: AVPlayerLayer?
+
+    private lazy var backgroundVideoView: UIView = {
+        let view = UIView()
+        view.clipsToBounds = true
+        return view
     }()
     
     private let typeLogoImageView: UIImageView = {
@@ -143,21 +130,82 @@ class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
+        setupVideoBackground()
         AuthViewModel.shared.getProfile()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let shift: CGFloat = -50
+        playerLayer?.frame = CGRect(
+            x: 0,
+            y: 0,
+            width: backgroundVideoView.bounds.width,
+            height: backgroundVideoView.bounds.height + shift
+        )
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        player?.play()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        player?.pause()
+    }
+
+    private func setupVideoBackground() {
+        guard let url = Bundle.main.url(forResource: timeBasedBackgroundVideoName, withExtension: "mp4") else { return }
+
+        let player = AVPlayer(url: url)
+        player.isMuted = true
+
+        let playerLayer = AVPlayerLayer(player: player)
+        playerLayer.videoGravity = .resizeAspectFill
+        backgroundVideoView.layer.addSublayer(playerLayer)
+
+        self.player = player
+        self.playerLayer = playerLayer
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(playerItemDidReachEnd),
+            name: .AVPlayerItemDidPlayToEndTime,
+            object: player.currentItem
+        )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
+
+        player.play()
+    }
+
+    @objc private func playerItemDidReachEnd(_ notification: Notification) {
+        player?.seek(to: .zero)
+        player?.play()
+    }
+
+    @objc private func appWillEnterForeground() {
+        player?.play()
     }
     
     func configureUI() {
         view.backgroundColor = .clear
         
-        view.addSubview(backgroundImageView)
-        view.sendSubviewToBack(backgroundImageView)
+        view.addSubview(backgroundVideoView)
+        view.sendSubviewToBack(backgroundVideoView)
         view.addSubview(typeLogoImageView)
         view.addSubview(bubbleImageView)
         view.addSubview(greetingLabel)
 //        view.addSubview(characterImageView) // 미사용
         view.addSubview(chatButton)
         
-        backgroundImageView.snp.makeConstraints {
+        backgroundVideoView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
         
