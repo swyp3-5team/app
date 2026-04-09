@@ -108,7 +108,7 @@ final class CalendarViewModel {
                 
                 // 3. Relay에 저장
                 groupedTransactions.accept(grouped)
-                filteredTransactions.accept(grouped)
+                applyFilter()
             } catch {
                 print("지출 내역 데이터 로드 실패: \(error)")
             }
