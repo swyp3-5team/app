@@ -24,16 +24,37 @@ class HomeViewController: UIViewController {
         
         switch hour {
         case 6..<12:
-            return "좋은 아침이에요! 🌼"
+            return "좋은 아침! 🌼"
         case 12..<18:
-            return "맛있는 점심 드셨나요? 🍛"
+            return "점심 먹었어? 🍛"
         case 18..<22:
-            return "오늘 하루 수고했어요 🌟"
+            return "오늘도 고생했어 🌟"
         default:
-            return "아직 안 주무셨군요? 💤"
+            return "아직 안 잤어? 💤"
         }
     }
     
+    private var timeBasedBubbleTopOffset: CGFloat {
+        let hour = Calendar.current.component(.hour, from: Date())
+
+        switch hour {
+        case 6..<12:  return 110
+        case 12..<18: return 42
+        case 18..<22: return 138
+        default:      return 138
+        }
+    }
+
+    private var timeBasedVideoShift: CGFloat {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 6..<12:  return -50
+        case 12..<18: return -50
+        case 18..<22: return -70
+        default:      return -50
+        }
+    }
+
     private var timeBasedBackgroundVideoName: String {
         let hour = Calendar.current.component(.hour, from: Date())
 
@@ -45,7 +66,7 @@ class HomeViewController: UIViewController {
         case 18..<22:
             return "evening"
         default:
-            return "morning"
+            return "night"
         }
     }
 
@@ -75,7 +96,7 @@ class HomeViewController: UIViewController {
     private lazy var greetingLabel: AppLabel = {
         let label = AppLabel()
         label.text = timeBasedMessage
-        label.textColor = .gray10
+        label.textColor = .gray1
         label.typography = .h1
         label.textAlignment = .center
         label.numberOfLines = 0
@@ -93,7 +114,7 @@ class HomeViewController: UIViewController {
         let button = UIButton()
         var config = UIButton.Configuration.filled()
 
-        config.title = "채팅 시작"
+        config.title = "가계부 입력하기"
         config.image = UIImage(named: "chatting icon")
 
         config.imagePlacement = .leading
@@ -102,7 +123,7 @@ class HomeViewController: UIViewController {
         config.baseForegroundColor = .gray1
         config.baseBackgroundColor = .gray10
         
-        var titleAttr = AttributedString.init("채팅 시작")
+        var titleAttr = AttributedString.init("가계부 입력하기")
         titleAttr.font = Typography.b1.uiFont
         config.attributedTitle = titleAttr
         
@@ -136,12 +157,12 @@ class HomeViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        let shift: CGFloat = -50
+        
         playerLayer?.frame = CGRect(
             x: 0,
             y: 0,
             width: backgroundVideoView.bounds.width,
-            height: backgroundVideoView.bounds.height + shift
+            height: backgroundVideoView.bounds.height + timeBasedVideoShift
         )
     }
 
@@ -216,7 +237,7 @@ class HomeViewController: UIViewController {
         
         bubbleImageView.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.top.equalTo(typeLogoImageView.snp.bottom).offset(100)
+            $0.top.equalTo(typeLogoImageView.snp.bottom).offset(timeBasedBubbleTopOffset)
         }
         
         greetingLabel.snp.makeConstraints {
