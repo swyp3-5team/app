@@ -94,7 +94,7 @@ class ExpenseListViewCell: UITableViewCell {
         priceLabel.text = isIncome ? "\(transaction.totalAmount.withComma)원" : "-\(transaction.totalAmount.withComma)원"
     }
 
-    func configure(with transaction: ExpenseTransaction, color: UIColor) {
+    func configure(with transaction: TransactionRecord, color: UIColor) {
         titleLabel.text = transaction.name.nilIfNullOrEmpty ?? "미입력"
         subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.payment.displayName)"
         indicatorView.backgroundColor = color

@@ -1,5 +1,5 @@
 //
-//  ExpenseTransaction.swift
+//  TransactionRecord.swift
 //  Cloverly
 //
 //  Created by 이인호 on 3/18/26.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ExpenseTransaction: nonisolated Codable {
+struct TransactionRecord: nonisolated Codable {
     let name: String
     let amount: Int
     let date: String

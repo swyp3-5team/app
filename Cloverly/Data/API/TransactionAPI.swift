@@ -45,7 +45,7 @@ final class TransactionAPI {
             .value
     }
     
-    func getCategoryTransactions(yearMonth: String, categoryId: Int) async throws -> [ExpenseTransaction] {
+    func getCategoryTransactions(yearMonth: String, categoryId: Int) async throws -> [TransactionRecord] {
         let url = "\(baseURL)/api/v1/statistics/transcations/\(yearMonth)/\(categoryId)"
         
         return try await NetworkManager.shared.session.request(
@@ -53,7 +53,7 @@ final class TransactionAPI {
             method: .get
         )
         .validate(statusCode: 200..<300)
-        .serializingDecodable([ExpenseTransaction].self)
+        .serializingDecodable([TransactionRecord].self)
         .value
     }
     
