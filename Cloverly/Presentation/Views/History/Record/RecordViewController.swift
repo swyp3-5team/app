@@ -315,21 +315,15 @@ class RecordViewController: UIViewController {
             .subscribe(onNext: { [weak self] _ in
                 guard let self = self else { return }
                 self.tableView.reloadData()
-                self.updateFilterButtonText(categories: self.viewModel.selectedCategories.value)
+                self.updateFilterButtonText()
             })
             .disposed(by: disposeBag)
     }
     
-    private func updateFilterButtonText(categories: Set<ExpenseCategory>) {
-        // 1. 표시할 텍스트 결정
-        let titleText: String
-        let isFilterActive = !categories.isEmpty
-        
-        if categories.isEmpty {
-            titleText = "전체 내역"
-        } else {
-            titleText = "필터 \(categories.count)"
-        }
+    private func updateFilterButtonText() {
+        let totalCount = viewModel.selectedCategories.value.count + viewModel.selectedIncomeCategories.value.count
+        let isFilterActive = totalCount > 0
+        let titleText = isFilterActive ? "필터 \(totalCount)" : "전체 내역"
         
         guard var config = filterButton.configuration else { return }
         
