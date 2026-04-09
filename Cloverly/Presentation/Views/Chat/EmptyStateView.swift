@@ -27,7 +27,7 @@ class EmptyStateView: UIView {
     
     let messageLabel: AppLabel = {
         let label = AppLabel()
-        label.text = "지출 내역을 입력해주세요!"
+        label.text = "가계부를 입력해주세요!"
         label.textColor = .gray1
         label.typography = .h2
         label.textAlignment = .center

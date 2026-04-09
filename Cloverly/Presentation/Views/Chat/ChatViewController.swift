@@ -257,7 +257,7 @@ class ChatViewController: UIViewController {
                     let emptyStateView = EmptyStateView()
                     
                     if mode == .receipt {
-                        emptyStateView.messageLabel.text = "지출 내역을 입력해주세요!"
+                        emptyStateView.messageLabel.text = "가계부를 입력해주세요!"
                     } else {
                         emptyStateView.messageLabel.text = "오늘 하루 어땠어요?"
                     }
