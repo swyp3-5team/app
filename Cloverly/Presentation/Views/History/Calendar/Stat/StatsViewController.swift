@@ -76,7 +76,7 @@ class StatsViewController: UIViewController {
         return tableView
     }()
     
-    lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["수입", "지출"], cornerRadius: 17)
+    lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["지출", "수입"], cornerRadius: 17)
     
     init(viewModel: CalendarViewModel) {
         self.viewModel = viewModel
@@ -91,9 +91,9 @@ class StatsViewController: UIViewController {
         super.viewDidLoad()
         configureUI()
         bind()
-        navigationItem.title = "통계"
-        
-        viewModel.getCategoryStatistics(yearMonth: viewModel.currentDate.value)
+        navigationItem.titleView = segmented
+
+        fetchStatistics(index: viewModel.selectedIndex.value)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -165,22 +165,43 @@ class StatsViewController: UIViewController {
         viewModel.categoryStatistics
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] stats in
-                self?.updateHeader(stats: stats) // 총액 업데이트
+                self?.updateHeader(stats: stats)
                 self?.setChartData(data: stats)
                 self?.categoryTableView.reloadData()
+            })
+            .disposed(by: disposeBag)
+
+        viewModel.selectedIndex
+            .distinctUntilChanged()
+            .skip(1) // 초기값은 viewDidLoad에서 직접 호출
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] index in
+                self?.fetchStatistics(index: index)
             })
             .disposed(by: disposeBag)
     }
     
     private func updateHeader(stats: [CategoryStatistic]) {
         let total = stats.reduce(0) { $0 + $1.totalAmount }
-        
-        totalAmount.text = "\(total.withComma)원"
-        
-        // 날짜 라벨도 업데이트 (viewModel 날짜 가져와서)
+        totalAmount.text = "\(Int(total).withComma)원"
+
+        let isIncome = viewModel.selectedIndex.value == 1
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "M월 지출"
+        dateFormatter.dateFormat = isIncome ? "M월 수입" : "M월 지출"
         dateLabel.text = dateFormatter.string(from: viewModel.currentDate.value)
+    }
+
+    private func fetchStatistics(index: Int) {
+        if index == 1 {
+            viewModel.getCategoryStatisticsForIncome(yearMonth: viewModel.currentDate.value)
+        } else {
+            viewModel.getCategoryStatistics(yearMonth: viewModel.currentDate.value)
+        }
+    }
+
+    private func categoryColor(for categoryId: Int) -> UIColor {
+        if let expense = ExpenseCategory(rawValue: categoryId) { return expense.color }
+        return IncomeCategory(rawValue: categoryId)?.color ?? .systemTeal
     }
     
     func setChartData(data: [CategoryStatistic]) {
@@ -198,9 +219,7 @@ class StatsViewController: UIViewController {
         let entries = data.map { PieChartDataEntry(value: $0.totalAmount, label: $0.categoryName) }
         let dataSet = PieChartDataSet(entries: entries, label: "")
         
-        let colors = data.map { stat in
-            return ExpenseCategory.from(id: stat.categoryId).color
-        }
+        let colors = data.map { categoryColor(for: $0.categoryId) }
         
         dataSet.colors = colors
         dataSet.sliceSpace = 0 // 이미지처럼 딱 붙이려면 0, 살짝 떼려면 2
@@ -239,7 +258,7 @@ extension StatsViewController: UITableViewDataSource, UITableViewDelegate {
         let totalSum = stats.reduce(0.0) { $0 + $1.totalAmount }
         let percentage = totalSum == 0 ? 0 : (item.totalAmount / totalSum) * 100
         
-        let color = ExpenseCategory.from(id: item.categoryId).color
+        let color = categoryColor(for: item.categoryId)
         
         cell.configure(color: color, name: item.categoryName, amount: item.totalAmount, percent: percentage, categoryId: item.categoryId)
         

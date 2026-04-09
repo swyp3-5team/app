@@ -15,7 +15,7 @@ class CategoryExpenseViewController: UIViewController {
     private let categoryId: Int
     private let categoryName: String
     private let disposeBag = DisposeBag()
-    private var groupedTransactions: [(date: String, transactions: [ExpenseTransaction])] = []
+    private var groupedTransactions: [(date: String, transactions: [TransactionRecord])] = []
 
     private lazy var dateLabel: AppLabel = {
         let label = AppLabel()
@@ -172,8 +172,8 @@ class CategoryExpenseViewController: UIViewController {
         return attributed
     }
 
-    private static func group(transactions: [ExpenseTransaction]) -> [(date: String, transactions: [ExpenseTransaction])] {
-        var dict: [String: [ExpenseTransaction]] = [:]
+    private static func group(transactions: [TransactionRecord]) -> [(date: String, transactions: [TransactionRecord])] {
+        var dict: [String: [TransactionRecord]] = [:]
         for transaction in transactions {
             dict[transaction.date, default: []].append(transaction)
         }

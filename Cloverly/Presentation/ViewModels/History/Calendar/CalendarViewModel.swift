@@ -32,7 +32,7 @@ final class CalendarViewModel {
     
     // 내역-통계
     let categoryStatistics = BehaviorRelay<[CategoryStatistic]>(value: [])
-    let categoryTransactions = BehaviorRelay<[ExpenseTransaction]>(value: [])
+    let categoryTransactions = BehaviorRelay<[TransactionRecord]>(value: [])
     
     // 내역 수정
     let currentTransaction = BehaviorRelay<Transaction?>(value: nil)
@@ -45,7 +45,7 @@ final class CalendarViewModel {
     var tempSelectedCategories: Set<ExpenseCategory> = [] // 적용 전까지 선택한 카테고리를 담을 변수
     var sortedDateKeys: [String] = []
     
-    let selectedIndex = BehaviorRelay<Int>(value: 1)
+    let selectedIndex = BehaviorRelay<Int>(value: 0)
     private let disposeBag = DisposeBag()
     
     init() {
@@ -141,6 +141,29 @@ final class CalendarViewModel {
                 categoryTransactions.accept(transactions)
             } catch {
                 print("카테고리별 지출 내역 조회 실패: \(error)")
+            }
+        }
+    }
+    
+    // 통계 - 수입
+    func getCategoryStatisticsForIncome(yearMonth: Date) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        let yearMonthString = formatter.string(from: yearMonth)
+
+        Task {
+            do {
+                var result: [CategoryStatistic] = []
+                for category in IncomeCategory.allCases {
+                    let transactions = try await transactionAPI.getCategoryTransactions(yearMonth: yearMonthString, categoryId: category.rawValue)
+                    let total = Double(transactions.reduce(0) { $0 + $1.amount })
+                    guard total > 0 else { continue }
+                    result.append(CategoryStatistic(categoryId: category.rawValue, categoryName: category.name, totalAmount: total))
+                }
+                let sorted = result.sorted { $0.totalAmount > $1.totalAmount }
+                categoryStatistics.accept(sorted)
+            } catch {
+                print("수입 카테고리별 데이터 로드 실패: \(error)")
             }
         }
     }
