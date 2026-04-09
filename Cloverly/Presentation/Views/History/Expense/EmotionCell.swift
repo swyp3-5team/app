@@ -20,8 +20,8 @@ class EmotionCell: UICollectionViewCell {
     // 텍스트 (일상, 만족 등)
     private let titleLabel: AppLabel = {
         let label = AppLabel()
-        label.textColor = .gray2
-        label.typography = .b7
+        label.textColor = .gray5
+        label.typography = .b6
         label.textAlignment = .center
         return label
     }()
@@ -49,15 +49,14 @@ class EmotionCell: UICollectionViewCell {
         contentView.backgroundColor = .gray9
         
         titleLabel.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(10)
+            $0.top.equalToSuperview().offset(14)
             $0.centerX.equalToSuperview()
         }
         
         imageView.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(5)
+            $0.top.equalTo(titleLabel.snp.bottom).offset(6)
             $0.centerX.equalToSuperview()
-            $0.width.equalTo(71)
-            $0.height.equalTo(58)
+            $0.bottom.equalToSuperview().offset(-6)
         }
     }
     
@@ -68,14 +67,19 @@ class EmotionCell: UICollectionViewCell {
             contentView.backgroundColor = .white
             titleLabel.textColor = .gray1
             titleLabel.typography = .b5
+            imageView.layer.shadowColor = UIColor.black.cgColor
+            imageView.layer.shadowOpacity = 0.15
+            imageView.layer.shadowOffset = .zero
+            imageView.layer.shadowRadius = 5
             if let imageName = imageView.accessibilityIdentifier {
                 imageView.image = UIImage(named: imageName)
             }
         } else {
             contentView.layer.borderWidth = 0
             contentView.backgroundColor = .gray9
-            titleLabel.textColor = .gray2
-            titleLabel.typography = .b7
+            titleLabel.textColor = .gray5
+            titleLabel.typography = .b6
+            imageView.layer.shadowOpacity = 0
             if let imageName = imageView.accessibilityIdentifier {
                 imageView.image = UIImage(named: imageName + " Blur")
             }

@@ -136,7 +136,7 @@ class ExpenseHistoryViewController: UIViewController {
     }()
 
     private lazy var typeButtonStack: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [expenseButton, incomeButton])
+        let stackView = UIStackView(arrangedSubviews: [incomeButton, expenseButton])
         stackView.axis = .horizontal
         stackView.spacing = 8
         stackView.alignment = .center
@@ -328,7 +328,7 @@ class ExpenseHistoryViewController: UIViewController {
         }
         
         emotionGridView.snp.makeConstraints {
-            $0.height.equalTo(202)
+            $0.height.equalTo(268)
         }
         
         dateContainerView.snp.makeConstraints {

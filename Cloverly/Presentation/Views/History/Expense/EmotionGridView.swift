@@ -73,7 +73,7 @@ extension EmotionGridView: UICollectionViewDataSource, UICollectionViewDelegateF
         let totalSpacing = spacing * 2
         let width = (collectionView.bounds.width - totalSpacing) / 3
         
-        return CGSize(width: width, height: 97)
+        return CGSize(width: width, height: 130)
     }
     
     // 선택 이벤트 전달
