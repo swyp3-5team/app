@@ -76,7 +76,7 @@ class StatsViewController: UIViewController {
         return tableView
     }()
     
-    lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["지출", "수입"], cornerRadius: 17)
+    lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["수입", "지출"], cornerRadius: 17)
     
     init(viewModel: CalendarViewModel) {
         self.viewModel = viewModel
@@ -185,14 +185,14 @@ class StatsViewController: UIViewController {
         let total = stats.reduce(0) { $0 + $1.totalAmount }
         totalAmount.text = "\(Int(total).withComma)원"
 
-        let isIncome = viewModel.selectedIndex.value == 1
+        let isIncome = viewModel.selectedIndex.value == 0
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = isIncome ? "M월 수입" : "M월 지출"
         dateLabel.text = dateFormatter.string(from: viewModel.currentDate.value)
     }
 
     private func fetchStatistics(index: Int) {
-        if index == 1 {
+        if index == 0 {
             viewModel.getCategoryStatisticsForIncome(yearMonth: viewModel.currentDate.value)
         } else {
             viewModel.getCategoryStatistics(yearMonth: viewModel.currentDate.value)
