@@ -49,6 +49,10 @@ class FormItemView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    func updateTitle(_ title: String) {
+        titleLabel.text = title
+    }
+
     func configureUI() {
         addSubview(titleLabel)
         addSubview(actionButton)

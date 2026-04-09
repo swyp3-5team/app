@@ -24,16 +24,30 @@ class TransactionInfoEditViewController: UIViewController {
     
     // 초기 데이터 저장용
     private let mode: Mode
+    private let isIncome: Bool
     private let initialName: String?
     private let initialAmount: Int?
     private let selectedCategoryId = BehaviorRelay<Int?>(value: nil)
+
+    private struct CategoryItem {
+        let id: Int
+        let displayText: String
+    }
+
+    private lazy var categories: [CategoryItem] = {
+        if isIncome {
+            return IncomeCategory.allCases.map { CategoryItem(id: $0.rawValue, displayText: $0.fullDisplay) }
+        } else {
+            return ExpenseCategory.allCases.map { CategoryItem(id: $0.rawValue, displayText: $0.fullDisplay) }
+        }
+    }()
     
     // MARK: - UI Components
     
     // 이름 입력 필드
-    private let nameTitleLabel: AppLabel = {
+    private lazy var nameTitleLabel: AppLabel = {
         let label = AppLabel()
-        label.text = "지출 내역"
+        label.text = isIncome ? "수입 내역" : "지출 내역"
         label.textColor = .gray2
         label.typography = .b5
         return label
@@ -41,7 +55,7 @@ class TransactionInfoEditViewController: UIViewController {
     
     private lazy var nameTextField: UITextField = {
         let tf = UITextField()
-        tf.placeholder = "지출내역 입력"
+        tf.placeholder = isIncome ? "수입내역 입력" : "지출내역 입력"
         tf.text = initialName
         tf.font = Typography.b7.uiFont
         tf.layer.borderColor = UIColor.gray8.cgColor
@@ -116,12 +130,10 @@ class TransactionInfoEditViewController: UIViewController {
         return btn
     }()
     
-    // 데이터 소스 (전체 빼고 나머지)
-    private let categories = ExpenseCategory.allCases
-    
     // MARK: - Init
-    init(mode: Mode = .add, name: String? = nil, amount: Int? = nil, categoryId: Int? = nil) {
+    init(mode: Mode = .add, isIncome: Bool = false, name: String? = nil, amount: Int? = nil, categoryId: Int? = nil) {
         self.mode = mode
+        self.isIncome = isIncome
         self.initialName = name
         self.initialAmount = amount
         self.selectedCategoryId.accept(categoryId)
@@ -134,7 +146,7 @@ class TransactionInfoEditViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        navigationItem.title = "지출내역"
+        navigationItem.title = isIncome ? "수입내역" : "지출내역"
         setupUI()
         bind()
         
@@ -202,7 +214,7 @@ class TransactionInfoEditViewController: UIViewController {
     }
     
     private func selectInitialCategory() {
-        if let index = categories.firstIndex(where: { $0.rawValue == selectedCategoryId.value }) {
+        if let index = categories.firstIndex(where: { $0.id == selectedCategoryId.value }) {
             let indexPath = IndexPath(item: index, section: 0)
             DispatchQueue.main.async {
                 self.collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
@@ -259,12 +271,12 @@ extension TransactionInfoEditViewController: UICollectionViewDataSource, UIColle
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCategoryCell.identifier, for: indexPath) as? FilterCategoryCell else { return UICollectionViewCell() }
-        cell.configure(text: categories[indexPath.item].fullDisplay)
+        cell.configure(text: categories[indexPath.item].displayText)
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        self.selectedCategoryId.accept(categories[indexPath.item].rawValue)
+        self.selectedCategoryId.accept(categories[indexPath.item].id)
     }
 }
 

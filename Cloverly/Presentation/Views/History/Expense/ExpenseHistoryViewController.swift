@@ -15,6 +15,7 @@ class ExpenseHistoryViewController: UIViewController {
     private let disposeBag = DisposeBag()
     private var originalContentOffset: CGPoint = .zero
     private var isScrolledForKeyboard = false
+    private let isIncomeMode = BehaviorRelay<Bool>(value: false)
     
     init(viewModel: CalendarViewModel) {
         self.viewModel = viewModel
@@ -110,8 +111,40 @@ class ExpenseHistoryViewController: UIViewController {
     }()
     
     private let paymentDropDown = PaymentDropDown()
-
     private let expandableListView = ExpandableListView()
+
+    private lazy var expenseButton: UIButton = {
+        let btn = UIButton()
+        btn.setTitle("지출", for: .normal)
+        btn.titleLabel?.font = Typography.b5.uiFont
+        btn.layer.cornerRadius = 18
+        btn.clipsToBounds = true
+        btn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        btn.addAction(UIAction { [weak self] _ in self?.selectType(isIncome: false) }, for: .touchUpInside)
+        return btn
+    }()
+
+    private lazy var incomeButton: UIButton = {
+        let btn = UIButton()
+        btn.setTitle("수입", for: .normal)
+        btn.titleLabel?.font = Typography.b5.uiFont
+        btn.layer.cornerRadius = 18
+        btn.clipsToBounds = true
+        btn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        btn.addAction(UIAction { [weak self] _ in self?.selectType(isIncome: true) }, for: .touchUpInside)
+        return btn
+    }()
+
+    private lazy var typeButtonStack: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [expenseButton, incomeButton])
+        stackView.axis = .horizontal
+        stackView.spacing = 8
+        stackView.alignment = .center
+        return stackView
+    }()
+
+    private var categoryMethodSection: FormItemView!
+    private var paymentMethodSection: FormItemView!
     
     
     private lazy var stackView: UIStackView = {
@@ -254,16 +287,23 @@ class ExpenseHistoryViewController: UIViewController {
             // 너비나 높이는 굳이 안 잡아도 compact 스타일이 알아서 잡습니다.
         }
         
-        let categoryMethodSection = FormItemView(title: "지출내역", content: expandableListView, showActionBtn: true)
+        categoryMethodSection = FormItemView(title: "지출내역", content: expandableListView, showActionBtn: true)
+        paymentMethodSection = FormItemView(title: "결제수단", content: paymentDropDown)
         let nameSection = FormItemView(title: "상호명", content: nameTextField)
         let paymentDateSection = FormItemView(title: "날짜", content: dateContainerView)
         let emojiSection = FormItemView(title: "감정", content: emotionGridView)
-        let paymentMethodSection = FormItemView(title: "결제수단", content: paymentDropDown)
         let memoSection = FormItemView(title: "메모", content: memoTextField)
         categoryMethodSection.onAction = { [weak self] in
             self?.presentAddTransactionView()
         }
-        
+
+        let typeButtonContainer = UIView()
+        typeButtonContainer.addSubview(typeButtonStack)
+        typeButtonStack.snp.makeConstraints {
+            $0.leading.top.bottom.equalToSuperview()
+        }
+
+        stackView.addArrangedSubview(typeButtonContainer)
         stackView.addArrangedSubview(amountLabel)
         stackView.addArrangedSubview(categoryMethodSection)
         stackView.addArrangedSubview(nameSection)
@@ -276,6 +316,9 @@ class ExpenseHistoryViewController: UIViewController {
         view.addSubview(scrollView)
         view.addSubview(buttonStackView)
         
+        expenseButton.snp.makeConstraints { $0.height.equalTo(36) }
+        incomeButton.snp.makeConstraints { $0.height.equalTo(36) }
+
         nameTextField.snp.makeConstraints {
             $0.height.equalTo(48)
         }
@@ -316,6 +359,9 @@ class ExpenseHistoryViewController: UIViewController {
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
             $0.height.equalTo(56)
         }
+
+        // 초기 버튼 상태: 지출
+        updateTypeButtons(isIncome: false)
     }
     
     private func updateViewMode() {
@@ -324,10 +370,47 @@ class ExpenseHistoryViewController: UIViewController {
         if current.trGroupId != -1 {
             self.titleLabel.text = "내역 수정"
             self.deleteButton.isHidden = false
+            // 기존 내역의 타입 감지 후 버튼 고정
+            let isIncome = current.transactionInfoList.first?.type == "INCOME"
+            isIncomeMode.accept(isIncome)
+            applyModeUI(isIncome: isIncome)
+            incomeButton.isEnabled = false
+            expenseButton.isEnabled = false
         } else {
             self.titleLabel.text = "내역 추가"
             self.deleteButton.isHidden = true
         }
+    }
+
+    private func selectType(isIncome: Bool) {
+        isIncomeMode.accept(isIncome)
+        applyModeUI(isIncome: isIncome)
+
+        // 모드 전환 시 내역 목록 초기화 (카테고리 체계가 달라짐)
+        guard var currentData = viewModel.currentTransaction.value else { return }
+        currentData.transactionInfoList = []
+        currentData.totalAmount = 0
+        viewModel.currentTransaction.accept(currentData)
+        amountLabel.text = "총 금액 0원"
+        amountLabel.textColor = .gray6
+        expandableListView.configure(with: currentData)
+    }
+
+    private func applyModeUI(isIncome: Bool) {
+        paymentMethodSection.isHidden = isIncome
+        categoryMethodSection.updateTitle(isIncome ? "수입내역" : "지출내역")
+        updateTypeButtons(isIncome: isIncome)
+    }
+
+    private func updateTypeButtons(isIncome: Bool) {
+        let selectedBtn = isIncome ? incomeButton : expenseButton
+        let deselectedBtn = isIncome ? expenseButton : incomeButton
+
+        selectedBtn.backgroundColor = .gray1
+        selectedBtn.setTitleColor(.gray10, for: .normal)
+
+        deselectedBtn.backgroundColor = .gray9
+        deselectedBtn.setTitleColor(.gray1, for: .normal)
     }
     
     private func bind() {
@@ -364,14 +447,17 @@ class ExpenseHistoryViewController: UIViewController {
         let validation = Observable.combineLatest(
             viewModel.currentTransaction.map { $0?.emotion },
             viewModel.currentTransaction.map { $0?.payment },
-            viewModel.currentTransaction.map { $0?.transactionInfoList ?? [] }
+            viewModel.currentTransaction.map { $0?.transactionInfoList ?? [] },
+            isIncomeMode.asObservable()
         )
-        .map { emotion, payment, items in
+        .map { emotion, payment, items, isIncome in
             let emotionSelected = (emotion != nil)
-            let paymentSelected = (payment != nil)
             let hasItems = !items.isEmpty
-            
-            return emotionSelected && paymentSelected && hasItems
+            if isIncome {
+                return emotionSelected && hasItems
+            } else {
+                return emotionSelected && (payment != nil) && hasItems
+            }
         }
         
         validation
@@ -448,6 +534,7 @@ class ExpenseHistoryViewController: UIViewController {
             // ② 편집 화면 생성 (현재 값 주입)
             let editVC = TransactionInfoEditViewController(
                 mode: .edit,
+                isIncome: self.isIncomeMode.value,
                 name: targetItem.name,
                 amount: targetItem.amount,
                 categoryId: targetItem.categoryId
@@ -464,12 +551,7 @@ class ExpenseHistoryViewController: UIViewController {
                 updatedTransaction.transactionInfoList[index].name = newName
                 updatedTransaction.transactionInfoList[index].amount = newAmount
                 updatedTransaction.transactionInfoList[index].categoryId = newCategoryId
-                if let category = ExpenseCategory(rawValue: newCategoryId) {
-                    updatedTransaction.transactionInfoList[index].categoryName = category.name
-                } else {
-                    // 혹시라도 Enum에 없는 ID라면 기본값 처리 (안전을 위해)
-                    updatedTransaction.transactionInfoList[index].categoryName = "기타"
-                }
+                updatedTransaction.transactionInfoList[index].categoryName = self.categoryName(for: newCategoryId)
                 
                 // B. 총액 재계산 (금액이 바뀌었을 수 있으니까)
                 updatedTransaction.totalAmount = updatedTransaction.transactionInfoList.reduce(0) { $0 + $1.amount }
@@ -491,10 +573,16 @@ class ExpenseHistoryViewController: UIViewController {
         }
     }
     
+    private func categoryName(for id: Int) -> String {
+        if isIncomeMode.value {
+            return IncomeCategory(rawValue: id)?.name ?? "기타"
+        } else {
+            return ExpenseCategory(rawValue: id)?.name ?? "기타"
+        }
+    }
+
     private func presentAddTransactionView() {
-        // 1. "추가" 모드이므로 빈 값으로 초기화해서 생성
-        // (amount: 0, categoryId: 1 등 기본값 설정)
-        let addVC = TransactionInfoEditViewController()
+        let addVC = TransactionInfoEditViewController(isIncome: isIncomeMode.value)
         
         // 2. 저장(Save) 콜백 처리
         addVC.onSave = { [weak self] newName, newAmount, newCategoryId in
@@ -508,7 +596,7 @@ class ExpenseHistoryViewController: UIViewController {
                 name: newName,
                 amount: newAmount,
                 categoryId: newCategoryId,
-                categoryName: ExpenseCategory(rawValue: newCategoryId)?.name ?? "기타"
+                categoryName: self.categoryName(for: newCategoryId)
             )
             
             // B. 리스트에 추가 (Append)

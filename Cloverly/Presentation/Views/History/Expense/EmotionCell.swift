@@ -41,43 +41,50 @@ class EmotionCell: UICollectionViewCell {
     }
     
     private func setupUI() {
-        contentView.addSubview(imageView)
         contentView.addSubview(titleLabel)
+        contentView.addSubview(imageView)
         
-        // 둥근 테두리 박스
         contentView.layer.cornerRadius = 8
-        contentView.layer.borderWidth = 1
-        contentView.layer.borderColor = UIColor.gray8.cgColor
-        contentView.backgroundColor = .white
+        contentView.layer.borderWidth = 0
+        contentView.backgroundColor = .gray9
         
-        imageView.snp.makeConstraints {
+        titleLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(10)
             $0.centerX.equalToSuperview()
         }
         
-        titleLabel.snp.makeConstraints {
-            $0.top.equalTo(imageView.snp.bottom).offset(5)
+        imageView.snp.makeConstraints {
+            $0.top.equalTo(titleLabel.snp.bottom).offset(5)
             $0.centerX.equalToSuperview()
-            $0.bottom.equalToSuperview().offset(-10)
+            $0.width.equalTo(71)
+            $0.height.equalTo(58)
         }
     }
     
     private func updateAppearance() {
         if isSelected {
-            // ✅ 선택됨: 초록색 테두리 + 검은 글씨
+            contentView.layer.borderWidth = 1
             contentView.layer.borderColor = UIColor.green5.cgColor
+            contentView.backgroundColor = .white
             titleLabel.textColor = .gray1
             titleLabel.typography = .b5
+            if let imageName = imageView.accessibilityIdentifier {
+                imageView.image = UIImage(named: imageName)
+            }
         } else {
-            // ⬜️ 해제됨: 회색 테두리 + 회색 글씨
-            contentView.layer.borderColor = UIColor.gray8.cgColor
+            contentView.layer.borderWidth = 0
+            contentView.backgroundColor = .gray9
             titleLabel.textColor = .gray2
             titleLabel.typography = .b7
+            if let imageName = imageView.accessibilityIdentifier {
+                imageView.image = UIImage(named: imageName + " Blur")
+            }
         }
     }
-    
+
     func configure(emotion: Emotion) {
         titleLabel.text = emotion.displayName
-        imageView.image = UIImage(named: emotion.imageName)
+        imageView.accessibilityIdentifier = emotion.imageName
+        imageView.image = UIImage(named: isSelected ? emotion.imageName : emotion.imageName + " Blur")
     }
 }

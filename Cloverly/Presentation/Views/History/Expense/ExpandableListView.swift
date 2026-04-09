@@ -28,7 +28,7 @@ class ExpandableListView: UIView {
     
     private let emptyStateLabel: UILabel = {
         let label = UILabel()
-        label.text = "지출내역이 없습니다"
+        label.text = "내역이 없습니다"
         label.textColor = .lightGray
         label.font = .systemFont(ofSize: 14)
         label.textAlignment = .center
