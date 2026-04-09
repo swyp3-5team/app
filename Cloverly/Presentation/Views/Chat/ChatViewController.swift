@@ -45,7 +45,7 @@ class ChatViewController: UIViewController {
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
-        layout.minimumLineSpacing = 20
+        layout.minimumLineSpacing = 24
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.register(ChatCollectionViewCell.self, forCellWithReuseIdentifier: ChatCollectionViewCell.identifier)
         cv.delegate = self
