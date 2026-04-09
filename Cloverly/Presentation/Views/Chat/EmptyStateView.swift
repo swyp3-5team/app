@@ -33,14 +33,27 @@ class EmptyStateView: UIView {
         label.textAlignment = .center
         return label
     }()
-    
+
+    let exampleLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "ex) 오늘 메가커피에서 아메리카노\n4,500원짜리 사먹었어"
+        label.textColor = .gray6
+        label.typography = .b7
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.isHidden = true
+        return label
+    }()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
+
         addSubview(stackView)
         stackView.addArrangedSubview(imageView)
         stackView.addArrangedSubview(messageLabel)
-        
+        stackView.addArrangedSubview(exampleLabel)
+        stackView.setCustomSpacing(8, after: messageLabel)
+
         stackView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide.snp.top).offset(47)
             $0.centerX.equalToSuperview()

@@ -258,8 +258,10 @@ class ChatViewController: UIViewController {
                     
                     if mode == .receipt {
                         emptyStateView.messageLabel.text = "가계부를 입력해주세요!"
+                        emptyStateView.exampleLabel.isHidden = false
                     } else {
                         emptyStateView.messageLabel.text = "오늘 하루 어땠어요?"
+                        emptyStateView.exampleLabel.isHidden = true
                     }
                     self.collectionView.backgroundView = emptyStateView
                 } else {
