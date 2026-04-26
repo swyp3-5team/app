@@ -20,18 +20,29 @@ enum Emotion: String, Codable, CaseIterable {
         case .neutral:
             "일상"
         case .reward:
-            "보상 심리"
+            "보상심리"
         case .satisfaction:
             "만족"
         case .stress_relief:
-            "스트레스 해소"
+            "스트레스해소"
         case .impulse:
-            "충동 구매"
+            "충동구매"
         case .regret:
             "후회"
         }
     }
     
+    var icon: String {
+        switch self {
+        case .neutral:       "👀"
+        case .reward:        "🎁"
+        case .satisfaction:  "✌️"
+        case .stress_relief: "💨"
+        case .impulse:       "💥"
+        case .regret:        "💦"
+        }
+    }
+
     var imageName: String {
         switch self {
         case .neutral:

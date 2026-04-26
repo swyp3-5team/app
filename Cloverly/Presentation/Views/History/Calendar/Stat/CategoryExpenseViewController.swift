@@ -196,7 +196,8 @@ extension CategoryExpenseViewController: UITableViewDataSource, UITableViewDeleg
         }
         let transaction = groupedTransactions[indexPath.section].transactions[indexPath.row]
         let color = ExpenseCategory.from(id: categoryId).color
-        cell.configure(with: transaction, color: color)
+        let isIncome = IncomeCategory(rawValue: categoryId) != nil
+        cell.configure(with: transaction, color: color, isIncome: isIncome)
         return cell
     }
 

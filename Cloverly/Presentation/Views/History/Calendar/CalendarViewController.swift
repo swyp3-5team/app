@@ -30,10 +30,10 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         return formatter
     }()
     
-    private lazy var headerLabel: UILabel = {
-        let label = UILabel()
-        label.font = .boldSystemFont(ofSize: 18)
-        label.textColor = .black
+    private lazy var headerLabel: AppLabel = {
+        let label = AppLabel()
+        label.textColor = .gray1
+        label.typography = .h2
         return label
     }()
     
@@ -132,7 +132,30 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         stack.spacing = 8
         return stack
     }()
-    
+
+    private let balanceTextLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "잔액"
+        label.textColor = .gray4
+        label.typography = .b6
+        return label
+    }()
+
+    private let balanceLabel: AppLabel = {
+        let label = AppLabel()
+        label.textColor = .gray1
+        label.typography = .t1
+        return label
+    }()
+
+    private lazy var balanceRowStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [balanceTextLabel, balanceLabel])
+        stack.axis = .horizontal
+        stack.alignment = .bottom
+        stack.spacing = 8
+        return stack
+    }()
+
     private let dividerView: UIView = {
         let view = UIView()
         view.backgroundColor = .gray9
@@ -166,8 +189,9 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         view.addSubview(headerLabel)
         view.addSubview(nextButton)
         view.addSubview(statsButton)
-        view.addSubview(expenseRowStack)
         view.addSubview(incomeRowStack)
+        view.addSubview(expenseRowStack)
+        view.addSubview(balanceRowStack)
         view.addSubview(dividerView)
         view.addSubview(calendar)
 
@@ -177,7 +201,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         }
 
         headerLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(24)
             $0.leading.equalTo(prevButton.snp.trailing).offset(8)
         }
 
@@ -191,18 +215,23 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
             $0.centerY.equalTo(headerLabel)
         }
 
-        expenseRowStack.snp.makeConstraints {
+        incomeRowStack.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.top.equalTo(statsButton.snp.bottom).offset(12)
         }
 
-        incomeRowStack.snp.makeConstraints {
+        expenseRowStack.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
-            $0.top.equalTo(expenseRowStack.snp.bottom).offset(8)
+            $0.top.equalTo(incomeRowStack.snp.bottom).offset(8)
+        }
+
+        balanceRowStack.snp.makeConstraints {
+            $0.trailing.equalToSuperview().offset(-16)
+            $0.centerY.equalTo(expenseRowStack)
         }
 
         dividerView.snp.makeConstraints {
-            $0.top.equalTo(incomeRowStack.snp.bottom).offset(20)
+            $0.top.equalTo(expenseRowStack.snp.bottom).offset(20)
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(6)
         }
@@ -277,6 +306,22 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
                 self?.calendar.reloadData()
             })
             .disposed(by: disposeBag)
+
+        Observable.combineLatest(viewModel.monthlyExpenseAmounts, viewModel.monthlyIncomeAmounts)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] expenseAmounts, incomeAmounts in
+                let expenseTotal = expenseAmounts.values.reduce(0, +)
+                let incomeTotal = incomeAmounts.values.reduce(0, +)
+                let balance = incomeTotal - expenseTotal
+                if balance > 0 {
+                    self?.balanceLabel.text = "+\(balance.withComma)원"
+                } else if balance < 0 {
+                    self?.balanceLabel.text = "-\((-balance).withComma)원"
+                } else {
+                    self?.balanceLabel.text = "0원"
+                }
+            })
+            .disposed(by: disposeBag)
     }
     
     func calendar(_ calendar: FSCalendar, didSelect date: Date, at monthPosition: FSCalendarMonthPosition) {
@@ -287,7 +332,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
     // 내역 없는 날은 선택 안되게
 //    func calendar(_ calendar: FSCalendar, shouldSelect date: Date, at monthPosition: FSCalendarMonthPosition) -> Bool {
 //        let dateString = dateFormatter.string(from: date)
-//        
+//
 //        return viewModel.dailyTotalAmounts.value[dateString] != nil
 //    }
     
