@@ -78,4 +78,16 @@ final class ChatAPI {
         .serializingData()
         .value
     }
+    
+    func getChatHistory(page: Int, size: Int) async throws -> [ChatHistoryResponse] {
+        let url = "\(baseURL)/api/chat/history?page=\(page)&size=\(size)"
+        
+        return try await NetworkManager.shared.session.request(
+            url,
+            method: .get
+        )
+        .validate(statusCode: 200..<300)
+        .serializingDecodable([ChatHistoryResponse].self)
+        .value
+    }
 }

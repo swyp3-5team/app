@@ -105,7 +105,11 @@ class ChatViewController: UIViewController {
         configure()
         bind()
         textBind()
-        
+
+        Task {
+            try? await viewModel.getChatHistory(size: 1000)
+        }
+
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tap.cancelsTouchesInView = false
         view.addGestureRecognizer(tap)
@@ -247,15 +251,16 @@ class ChatViewController: UIViewController {
     }
     
     func bind() {
-        viewModel.currentMessagesStream
+        viewModel.currentSectionsStream
             .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] newMessages in
+            .subscribe(onNext: { [weak self] sections in
                 guard let self = self else { return }
-                
-                if newMessages.isEmpty {
+
+                let allMessages = sections.flatMap { $0.messages }
+                if allMessages.isEmpty {
                     let mode = ChatMode(index: viewModel.selectedIndex.value)
                     let emptyStateView = EmptyStateView()
-                    
+
                     if mode == .receipt {
                         emptyStateView.messageLabel.text = "가계부를 입력해주세요!"
                         emptyStateView.exampleLabel.isHidden = false
@@ -267,29 +272,30 @@ class ChatViewController: UIViewController {
                 } else {
                     self.collectionView.backgroundView = nil
                 }
-                
-                let currentCount = self.collectionView.numberOfItems(inSection: 0)
-                let newCount = newMessages.count
-                
-                if newCount == currentCount + 1 {
-                    // 메시지 1개 추가됨
-                    let indexPath = IndexPath(item: currentCount, section: 0)
-                    
+
+                let currentTotal = (0..<self.collectionView.numberOfSections).reduce(0) { $0 + self.collectionView.numberOfItems(inSection: $1) }
+                let newTotal = allMessages.count
+
+                if newTotal == currentTotal + 1 && viewModel.currentSections.count == self.collectionView.numberOfSections {
+                    // 동일 섹션에 메시지 1개 추가
+                    let lastSection = viewModel.currentSections.count - 1
+                    let lastItem = viewModel.currentSections[lastSection].messages.count - 1
+                    let indexPath = IndexPath(item: lastItem, section: lastSection)
+
                     self.collectionView.performBatchUpdates({
                         self.collectionView.insertItems(at: [indexPath])
                     }) { _ in
                         self.scrollToBottom(animated: true)
                     }
                 } else {
-                    // 모드 변경, 대량 로딩, 삭제 등 -> 전체 갱신
+                    // 모드 변경, 대량 로딩, 섹션 추가 등 -> 전체 갱신
                     self.collectionView.reloadData()
                     self.collectionView.layoutIfNeeded()
-                    
-                    if newCount > 0 {
-                        self.scrollToBottom(animated: false) // 모드 변경시는 즉시 이동
+
+                    if newTotal > 0 {
+                        self.scrollToBottom(animated: false)
                     }
                 }
-                
             })
             .disposed(by: disposeBag)
         
@@ -380,12 +386,14 @@ class ChatViewController: UIViewController {
     }
     
     func scrollToBottom(animated: Bool = true) {
-        let section = 0
-        let itemCount = collectionView.numberOfItems(inSection: section)
+        let sectionCount = collectionView.numberOfSections
+        guard sectionCount > 0 else { return }
+        let lastSection = sectionCount - 1
+        let itemCount = collectionView.numberOfItems(inSection: lastSection)
         guard itemCount > 0 else { return }
-        
-        let indexPath = IndexPath(item: itemCount - 1, section: section)
-        
+
+        let indexPath = IndexPath(item: itemCount - 1, section: lastSection)
+
         collectionView.layoutIfNeeded()
         collectionView.scrollToItem(at: indexPath, at: .bottom, animated: animated)
     }
@@ -418,67 +426,63 @@ class ChatViewController: UIViewController {
 }
 
 extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.currentMessages.count
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return viewModel.currentSections.count
     }
-    
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return viewModel.currentSections[section].messages.count
+    }
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChatCollectionViewCell.identifier, for: indexPath) as? ChatCollectionViewCell else {
             return UICollectionViewCell()
         }
-        
-        let message = viewModel.currentMessages[indexPath.row]
+
+        let message = viewModel.currentSections[indexPath.section].messages[indexPath.row]
         UIView.performWithoutAnimation {
             cell.bind(with: message)
             cell.layoutIfNeeded()
         }
-        
+
         return cell
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let message = viewModel.currentMessages[indexPath.item]
-        
+        let message = viewModel.currentSections[indexPath.section].messages[indexPath.item]
+
         sizingCell.bind(with: message)
-        
+
         let targetSize = CGSize(width: view.bounds.width, height: UIView.layoutFittingCompressedSize.height)
-        
+
         let exactSize = sizingCell.contentView.systemLayoutSizeFitting(
             targetSize,
             withHorizontalFittingPriority: .required,
             verticalFittingPriority: .fittingSizeLevel
         )
-        
+
         return exactSize
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        
         if kind == UICollectionView.elementKindSectionHeader {
             let header = collectionView.dequeueReusableSupplementaryView(
                 ofKind: kind,
                 withReuseIdentifier: DateHeaderView.id,
                 for: indexPath
             ) as! DateHeaderView
-            
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy년 MM월 dd일 EEEE"
-            formatter.locale = Locale(identifier: "ko_KR")
-            let todayString = formatter.string(from: Date())
-            
-            header.dateLabel.text = "\(todayString)"
-            
+
+            header.dateLabel.text = viewModel.currentSections[indexPath.section].dateString
+
             return header
         }
         return UICollectionReusableView()
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        
-        if viewModel.currentMessages.isEmpty {
+        if viewModel.currentSections.isEmpty {
             return .zero
         }
-        
         return CGSize(width: collectionView.frame.width, height: 50)
     }
 }

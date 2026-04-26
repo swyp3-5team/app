@@ -20,4 +20,11 @@ enum ChatType: CaseIterable {
 struct Message {
     let kind: MessageKind
     let chatType: ChatType
+    let date: Date
+
+    init(kind: MessageKind, chatType: ChatType, date: Date = Date()) {
+        self.kind = kind
+        self.chatType = chatType
+        self.date = date
+    }
 }

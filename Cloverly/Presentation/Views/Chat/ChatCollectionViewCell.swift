@@ -140,6 +140,11 @@ class ChatCollectionViewCell: UICollectionViewCell {
     }
     
     func bind(with message: Message) {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "a h:mm"
+        timeLabel.text = formatter.string(from: message.date)
+
         switch message.kind {
         case .text(let text):
             messageTextView.text = text
