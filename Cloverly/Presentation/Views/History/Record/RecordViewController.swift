@@ -9,6 +9,7 @@ import UIKit
 import SnapKit
 import RxSwift
 import RxCocoa
+import GoogleMobileAds
 
 class RecordViewController: UIViewController {
     private let viewModel: CalendarViewModel
@@ -20,10 +21,10 @@ class RecordViewController: UIViewController {
         return formatter
     }()
     
-    private lazy var headerLabel: UILabel = {
-        let label = UILabel()
-        label.font = .boldSystemFont(ofSize: 18)
-        label.textColor = .black
+    private lazy var headerLabel: AppLabel = {
+        let label = AppLabel()
+        label.textColor = .gray1
+        label.typography = .h2
         return label
     }()
     
@@ -77,12 +78,6 @@ class RecordViewController: UIViewController {
         return button
     }()
     
-    private lazy var backgroundImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "recordBackground"))
-        imageView.contentMode = .scaleAspectFill
-        return imageView
-    }()
-    
     private let expenseTextLabel: AppLabel = {
         let label = AppLabel()
         label.text = "지출"
@@ -94,8 +89,16 @@ class RecordViewController: UIViewController {
     private let expenseLabel: AppLabel = {
         let label = AppLabel()
         label.textColor = .gray1
-        label.typography = .h2
+        label.typography = .t1
         return label
+    }()
+    
+    private lazy var expenseRowStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [expenseTextLabel, expenseLabel])
+        stack.axis = .horizontal
+        stack.alignment = .bottom
+        stack.spacing = 8
+        return stack
     }()
     
     private let incomeTextLabel: AppLabel = {
@@ -109,16 +112,47 @@ class RecordViewController: UIViewController {
     private let incomeLabel: AppLabel = {
         let label = AppLabel()
         label.textColor = .green5
-        label.typography = .h2
+        label.typography = .t1
         return label
     }()
     
+    private lazy var incomeRowStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [incomeTextLabel, incomeLabel])
+        stack.axis = .horizontal
+        stack.alignment = .bottom
+        stack.spacing = 8
+        return stack
+    }()
+
+    private let balanceTextLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "잔액"
+        label.textColor = .gray4
+        label.typography = .b6
+        return label
+    }()
+
+    private let balanceLabel: AppLabel = {
+        let label = AppLabel()
+        label.textColor = .gray1
+        label.typography = .t1
+        return label
+    }()
+
+    private lazy var balanceRowStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [balanceTextLabel, balanceLabel])
+        stack.axis = .horizontal
+        stack.alignment = .bottom
+        stack.spacing = 8
+        return stack
+    }()
+
     private lazy var filterButton: UIButton = {
-        var config = UIButton.Configuration.filled()
+        var config = UIButton.Configuration.plain()
         config.title = "전체 내역"
         config.baseForegroundColor = .gray2
         config.baseBackgroundColor = .clear
-        config.contentInsets = .zero
+        config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0)
         
         config.image = UIImage(named: "filter")
         
@@ -163,6 +197,18 @@ class RecordViewController: UIViewController {
         return button
     }()
     
+    private lazy var bannerView: BannerView = {
+        let bannerWidth = UIScreen.main.bounds.width - 32
+        let adSize = portraitAnchoredAdaptiveBanner(width: bannerWidth)
+        let banner = BannerView(adSize: adSize, origin: .zero)
+        banner.adUnitID = "ca-app-pub-8889421922972515/2490079929"
+//        banner.adUnitID = "ca-app-pub-3940256099942544/2934735716" // test
+        banner.rootViewController = self
+        banner.layer.cornerRadius = 8
+        banner.clipsToBounds = true
+        return banner
+    }()
+    
     private lazy var tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .grouped)
         tableView.backgroundColor = .white
@@ -188,6 +234,11 @@ class RecordViewController: UIViewController {
         super.viewDidLoad()
         configureUI()
         bind()
+        
+        bannerView.load(Request())
+        
+        print("banner adSize: \(bannerView.adSize)")
+        print("banner frame: \(bannerView.frame)")
     }
     
     func configureUI() {
@@ -201,13 +252,13 @@ class RecordViewController: UIViewController {
         let headerContainer = UIView()
         headerContainer.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 400)
         
-        [prevButton, headerLabel, nextButton, statsButton, backgroundImageView,
-         expenseTextLabel, expenseLabel, incomeTextLabel, incomeLabel, filterButton, addButton].forEach {
+        [prevButton, headerLabel, nextButton, statsButton,
+         incomeRowStack, expenseRowStack, balanceRowStack, filterButton, addButton, bannerView].forEach {
             headerContainer.addSubview($0)
         }
         
         headerLabel.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(20)
+            $0.top.equalToSuperview().offset(24)
             $0.leading.equalTo(prevButton.snp.trailing).offset(8)
         }
         
@@ -226,48 +277,45 @@ class RecordViewController: UIViewController {
             $0.centerY.equalTo(headerLabel)
         }
         
-        backgroundImageView.snp.makeConstraints {
+        incomeRowStack.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.top.equalTo(statsButton.snp.bottom).offset(20)
+        }
+
+        expenseRowStack.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.top.equalTo(incomeRowStack.snp.bottom).offset(8)
+        }
+
+        balanceRowStack.snp.makeConstraints {
+            $0.trailing.equalToSuperview().offset(-16)
+            $0.centerY.equalTo(expenseRowStack)
+        }
+
+        let bannerWidth = UIScreen.main.bounds.width - 32
+        let adSize = portraitAnchoredAdaptiveBanner(width: bannerWidth)
+        bannerView.snp.makeConstraints {
+            $0.top.equalTo(expenseRowStack.snp.bottom).offset(20)
             $0.leading.trailing.equalToSuperview().inset(16)
-            $0.top.equalTo(statsButton.snp.bottom).offset(24)
-        }
-        
-        expenseTextLabel.snp.makeConstraints {
-            $0.top.equalTo(backgroundImageView.snp.top).offset(20)
-            $0.leading.equalTo(backgroundImageView.snp.leading).offset(16)
-        }
-        
-        expenseLabel.snp.makeConstraints {
-            $0.top.equalTo(expenseTextLabel.snp.bottom).offset(4)
-            $0.leading.equalTo(backgroundImageView.snp.leading).offset(16)
-        }
-        
-        incomeTextLabel.snp.makeConstraints {
-            $0.bottom.equalTo(incomeLabel.snp.top).offset(-4)
-            $0.leading.equalTo(backgroundImageView.snp.leading).offset(16)
-        }
-        
-        incomeLabel.snp.makeConstraints {
-            $0.bottom.equalTo(backgroundImageView.snp.bottom).offset(-20)
-            $0.leading.equalTo(backgroundImageView.snp.leading).offset(16)
+            $0.height.equalTo(adSize.size.height)
         }
         
         filterButton.snp.makeConstraints {
-            $0.top.equalTo(backgroundImageView.snp.bottom).offset(30)
+            $0.top.equalTo(bannerView.snp.bottom).offset(20)
             $0.leading.equalToSuperview().offset(16)
-            $0.bottom.equalToSuperview().inset(14)
+            $0.bottom.equalToSuperview().inset(22)
         }
         
         addButton.snp.makeConstraints {
             $0.centerY.equalTo(filterButton.snp.centerY)
             $0.trailing.equalToSuperview().offset(-16)
         }
-
-            // 3. 레이아웃 계산 후 헤더 등록
-            headerContainer.layoutIfNeeded()
-            let size = headerContainer.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
-            headerContainer.frame.size.height = size.height
-            
-            tableView.tableHeaderView = headerContainer
+        
+        headerContainer.layoutIfNeeded()
+        let size = headerContainer.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+        headerContainer.frame.size.height = size.height
+        
+        tableView.tableHeaderView = headerContainer
     }
     
     private func bind() {
@@ -309,7 +357,23 @@ class RecordViewController: UIViewController {
                 self?.incomeLabel.text = total > 0 ? "+\(total.withComma)원" : "0원"
             })
             .disposed(by: disposeBag)
-        
+
+        Observable.combineLatest(viewModel.monthlyExpenseAmounts, viewModel.monthlyIncomeAmounts)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] expenseAmounts, incomeAmounts in
+                let expenseTotal = expenseAmounts.values.reduce(0, +)
+                let incomeTotal = incomeAmounts.values.reduce(0, +)
+                let balance = incomeTotal - expenseTotal
+                if balance > 0 {
+                    self?.balanceLabel.text = "+\(balance.withComma)원"
+                } else if balance < 0 {
+                    self?.balanceLabel.text = "-\((-balance).withComma)원"
+                } else {
+                    self?.balanceLabel.text = "0원"
+                }
+            })
+            .disposed(by: disposeBag)
+
         viewModel.filteredTransactions
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] _ in
@@ -332,7 +396,7 @@ class RecordViewController: UIViewController {
         container.foregroundColor = isFilterActive ? .green5 : .gray2
         
         config.attributedTitle = AttributedString(titleText, attributes: container)
-        config.image = isFilterActive ? nil : UIImage(named: "filter")
+        config.image = UIImage(named: "filter")?.withTintColor(isFilterActive ? .green5 : .gray2, renderingMode: .alwaysOriginal)
         
         filterButton.configuration = config
     }
@@ -420,6 +484,6 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 40
+        return 22
     }
 }
