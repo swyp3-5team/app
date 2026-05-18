@@ -80,9 +80,9 @@ class TransactionInfoEditViewController: UIViewController {
     private lazy var amountTextField: UITextField = {
         let tf = UITextField()
         tf.placeholder = "금액 입력"
-        
-        if let amount = initialAmount {
-            tf.text = "\(amount)"
+
+        if let amount = initialAmount, amount > 0 {
+            tf.text = "\(amount.withComma)원"
         }
         tf.font = Typography.b7.uiFont
         tf.keyboardType = .numberPad
@@ -149,7 +149,9 @@ class TransactionInfoEditViewController: UIViewController {
         navigationItem.title = isIncome ? "수입내역" : "지출내역"
         setupUI()
         bind()
-        
+
+        amountTextField.delegate = self
+
         // 초기 카테고리 선택
         selectInitialCategory()
         
@@ -251,9 +253,7 @@ class TransactionInfoEditViewController: UIViewController {
             .subscribe(onNext: { [weak self] name, amountText, categoryId in
                 guard let self = self, let categoryId = categoryId else { return }
                 
-                // 콤마 제거 후 Int 변환
-                let amountString = amountText.replacingOccurrences(of: ",", with: "")
-                let amount = Int(amountString) ?? 0
+                let amount = Int(amountText.filter(\.isNumber)) ?? 0
                 
                 // 데이터 전달
                 self.onSave?(name, amount, categoryId)
@@ -280,13 +280,42 @@ extension TransactionInfoEditViewController: UICollectionViewDataSource, UIColle
     }
 }
 
+extension TransactionInfoEditViewController: UITextFieldDelegate {
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        guard textField == amountTextField else { return true }
+        guard string.isEmpty || string.allSatisfy({ $0.isNumber }) else { return false }
+
+        let current = (textField.text ?? "") as NSString
+        let proposed = current.replacingCharacters(in: range, with: string)
+        let digits = proposed.filter { $0.isNumber }
+
+        if digits.isEmpty {
+            textField.text = ""
+        } else {
+            let amount = Int(digits) ?? 0
+            textField.text = "\(amount.withComma)원"
+            if let pos = textField.position(from: textField.endOfDocument, offset: -1) {
+                textField.selectedTextRange = textField.textRange(from: pos, to: pos)
+            }
+        }
+
+        textField.sendActions(for: .editingChanged)
+        return false
+    }
+
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        guard textField == amountTextField,
+              let text = textField.text, text.hasSuffix("원"),
+              let pos = textField.position(from: textField.endOfDocument, offset: -1) else { return }
+        textField.selectedTextRange = textField.textRange(from: pos, to: pos)
+    }
+}
+
 extension TransactionInfoEditViewController: UIGestureRecognizerDelegate {
-    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         if touch.view is UIButton {
             return false
         }
-
         return true
     }
 }

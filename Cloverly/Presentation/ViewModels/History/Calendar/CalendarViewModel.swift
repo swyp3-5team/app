@@ -206,6 +206,15 @@ final class CalendarViewModel {
         current.paymentMemo = memo // 메모 수정
         currentTransaction.accept(current)
     }
+
+    func editCategory(id: Int, name: String) {
+        guard var current = currentTransaction.value else { return }
+        current.transactionInfoList.indices.forEach {
+            current.transactionInfoList[$0].categoryId = id
+            current.transactionInfoList[$0].categoryName = name
+        }
+        currentTransaction.accept(current)
+    }
     
     func updateTransaction() async throws {
         guard let current = currentTransaction.value else { return }
@@ -265,12 +274,15 @@ final class CalendarViewModel {
         if current.trGroupId != -1 {
             try await transactionAPI.updateTransaction(transaction: current)
         } else {
-            let transactionDTOs = current.transactionInfoList.map { info in
+            var transactionDTOs = current.transactionInfoList.map { info in
                 return TransactionDTO(
                     name: info.name,
                     amount: info.amount,
                     categoryName: info.categoryName
                 )
+            }
+            if transactionDTOs.isEmpty {
+                transactionDTOs = [TransactionDTO(name: "", amount: current.totalAmount, categoryName: "")]
             }
             
             let requestBody = TransactionRequest(place: current.place, transactionDate: current.transactionDate, payment: current.payment, paymentMemo: current.paymentMemo, emotion: current.emotion, transactions: transactionDTOs)
