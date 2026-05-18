@@ -25,23 +25,14 @@ class HomeViewController: UIViewController {
         switch hour {
         case 6..<12:
             return "좋은 아침! 🌼"
-        case 12..<18:
+        case 12..<15:
             return "점심 먹었어? 🍛"
+        case 15..<18:
+            return "커피 한 잔 마셨어? ☕️"
         case 18..<22:
             return "오늘도 고생했어 🌟"
         default:
             return "아직 안 잤어? 💤"
-        }
-    }
-    
-    private var timeBasedBubbleTopOffset: CGFloat {
-        let hour = Calendar.current.component(.hour, from: Date())
-
-        switch hour {
-        case 6..<12:  return 110
-        case 12..<18: return 42
-        case 18..<22: return 138
-        default:      return 138
         }
     }
 
@@ -177,6 +168,8 @@ class HomeViewController: UIViewController {
     }
 
     private func setupVideoBackground() {
+        try? AVAudioSession.sharedInstance().setCategory(.ambient, options: .mixWithOthers)
+
         guard let url = Bundle.main.url(forResource: timeBasedBackgroundVideoName, withExtension: "mp4") else { return }
 
         let player = AVPlayer(url: url)
@@ -237,7 +230,7 @@ class HomeViewController: UIViewController {
         
         bubbleImageView.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.top.equalTo(typeLogoImageView.snp.bottom).offset(timeBasedBubbleTopOffset)
+            $0.top.equalTo(typeLogoImageView.snp.bottom).offset(42)
         }
         
         greetingLabel.snp.makeConstraints {
