@@ -14,6 +14,7 @@ import GoogleMobileAds
 class RecordViewController: UIViewController {
     private let viewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
+    private var isMenuOpen = false
     
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -189,7 +190,7 @@ class RecordViewController: UIViewController {
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             viewModel.clearCurrentTransaction()
-            let vc = ExpenseHistoryViewController(viewModel: viewModel)
+            let vc = TransactionContainerViewController(viewModel: viewModel)
             let nav = UINavigationController(rootViewController: vc)
             nav.modalPresentationStyle = .fullScreen
             present(nav, animated: true)
@@ -207,6 +208,47 @@ class RecordViewController: UIViewController {
         banner.layer.cornerRadius = 8
         banner.clipsToBounds = true
         return banner
+    }()
+    
+    private lazy var floatingButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(named: "plus icon"), for: .normal)
+        button.backgroundColor = .green5
+        button.layer.cornerRadius = 28 // half
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOpacity = 0.2
+        button.layer.shadowOffset = CGSize(width: 0, height: 1)
+        button.layer.shadowRadius = 4
+        
+        button.addAction(UIAction { [weak self] _ in
+            guard let self = self else { return }
+            isMenuOpen.toggle()
+            updateMenuState()
+        }, for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var menuCardView: MenuCardView = {
+        let card = MenuCardView(items: [
+//            MenuItem(title: "단일 품목") { [weak self] in
+//                print("단일 품목 선택")
+//            },
+            MenuItem(title: "내역 추가") { [weak self] in
+                guard let self = self else { return }
+                viewModel.clearCurrentTransaction()
+                let vc = TransactionContainerViewController(viewModel: viewModel)
+                let nav = UINavigationController(rootViewController: vc)
+                nav.modalPresentationStyle = .fullScreen
+                present(nav, animated: true)
+            }
+        ])
+        return card
+    }()
+
+    private let dimmingView: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+        return view
     }()
     
     private lazy var tableView: UITableView = {
@@ -241,8 +283,14 @@ class RecordViewController: UIViewController {
         print("banner frame: \(bannerView.frame)")
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        closeMenu()
+    }
+    
     func configureUI() {
         view.addSubview(tableView)
+        view.addSubview(floatingButton)
 
         tableView.snp.makeConstraints {
             $0.edges.equalTo(view.safeAreaLayoutGuide)
@@ -253,7 +301,7 @@ class RecordViewController: UIViewController {
         headerContainer.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 400)
         
         [prevButton, headerLabel, nextButton, statsButton,
-         incomeRowStack, expenseRowStack, balanceRowStack, filterButton, addButton, bannerView].forEach {
+         incomeRowStack, expenseRowStack, balanceRowStack, filterButton, bannerView].forEach {
             headerContainer.addSubview($0)
         }
         
@@ -306,11 +354,12 @@ class RecordViewController: UIViewController {
             $0.bottom.equalToSuperview().inset(22)
         }
         
-        addButton.snp.makeConstraints {
-            $0.centerY.equalTo(filterButton.snp.centerY)
+        floatingButton.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-16)
+            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-16)
+            $0.width.height.equalTo(56)
         }
-        
+
         headerContainer.layoutIfNeeded()
         let size = headerContainer.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
         headerContainer.frame.size.height = size.height
@@ -400,6 +449,89 @@ class RecordViewController: UIViewController {
         
         filterButton.configuration = config
     }
+    
+    private func updateMenuState() {
+        if isMenuOpen {
+            showMenu()
+        } else {
+            hideMenu()
+        }
+    }
+
+    private func showMenu() {
+        guard let window = view.window else { return }
+        let fabFrame = floatingButton.convert(floatingButton.bounds, to: window)
+
+        floatingButton.setImage(UIImage(named: "x icon"), for: .normal)
+        floatingButton.backgroundColor = .white
+
+        floatingButton.removeFromSuperview()
+        floatingButton.translatesAutoresizingMaskIntoConstraints = true
+        floatingButton.frame = fabFrame
+
+        let cardWidth: CGFloat = 92
+        let cardHeight: CGFloat = 76
+        menuCardView.frame = CGRect(
+            x: fabFrame.maxX - cardWidth,
+            y: fabFrame.minY - cardHeight - 12,
+            width: cardWidth,
+            height: cardHeight
+        )
+
+        dimmingView.frame = window.bounds
+        dimmingView.alpha = 0
+        menuCardView.alpha = 0
+        menuCardView.transform = CGAffineTransform(scaleX: 0.75, y: 0.75)
+            .concatenating(CGAffineTransform(translationX: 0, y: 12))
+
+        window.addSubview(dimmingView)
+        window.addSubview(menuCardView)
+        window.addSubview(floatingButton)
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(closeMenu))
+        dimmingView.addGestureRecognizer(tap)
+
+        UIView.animate(withDuration: 0.25) {
+            self.dimmingView.alpha = 1
+        }
+        UIView.animate(withDuration: 0.4, delay: 0,
+                       usingSpringWithDamping: 0.65, initialSpringVelocity: 0.8,
+                       options: [], animations: {
+            self.menuCardView.alpha = 1
+            self.menuCardView.transform = .identity
+        })
+    }
+
+    private func hideMenu() {
+        UIView.animate(withDuration: 0.2, animations: {
+            self.dimmingView.alpha = 0
+            self.menuCardView.alpha = 0
+            self.menuCardView.transform = CGAffineTransform(scaleX: 0.85, y: 0.85)
+                .concatenating(CGAffineTransform(translationX: 0, y: 8))
+        }, completion: { _ in
+            self.dimmingView.gestureRecognizers?.forEach { self.dimmingView.removeGestureRecognizer($0) }
+            self.dimmingView.removeFromSuperview()
+            self.menuCardView.removeFromSuperview()
+            self.menuCardView.transform = .identity
+
+            self.floatingButton.setImage(UIImage(named: "plus icon"), for: .normal)
+            self.floatingButton.backgroundColor = .green5
+
+            self.floatingButton.removeFromSuperview()
+            self.floatingButton.translatesAutoresizingMaskIntoConstraints = false
+            self.view.addSubview(self.floatingButton)
+            self.floatingButton.snp.makeConstraints {
+                $0.trailing.equalToSuperview().offset(-16)
+                $0.bottom.equalTo(self.view.safeAreaLayoutGuide).offset(-16)
+                $0.width.height.equalTo(56)
+            }
+        })
+    }
+
+    @objc private func closeMenu() {
+        isMenuOpen = false
+        updateMenuState()
+    }
 }
 
 extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
@@ -439,7 +571,7 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
         if let transactions = viewModel.filteredTransactions.value[dateKey] {
             let transaction = transactions[indexPath.row]
             viewModel.currentTransaction.accept(transaction)
-            let vc = ExpenseHistoryViewController(viewModel: viewModel)
+            let vc = TransactionContainerViewController(viewModel: viewModel)
             let nav = UINavigationController(rootViewController: vc)
             nav.modalPresentationStyle = .fullScreen
             present(nav, animated: true)
