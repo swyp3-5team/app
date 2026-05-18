@@ -85,18 +85,21 @@ class ExpenseListViewCell: UITableViewCell {
     }
     
     func configure(with transaction: Transaction) {
+        let isIncome = transaction.transactionInfoList.first?.type == "INCOME"
+        let topCategory = transaction.transactionInfoList.max { $0.amount < $1.amount }?.categoryName ?? "내역 없음"
+        
         titleLabel.text = transaction.place?.nilIfNullOrEmpty ?? "미입력"
-        subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.transactionInfoList.max { $0.amount < $1.amount }?.categoryName ?? "내역 없음")"
+        subtitleLabel.text = isIncome ? topCategory : "\(transaction.emotion.displayName) · \(topCategory)"
         indicatorView.backgroundColor = transaction.transactionInfoList
             .max { $0.amount < $1.amount }
-            .map { ExpenseCategory.from(id: $0.categoryId).color }
-        let isIncome = transaction.transactionInfoList.first?.type == "INCOME"
+            .map { isIncome ? IncomeCategory.from(id: $0.categoryId).color : ExpenseCategory.from(id: $0.categoryId).color }
         priceLabel.text = isIncome ? "\(transaction.totalAmount.withComma)원" : "-\(transaction.totalAmount.withComma)원"
     }
 
     func configure(with transaction: TransactionRecord, color: UIColor, isIncome: Bool = false) {
         titleLabel.text = transaction.name.nilIfNullOrEmpty ?? "미입력"
         subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.payment.displayName)"
+        subtitleLabel.isHidden = isIncome
         indicatorView.backgroundColor = color
         let sign = isIncome ? "+" : "-"
         priceLabel.text = "\(sign)\(transaction.amount.withComma)원"
