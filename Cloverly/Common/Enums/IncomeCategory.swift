@@ -46,5 +46,9 @@ enum IncomeCategory: Int, CaseIterable, Codable {
     var color: UIColor {
         UIColor(named: String(describing: self)) ?? .clear
     }
+
+    static func from(id: Int) -> IncomeCategory {
+        return IncomeCategory(rawValue: id) ?? .other
+    }
 }
 
