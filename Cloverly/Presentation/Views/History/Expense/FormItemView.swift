@@ -16,6 +16,23 @@ class FormItemView: UIView {
         return label
     }()
     
+    private let infoButton: UIButton = {
+        let btn = UIButton()
+        let config = UIImage.SymbolConfiguration(pointSize: 13, weight: .regular)
+        btn.setImage(UIImage(systemName: "info.circle", withConfiguration: config), for: .normal)
+        btn.tintColor = .gray4
+        btn.isHidden = true
+        return btn
+    }()
+
+    private lazy var titleStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [titleLabel, infoButton])
+        stack.axis = .horizontal
+        stack.spacing = 4
+        stack.alignment = .center
+        return stack
+    }()
+
     let actionButton: UIButton = {
         let btn = UIButton()
         btn.setTitle("추가", for: .normal)
@@ -29,12 +46,19 @@ class FormItemView: UIView {
     
     let contentView: UIView // 텍스트필드나 칩 뷰가 들어갈 자리
     
-    init(title: String, content: UIView, showActionBtn: Bool = false) {
+    init(title: String, content: UIView, showActionBtn: Bool = false, tooltipText: String? = nil) {
         self.contentView = content
         super.init(frame: .zero)
         self.titleLabel.text = title
-        
-        // 버튼 설정
+
+        if let tooltipText {
+            infoButton.isHidden = false
+            infoButton.addAction(UIAction { [weak self] _ in
+                guard let self else { return }
+                TooltipView.show(from: self.infoButton, text: tooltipText)
+            }, for: .touchUpInside)
+        }
+
         if showActionBtn {
             self.actionButton.isHidden = false
             self.actionButton.addAction(UIAction { [weak self] _ in
@@ -54,21 +78,21 @@ class FormItemView: UIView {
     }
 
     func configureUI() {
-        addSubview(titleLabel)
+        addSubview(titleStack)
         addSubview(actionButton)
         addSubview(contentView)
-        
-        titleLabel.snp.makeConstraints {
-            $0.top.leading.equalToSuperview() // 상단, 좌측 고정
+
+        titleStack.snp.makeConstraints {
+            $0.top.leading.equalToSuperview()
         }
         
         actionButton.snp.makeConstraints {
-            $0.centerY.equalTo(titleLabel)
+            $0.centerY.equalTo(titleStack)
             $0.trailing.equalToSuperview() // 오른쪽 끝 정렬
         }
         
         contentView.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(8)
+            $0.top.equalTo(titleStack.snp.bottom).offset(8)
             $0.leading.trailing.bottom.equalToSuperview() // 좌우 꽉 채우기
         }
     }
