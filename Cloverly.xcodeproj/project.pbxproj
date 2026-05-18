@@ -350,6 +350,7 @@
 				INFOPLIST_FILE = Cloverly/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "영수증을 촬영하여 내용을 자동으로 인식하고 가계부에 기록하기 위해 카메라 접근이 필요합니다.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범에 저장된 영수증 이미지를 불러와 내용을 자동으로 인식하고 가계부에 기록하기 위해 카메라 접근이 필요합니다.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "맞춤형 광고를 제공하고, 부적절한 광고를 차단하는 데 사용됩니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -389,6 +390,7 @@
 				INFOPLIST_FILE = Cloverly/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "영수증을 촬영하여 내용을 자동으로 인식하고 가계부에 기록하기 위해 카메라 접근이 필요합니다.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범에 저장된 영수증 이미지를 불러와 내용을 자동으로 인식하고 가계부에 기록하기 위해 카메라 접근이 필요합니다.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "맞춤형 광고를 제공하고, 부적절한 광고를 차단하는 데 사용됩니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
