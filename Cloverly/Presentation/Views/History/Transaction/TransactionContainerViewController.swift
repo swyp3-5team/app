@@ -21,6 +21,7 @@ class TransactionContainerViewController: UIViewController {
     private let isIncomeMode = BehaviorRelay<Bool>(value: false)
     private let defaultExpenseMode: ExpenseEntryMode
     private let resolvedExpenseMode = BehaviorRelay<ExpenseEntryMode>(value: .multi)
+    private var isDirty = false
 
     private let titleLabel: AppLabel = {
         let label = AppLabel()
@@ -142,12 +143,25 @@ class TransactionContainerViewController: UIViewController {
         configureUI()
         setupViewMode()
         bind()
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
     }
 
     private func configureUI() {
         view.backgroundColor = .systemBackground
 
         navigationItem.titleView = titleLabel
+        navigationItem.hidesBackButton = true
+
+        let backButton = UIBarButtonItem(
+            image: UIImage(systemName: "chevron.left")?.withConfiguration(
+                UIImage.SymbolConfiguration(pointSize: 17, weight: .semibold)
+            ),
+            style: .plain,
+            target: self,
+            action: #selector(handleBack)
+        )
+        backButton.tintColor = .gray1
+        navigationItem.leftBarButtonItem = backButton
 
         let typeButtonContainer = UIView()
         typeButtonContainer.addSubview(typeButtonStack)
@@ -257,6 +271,16 @@ class TransactionContainerViewController: UIViewController {
                 resolvedExpenseMode.accept(.single)
             })
             .disposed(by: disposeBag)
+
+        Observable.merge(
+            viewModel.currentTransaction.skip(1).map { _ in () },
+            isIncomeMode.skip(1).map { _ in () },
+            resolvedExpenseMode.skip(1).map { _ in () }
+        )
+        .subscribe(onNext: { [weak self] in
+            self?.isDirty = true
+        })
+        .disposed(by: disposeBag)
     }
 
     private func updateSaveButton(isEnabled: Bool) {
@@ -297,6 +321,23 @@ class TransactionContainerViewController: UIViewController {
         currentChildVC = newVC
     }
 
+    @objc private func handleBack() {
+        guard isDirty else {
+            navigationController?.popViewController(animated: true)
+            return
+        }
+        let alert = UIAlertController(
+            title: "저장하지 않고 나가시겠습니까?",
+            message: "변경 사항이 저장되지 않습니다.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+        alert.addAction(UIAlertAction(title: "나가기", style: .destructive) { [weak self] _ in
+            self?.navigationController?.popViewController(animated: true)
+        })
+        present(alert, animated: true)
+    }
+
     private func showDeleteAlert() {
         let alert = UIAlertController(title: "내역을 삭제하시겠습니까?", message: "", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "취소", style: .cancel))
@@ -312,5 +353,12 @@ class TransactionContainerViewController: UIViewController {
             }
         })
         present(alert, animated: true)
+    }
+}
+
+extension TransactionContainerViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        handleBack()
+        return false
     }
 }
