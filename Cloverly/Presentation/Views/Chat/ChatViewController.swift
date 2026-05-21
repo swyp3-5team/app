@@ -11,6 +11,7 @@ import RxCocoa
 import SnapKit
 import PhotosUI
 import Lottie
+import GoogleMobileAds
 
 extension UINavigationController {
     open override func viewWillLayoutSubviews() {
@@ -28,6 +29,8 @@ class ChatViewController: UIViewController {
     lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["가계부", "대화"], cornerRadius: 17)
     
     var overlayWindow: UIWindow?
+
+    private var interstitialAd: InterstitialAd?
     
     private lazy var imagePicker: UIImagePickerController = {
         let imagePicker = UIImagePickerController()
@@ -91,8 +94,9 @@ class ChatViewController: UIViewController {
         return stack
     }()
     
-    init(calendarViewModel: CalendarViewModel) {
+    init(calendarViewModel: CalendarViewModel, interstitialAd: InterstitialAd? = nil) {
         self.calendarViewModel = calendarViewModel
+        self.interstitialAd = interstitialAd
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -143,8 +147,15 @@ class ChatViewController: UIViewController {
             showCoachMark()
             UserDefaults.standard.set(true, forKey: "hasSeenCoachMark")
         }
+
+        if let ad = interstitialAd {
+            ad.present(from: self)
+            UserDefaults.standard.set(Date(), forKey: "chatInterstitialLastShownDate")
+            interstitialAd = nil
+        }
     }
     
+
     func showCoachMark() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
         

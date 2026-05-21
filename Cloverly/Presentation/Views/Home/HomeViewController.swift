@@ -8,9 +8,11 @@
 import UIKit
 import SnapKit
 import AVFoundation
+import GoogleMobileAds
 
 class HomeViewController: UIViewController {
     private let calendarViewModel: CalendarViewModel
+    private var preloadedInterstitialAd: InterstitialAd?
     
     var statusBarHeight: CGFloat {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
@@ -123,8 +125,9 @@ class HomeViewController: UIViewController {
         button.configuration = config
         
         button.addAction(UIAction { [weak self] _ in
-            guard let self = self else { return }
-            let vc = ChatViewController(calendarViewModel: calendarViewModel)
+            guard let self else { return }
+            let vc = ChatViewController(calendarViewModel: calendarViewModel, interstitialAd: preloadedInterstitialAd)
+            preloadedInterstitialAd = nil
             self.navigationController?.pushViewController(vc, animated: true)
         }, for: .touchUpInside)
         return button
@@ -144,6 +147,21 @@ class HomeViewController: UIViewController {
         configureUI()
         setupVideoBackground()
         AuthViewModel.shared.getProfile()
+        preloadChatInterstitialAd()
+    }
+
+    private func preloadChatInterstitialAd() {
+        guard !hasShownAdToday else { return }
+        let adUnitID = "ca-app-pub-8889421922972515/5880985432"
+//        let adUnitID = "ca-app-pub-3940256099942544/4411468910" // test
+        InterstitialAd.load(with: adUnitID, request: Request()) { [weak self] ad, _ in
+            self?.preloadedInterstitialAd = ad
+        }
+    }
+
+    private var hasShownAdToday: Bool {
+        guard let lastDate = UserDefaults.standard.object(forKey: "chatInterstitialLastShownDate") as? Date else { return false }
+        return Calendar.current.isDateInToday(lastDate)
     }
 
     override func viewDidLayoutSubviews() {
