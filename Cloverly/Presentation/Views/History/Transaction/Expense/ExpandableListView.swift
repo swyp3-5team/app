@@ -205,7 +205,17 @@ class ExpandableListView: UIView {
             headerContainer.isHidden = false
             listOpenImageView.isHidden = false
             headerContainer.isUserInteractionEnabled = true
-            listLabel.text = "\(items[0].name) 외 \(items.count - 1)개"
+            let font = Typography.b1.uiFont
+            let base = NSMutableAttributedString(
+                string: "\(items[0].name) 외 ",
+                attributes: [.foregroundColor: UIColor.gray1, .font: font]
+            )
+            let highlight = NSAttributedString(
+                string: "\(items.count - 1)건",
+                attributes: [.foregroundColor: UIColor.green5, .font: font]
+            )
+            base.append(highlight)
+            listLabel.attributedText = base
 
             headerContainer.snp.updateConstraints {
                 $0.height.equalTo(48)
