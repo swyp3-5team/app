@@ -97,7 +97,6 @@ class ExpandableListView: UIView {
     private func setupUI() {
         // 1. 메인 스택뷰를 뷰에 꽉 차게 넣음
         addSubview(mainStackView)
-        addSubview(emptyStateLabel)
         mainStackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
@@ -105,7 +104,6 @@ class ExpandableListView: UIView {
         // 2. 메인 스택뷰에 순서대로 쌓음 (헤더 -> 내용 -> 구분선)
         mainStackView.addArrangedSubview(headerContainer)
         mainStackView.addArrangedSubview(contentStackView)
-        mainStackView.addArrangedSubview(dividerView)
         
         // 3. 헤더 내부 레이아웃
         headerContainer.addSubview(listLabel)
@@ -124,16 +122,6 @@ class ExpandableListView: UIView {
             $0.trailing.equalToSuperview()
             $0.centerY.equalToSuperview()
             $0.width.height.equalTo(24)
-        }
-        
-        // 4. 구분선 높이 설정
-        dividerView.snp.makeConstraints {
-            $0.height.equalTo(1)
-        }
-        
-        emptyStateLabel.snp.makeConstraints {
-            $0.top.equalToSuperview()
-            $0.leading.equalToSuperview().offset(16)
         }
     }
     
@@ -178,10 +166,8 @@ class ExpandableListView: UIView {
         let items = transaction.transactionInfoList
 
         if items.isEmpty {
-            emptyStateLabel.isHidden = false
             listLabel.text = ""
             listOpenImageView.isHidden = true
-            dividerView.isHidden = true
             contentStackView.isHidden = true
             headerContainer.isHidden = false
 
@@ -198,9 +184,6 @@ class ExpandableListView: UIView {
 
             return
         }
-
-        emptyStateLabel.isHidden = true
-        dividerView.isHidden = false
 
         // 상세 항목 추가
         let isSingleItem = items.count == 1
