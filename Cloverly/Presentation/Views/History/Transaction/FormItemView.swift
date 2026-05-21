@@ -39,9 +39,19 @@ class FormItemView: UIView {
 
     let actionButton: UIButton = {
         let btn = UIButton()
-        btn.setTitle("추가", for: .normal)
-        btn.setTitleColor(.blueConfirm, for: .normal)
-        btn.titleLabel?.font = Typography.b5.uiFont
+        
+        var config = UIButton.Configuration.plain()
+        config.title = "추가"
+        config.image = UIImage(named: "Chevron right blue")
+        config.imagePlacement = .trailing
+        config.baseForegroundColor = .blueConfirm
+        config.contentInsets = .zero
+        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+            var attrs = attrs
+            attrs.font = Typography.b5.uiFont
+            return attrs
+        }
+        btn.configuration = config
         btn.isHidden = true
         return btn
     }()
