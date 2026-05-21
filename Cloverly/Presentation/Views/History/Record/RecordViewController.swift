@@ -191,9 +191,7 @@ class RecordViewController: UIViewController {
             guard let self = self else { return }
             viewModel.clearCurrentTransaction()
             let vc = TransactionContainerViewController(viewModel: viewModel)
-            let nav = UINavigationController(rootViewController: vc)
-            nav.modalPresentationStyle = .fullScreen
-            present(nav, animated: true)
+            self.navigationController?.pushViewController(vc, animated: true)
         }, for: .touchUpInside)
         return button
     }()
@@ -230,16 +228,22 @@ class RecordViewController: UIViewController {
     
     private lazy var menuCardView: MenuCardView = {
         let card = MenuCardView(items: [
-//            MenuItem(title: "단일 품목") { [weak self] in
-//                print("단일 품목 선택")
-//            },
-            MenuItem(title: "내역 추가") { [weak self] in
+            MenuItem(
+                image: UIImage(named: "Single Icon"),
+                title: "한 건 입력",
+                subtitle: "품목 하나만 빠르게"
+            ) { [weak self] in
+                print("단일 품목 선택")
+            },
+            MenuItem(
+                image: UIImage(named: "Multiple Icon"),
+                title: "영수증∙여러 품목",
+                subtitle: "여러 항목 입력"
+            ) { [weak self] in
                 guard let self = self else { return }
                 viewModel.clearCurrentTransaction()
                 let vc = TransactionContainerViewController(viewModel: viewModel)
-                let nav = UINavigationController(rootViewController: vc)
-                nav.modalPresentationStyle = .fullScreen
-                present(nav, animated: true)
+                self.navigationController?.pushViewController(vc, animated: true)
             }
         ])
         return card
@@ -469,13 +473,12 @@ class RecordViewController: UIViewController {
         floatingButton.translatesAutoresizingMaskIntoConstraints = true
         floatingButton.frame = fabFrame
 
-        let cardWidth: CGFloat = 92
-        let cardHeight: CGFloat = 76
+        let cardSize = menuCardView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
         menuCardView.frame = CGRect(
-            x: fabFrame.maxX - cardWidth,
-            y: fabFrame.minY - cardHeight - 12,
-            width: cardWidth,
-            height: cardHeight
+            x: fabFrame.maxX - cardSize.width,
+            y: fabFrame.minY - cardSize.height - 20,
+            width: cardSize.width,
+            height: cardSize.height
         )
 
         dimmingView.frame = window.bounds
@@ -572,9 +575,7 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
             let transaction = transactions[indexPath.row]
             viewModel.currentTransaction.accept(transaction)
             let vc = TransactionContainerViewController(viewModel: viewModel)
-            let nav = UINavigationController(rootViewController: vc)
-            nav.modalPresentationStyle = .fullScreen
-            present(nav, animated: true)
+            self.navigationController?.pushViewController(vc, animated: true)
         }
     }
     
