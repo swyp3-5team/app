@@ -70,19 +70,13 @@ class ExpandableListView: UIView {
     }()
 
     private let actionButton: UIButton = {
-        let btn = UIButton()
-        var config = UIButton.Configuration.plain()
-        config.title = "추가"
-        config.image = UIImage(named: "Chevron right blue")
-        config.imagePlacement = .trailing
-        config.baseForegroundColor = .blueConfirm
-        config.contentInsets = .zero
-        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
-            var attrs = attrs
-            attrs.font = Typography.b5.uiFont
-            return attrs
-        }
-        btn.configuration = config
+        let btn = UIButton(type: .custom)
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: Typography.b5.uiFont,
+            .foregroundColor: UIColor.blueConfirm,
+            .underlineStyle: NSUnderlineStyle.single.rawValue
+        ]
+        btn.setAttributedTitle(NSAttributedString(string: "추가", attributes: attrs), for: .normal)
         return btn
     }()
 
