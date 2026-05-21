@@ -9,202 +9,203 @@ import UIKit
 import SnapKit
 
 class ExpandableListView: UIView {
-    
+
+    var onAction: (() -> Void)?
     var onEditItem: ((Int) -> Void)?
     var onDeleteItem: ((Int) -> Void)?
-    
-    // MARK: - UI Components
-    
-    // ✨ 1. 전체를 감싸는 메인 스택뷰 (이게 핵심!)
-    // 이 안에 넣어야 isHidden 처리가 될 때 공간도 같이 사라집니다.
-    private let mainStackView: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .vertical
-        stack.spacing = 0
-        stack.alignment = .fill
-        stack.distribution = .fill
+
+    private var isExpanded = false
+
+    // MARK: - Header
+
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "지출내역"
+        label.textColor = .gray2
+        label.typography = .b2
+        label.setContentHuggingPriority(.required, for: .horizontal)
+        label.setContentCompressionResistancePriority(.required, for: .horizontal)
+        return label
+    }()
+
+    private let infoButton: UIButton = {
+        let btn = UIButton()
+        let config = UIImage.SymbolConfiguration(pointSize: 13, weight: .regular)
+        btn.setImage(UIImage(systemName: "info.circle", withConfiguration: config), for: .normal)
+        btn.tintColor = .gray4
+        return btn
+    }()
+
+    private lazy var titleStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [titleLabel, infoButton])
+        stack.axis = .horizontal
+        stack.spacing = 4
+        stack.alignment = .center
+        stack.setContentHuggingPriority(.required, for: .horizontal)
+        stack.setContentCompressionResistancePriority(.required, for: .horizontal)
         return stack
     }()
-    
-    private let emptyStateLabel: UILabel = {
-        let label = UILabel()
-        label.text = "내역이 없습니다"
-        label.textColor = .lightGray
-        label.font = .systemFont(ofSize: 14)
-        label.textAlignment = .center
-        label.isHidden = true
-        return label
-    }()
-    
-    // 2. 헤더 영역
-    private let headerContainer = UIView()
-    
-    private let listLabel: AppLabel = {
+
+    private let summaryLabel: AppLabel = {
         let label = AppLabel()
-        label.textColor = .gray1
+        label.textAlignment = .right
         label.typography = .b1
+        label.textColor = .gray1
         return label
     }()
-    
-    private let listOpenImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "Chevron down"))
-        imageView.contentMode = .scaleAspectFit
-        imageView.isHidden = true
-        return imageView
+
+    private let chevronImageView: UIImageView = {
+        let iv = UIImageView(image: UIImage(named: "Chevron down"))
+        iv.contentMode = .scaleAspectFit
+        return iv
     }()
-    
-    // 3. 내용물 리스트 스택뷰
+
+    private lazy var summaryStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [summaryLabel, chevronImageView])
+        stack.axis = .horizontal
+        stack.spacing = 4
+        stack.alignment = .center
+        stack.isHidden = true
+        return stack
+    }()
+
+    private let actionButton: UIButton = {
+        let btn = UIButton()
+        var config = UIButton.Configuration.plain()
+        config.title = "추가"
+        config.image = UIImage(named: "Chevron right blue")
+        config.imagePlacement = .trailing
+        config.baseForegroundColor = .blueConfirm
+        config.contentInsets = .zero
+        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+            var attrs = attrs
+            attrs.font = Typography.b5.uiFont
+            return attrs
+        }
+        btn.configuration = config
+        return btn
+    }()
+
+    private let headerRow = UIView()
+
+    // MARK: - Content
+
     private let contentStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
-        stack.spacing = 12
-        stack.isHidden = true // 처음엔 숨김 (공간 차지 X)
+        stack.spacing = 8
+        stack.isHidden = true
         stack.alpha = 0
-        
         stack.isLayoutMarginsRelativeArrangement = true
-        stack.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 16, right: 10)
-        
+        stack.layoutMargins = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 4)
         return stack
     }()
-    
-    private let dividerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .gray9
-        view.isHidden = true
-        return view
+
+    private let mainStackView: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = 12
+        stack.alignment = .fill
+        return stack
     }()
-    
-    // MARK: - Properties
-    private var isExpanded: Bool = false {
-        didSet {
-            // 상태 변경 시 애니메이션 실행
-            toggleAnimation()
-        }
-    }
-    
+
     // MARK: - Init
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
-        setupGesture()
     }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
+
+    required init?(coder: NSCoder) { fatalError() }
+
     // MARK: - Setup
+
     private func setupUI() {
-        // 1. 메인 스택뷰를 뷰에 꽉 차게 넣음
         addSubview(mainStackView)
-        mainStackView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-        }
-        
-        // 2. 메인 스택뷰에 순서대로 쌓음 (헤더 -> 내용 -> 구분선)
-        mainStackView.addArrangedSubview(headerContainer)
+        mainStackView.snp.makeConstraints { $0.edges.equalToSuperview() }
+
+        mainStackView.addArrangedSubview(headerRow)
         mainStackView.addArrangedSubview(contentStackView)
-        
-        // 3. 헤더 내부 레이아웃
-        headerContainer.addSubview(listLabel)
-        headerContainer.addSubview(listOpenImageView)
-        
-        headerContainer.snp.makeConstraints {
-            $0.height.equalTo(48) // 헤더 높이 고정
+
+        [titleStack, summaryStack, actionButton].forEach { headerRow.addSubview($0) }
+
+        titleStack.snp.makeConstraints {
+            $0.leading.top.bottom.equalToSuperview()
         }
-        
-        listLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview()
-            $0.centerY.equalToSuperview()
-        }
-        
-        listOpenImageView.snp.makeConstraints {
+
+        actionButton.snp.makeConstraints {
             $0.trailing.equalToSuperview()
             $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(24)
         }
+
+        summaryStack.snp.makeConstraints {
+            $0.trailing.equalTo(actionButton.snp.leading).offset(-8)
+            $0.centerY.equalToSuperview()
+            $0.leading.greaterThanOrEqualTo(titleStack.snp.trailing).offset(16)
+        }
+
+        chevronImageView.snp.makeConstraints { $0.width.height.equalTo(20) }
+
+        actionButton.addAction(UIAction { [weak self] _ in
+            self?.onAction?()
+        }, for: .touchUpInside)
+
+        infoButton.addAction(UIAction { [weak self] _ in
+            guard let self else { return }
+            TooltipView.show(
+                from: self.infoButton,
+                text: "우측 추가 버튼을 눌러 지출 항목과\n금액, 카테고리를 입력할 수 있습니다.\n지출내역 추가 완료 시 총 금액에 반영됩니다."
+            )
+        }, for: .touchUpInside)
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleHeaderTap))
+        summaryStack.addGestureRecognizer(tap)
+        summaryStack.isUserInteractionEnabled = true
     }
-    
-    private func setupGesture() {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-        headerContainer.addGestureRecognizer(tap)
-        headerContainer.isUserInteractionEnabled = true // 터치 가능하도록 설정
-    }
-    
-    // MARK: - Logic
-    
-    @objc private func handleTap() {
+
+    @objc private func handleHeaderTap() {
         isExpanded.toggle()
-    }
-    
-    private func toggleAnimation() {
-        // ✨ 핵심: isHidden을 바꾸면 StackView가 알아서 공간을 계산함
-        // 애니메이션 블록 안에서 layoutIfNeeded를 호출해야 부드럽게 펼쳐짐
-        UIView.animate(withDuration: 0.3, animations: {
+        UIView.animate(withDuration: 0.3) {
             self.contentStackView.isHidden = !self.isExpanded
             self.contentStackView.alpha = self.isExpanded ? 1.0 : 0.0
-            
-            // 쉐브론 회전
-            let angle = self.isExpanded ? CGFloat.pi : 0
-            self.listOpenImageView.transform = CGAffineTransform(rotationAngle: angle)
-            
-            // 레이아웃 갱신
+            self.chevronImageView.transform = CGAffineTransform(rotationAngle: self.isExpanded ? .pi : 0)
             self.layoutIfNeeded()
-            
-            // (중요) 이 뷰를 포함하고 있는 부모 뷰도 같이 갱신해줘야 자연스러움
-            // 테이블뷰 셀 안에 있다면 beginUpdates/endUpdates 필요할 수 있음
-            // 일반 뷰컨트롤러라면 아래 코드로 충분
             self.superview?.layoutIfNeeded()
-        })
+        }
     }
-    
-    // MARK: - Data Binding
-    func configure(with transaction: Transaction) {
-        // 기존 뷰 제거 (초기화)
-        contentStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
+    // MARK: - Data
+
+    func configure(with transaction: Transaction) {
+        contentStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
         let items = transaction.transactionInfoList
 
-        if items.isEmpty {
-            listLabel.text = ""
-            listOpenImageView.isHidden = true
-            contentStackView.isHidden = true
-            headerContainer.isHidden = false
-
-            // 비어있을때는 바로 접히게
+        guard !items.isEmpty else {
+            summaryStack.isHidden = true
             UIView.performWithoutAnimation {
+                contentStackView.isHidden = true
+                contentStackView.alpha = 0
                 isExpanded = false
             }
-
-            headerContainer.snp.updateConstraints {
-                $0.height.equalTo(24)
-            }
-
-            headerContainer.isUserInteractionEnabled = false
-
             return
         }
 
-        // 상세 항목 추가
-        let isSingleItem = items.count == 1
+        let isSingle = items.count == 1
         for (index, item) in items.enumerated() {
-            let rowView = createRowView(name: item.name, amount: item.amount, index: index, isSingleItem: isSingleItem)
-            contentStackView.addArrangedSubview(rowView)
+            contentStackView.addArrangedSubview(
+                createRowView(name: item.name, amount: item.amount, index: index, isSingleItem: isSingle)
+            )
         }
 
-        if isSingleItem {
-            // 헤더 숨기고 내용 바로 표시 (토글 불필요)
-            headerContainer.isHidden = true
-            headerContainer.isUserInteractionEnabled = false
-            contentStackView.layoutMargins = UIEdgeInsets(top: 16, left: 0, bottom: 16, right: 0)
+        if isSingle {
+            summaryStack.isHidden = true
+            chevronImageView.transform = .identity
             contentStackView.isHidden = false
             contentStackView.alpha = 1.0
+            isExpanded = true
         } else {
-            // 항목 2개 이상: 헤더 + 접기/펼치기
-            let wasHidingHeader = headerContainer.isHidden
-            headerContainer.isHidden = false
-            listOpenImageView.isHidden = false
-            headerContainer.isUserInteractionEnabled = true
+            let prevHadSummary = !summaryStack.isHidden
+
             let font = Typography.b1.uiFont
             let base = NSMutableAttributedString(
                 string: "\(items[0].name) 외 ",
@@ -215,82 +216,73 @@ class ExpandableListView: UIView {
                 attributes: [.foregroundColor: UIColor.green5, .font: font]
             )
             base.append(highlight)
-            listLabel.attributedText = base
+            summaryLabel.attributedText = base
+            summaryStack.isHidden = false
 
-            headerContainer.snp.updateConstraints {
-                $0.height.equalTo(48)
-            }
-
-            contentStackView.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 16, right: 10)
-
-            // 1개 → 2개 이상 전환 시에만 접힌 상태로 초기화
-            // 이미 multi-item 상태에서 추가/삭제하는 경우엔 현재 펼침 상태 유지
-            if wasHidingHeader {
+            if !prevHadSummary {
                 UIView.performWithoutAnimation {
                     isExpanded = false
+                    contentStackView.isHidden = true
+                    contentStackView.alpha = 0
+                    chevronImageView.transform = .identity
                 }
             }
         }
     }
-    
+
     private func createRowView(name: String, amount: Int, index: Int, isSingleItem: Bool = false) -> UIView {
-        let view = UIView()
+        let container = UIView()
 
         let nameLabel = AppLabel()
         nameLabel.text = name
-        nameLabel.textColor = .gray1
-        nameLabel.typography = isSingleItem ? .b1 : .b7
+        nameLabel.textColor = .gray2
+        nameLabel.typography = isSingleItem ? .b1 : .b4
 
         let amountLabel = AppLabel()
         amountLabel.text = "\(amount.withComma)원"
-        amountLabel.textColor = .gray4
-        amountLabel.typography = .b6
+        amountLabel.textColor = .gray5
+        amountLabel.typography = .b4
         amountLabel.isHidden = isSingleItem
 
-        // (참고: 라벨이 정의된 후에 스택뷰를 만들어야 에러가 안 납니다)
-        let contentStackView = UIStackView(arrangedSubviews: [nameLabel, amountLabel])
-        contentStackView.axis = .vertical
-        contentStackView.spacing = 4
-        
+        let labelStack = UIStackView(arrangedSubviews: [nameLabel, amountLabel])
+        labelStack.axis = .horizontal
+        labelStack.spacing = 8
+
         let editButton = UIButton()
         editButton.setImage(UIImage(named: "edit icon"), for: .normal)
         editButton.addAction(UIAction { [weak self] _ in
             self?.onEditItem?(index)
         }, for: .touchUpInside)
-        
+
         let deleteButton = UIButton()
         deleteButton.setImage(UIImage(named: "delete icon"), for: .normal)
-        
-        // ✨ [추가 4] 삭제 버튼에 액션 추가 (핵심!)
         deleteButton.addAction(UIAction { [weak self] _ in
-            // 삭제되는 애니메이션
             UIView.animate(withDuration: 0.2, animations: {
-                view.alpha = 0
-                view.isHidden = true
+                container.alpha = 0
+                container.isHidden = true
                 self?.contentStackView.layoutIfNeeded()
-                
             }, completion: { _ in
                 self?.onDeleteItem?(index)
             })
         }, for: .touchUpInside)
-        
-        view.addSubview(contentStackView)
-        view.addSubview(editButton)
-        view.addSubview(deleteButton)
-        
-        contentStackView.snp.makeConstraints {
+
+        container.addSubview(labelStack)
+        container.addSubview(editButton)
+        container.addSubview(deleteButton)
+
+        labelStack.snp.makeConstraints {
             $0.leading.top.bottom.equalToSuperview()
         }
-        
+
         editButton.snp.makeConstraints {
             $0.centerY.equalToSuperview()
             $0.trailing.equalTo(deleteButton.snp.leading).offset(-16)
         }
-        
+
         deleteButton.snp.makeConstraints {
             $0.trailing.centerY.equalToSuperview()
         }
-        
-        return view
+
+        return container
     }
 }
