@@ -18,69 +18,12 @@ class FormItemView: UIView {
         return label
     }()
 
-    private let infoButton: UIButton = {
-        let btn = UIButton()
-        let config = UIImage.SymbolConfiguration(pointSize: 13, weight: .regular)
-        btn.setImage(UIImage(systemName: "info.circle", withConfiguration: config), for: .normal)
-        btn.tintColor = .gray4
-        btn.isHidden = true
-        return btn
-    }()
-
-    private lazy var titleStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [titleLabel, infoButton])
-        stack.axis = .horizontal
-        stack.spacing = 4
-        stack.alignment = .center
-        stack.setContentHuggingPriority(.required, for: .horizontal)
-        stack.setContentCompressionResistancePriority(.required, for: .horizontal)
-        return stack
-    }()
-
-    let actionButton: UIButton = {
-        let btn = UIButton()
-        
-        var config = UIButton.Configuration.plain()
-        config.title = "추가"
-        config.image = UIImage(named: "Chevron right blue")
-        config.imagePlacement = .trailing
-        config.baseForegroundColor = .blueConfirm
-        config.contentInsets = .zero
-        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
-            var attrs = attrs
-            attrs.font = Typography.b5.uiFont
-            return attrs
-        }
-        btn.configuration = config
-        btn.isHidden = true
-        return btn
-    }()
-
-    var onAction: (() -> Void)?
-
     let contentView: UIView
 
-
-    init(title: String, content: UIView, showActionBtn: Bool = false, tooltipText: String? = nil) {
+    init(title: String, content: UIView) {
         self.contentView = content
         super.init(frame: .zero)
         titleLabel.text = title
-
-        if let tooltipText {
-            infoButton.isHidden = false
-            infoButton.addAction(UIAction { [weak self] _ in
-                guard let self else { return }
-                TooltipView.show(from: self.infoButton, text: tooltipText)
-            }, for: .touchUpInside)
-        }
-
-        if showActionBtn {
-            actionButton.isHidden = false
-            actionButton.addAction(UIAction { [weak self] _ in
-                self?.onAction?()
-            }, for: .touchUpInside)
-        }
-
         configureUI()
     }
 
@@ -91,23 +34,17 @@ class FormItemView: UIView {
     }
 
     private func configureUI() {
-        addSubview(titleStack)
-        addSubview(actionButton)
+        addSubview(titleLabel)
         addSubview(contentView)
 
-        titleStack.snp.makeConstraints {
+        titleLabel.snp.makeConstraints {
             $0.leading.equalToSuperview()
             $0.centerY.equalToSuperview()
         }
 
-        actionButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview()
-            $0.centerY.equalTo(titleStack)
-        }
-
         contentView.snp.makeConstraints {
-            $0.leading.equalTo(titleStack.snp.trailing).offset(16)
-            $0.trailing.equalTo(actionButton.isHidden ? snp.trailing : actionButton.snp.leading).offset(actionButton.isHidden ? 0 : -8)
+            $0.leading.equalTo(titleLabel.snp.trailing).offset(16)
+            $0.trailing.equalToSuperview()
             $0.top.bottom.equalToSuperview()
         }
     }
