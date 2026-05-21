@@ -27,6 +27,8 @@ class MultiExpenseViewController: UIViewController {
         return f
     }()
 
+    let requestSingleMode = PublishRelay<Void>()
+
     var canSave: Observable<Bool> {
         Observable.combineLatest(
             viewModel.currentTransaction,
@@ -137,7 +139,7 @@ class MultiExpenseViewController: UIViewController {
         let btn = UIButton(configuration: config)
         
         btn.addAction(UIAction { [weak self] _ in
-            
+            self?.requestSingleMode.accept(())
         }, for: .touchUpInside)
         
         return btn

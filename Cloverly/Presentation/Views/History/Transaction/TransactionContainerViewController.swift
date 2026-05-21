@@ -10,7 +10,7 @@ import SnapKit
 import RxSwift
 import RxCocoa
 
-enum ExpenseEntryMode {
+enum ExpenseEntryMode: Equatable {
     case single
     case multi
 }
@@ -20,7 +20,7 @@ class TransactionContainerViewController: UIViewController {
     private let disposeBag = DisposeBag()
     private let isIncomeMode = BehaviorRelay<Bool>(value: false)
     private let defaultExpenseMode: ExpenseEntryMode
-    private var resolvedExpenseMode: ExpenseEntryMode = .multi
+    private let resolvedExpenseMode = BehaviorRelay<ExpenseEntryMode>(value: .multi)
 
     private let titleLabel: AppLabel = {
         let label = AppLabel()
@@ -85,7 +85,7 @@ class TransactionContainerViewController: UIViewController {
             guard let self else { return }
             Task {
                 do {
-                    if !self.isIncomeMode.value && self.resolvedExpenseMode == .single {
+                    if !self.isIncomeMode.value && self.resolvedExpenseMode.value == .single {
                         self.singleExpenseVC.prepareSave()
                     }
                     try await self.viewModel.saveTransaction()
@@ -183,7 +183,7 @@ class TransactionContainerViewController: UIViewController {
         guard let current = viewModel.currentTransaction.value else {
             titleLabel.text = "내역 추가"
             deleteButton.isHidden = true
-            resolvedExpenseMode = defaultExpenseMode
+            resolvedExpenseMode.accept(defaultExpenseMode)
             return
         }
 
@@ -195,12 +195,12 @@ class TransactionContainerViewController: UIViewController {
             let isIncome = current.transactionInfoList.first?.type == "INCOME"
             isIncomeMode.accept(isIncome)
             if !isIncome {
-                resolvedExpenseMode = current.transactionInfoList.count <= 1 ? .single : .multi
+                resolvedExpenseMode.accept(current.transactionInfoList.count <= 1 ? .single : .multi)
             }
         } else {
             titleLabel.text = "내역 추가"
             deleteButton.isHidden = true
-            resolvedExpenseMode = defaultExpenseMode
+            resolvedExpenseMode.accept(defaultExpenseMode)
         }
     }
 
@@ -210,21 +210,51 @@ class TransactionContainerViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] _ in
                 self?.updateTypeButtons()
+            })
+            .disposed(by: disposeBag)
+
+        Observable.combineLatest(isIncomeMode, resolvedExpenseMode)
+            .distinctUntilChanged { $0 == $1 }
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] _ in
                 self?.switchChildVC()
             })
             .disposed(by: disposeBag)
 
-        isIncomeMode
-            .flatMapLatest { [weak self] isIncome -> Observable<Bool> in
+        Observable.combineLatest(isIncomeMode, resolvedExpenseMode)
+            .flatMapLatest { [weak self] isIncome, expenseMode -> Observable<Bool> in
                 guard let self else { return .just(false) }
                 if isIncome { return self.incomeVC.canSave }
-                return self.resolvedExpenseMode == .single
+                return expenseMode == .single
                     ? self.singleExpenseVC.canSave
                     : self.multiExpenseVC.canSave
             }
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] isEnabled in
                 self?.updateSaveButton(isEnabled: isEnabled)
+            })
+            .disposed(by: disposeBag)
+
+        singleExpenseVC.requestMultiMode
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] in
+                guard let self else { return }
+                singleExpenseVC.prepareSave()
+                resolvedExpenseMode.accept(.multi)
+            })
+            .disposed(by: disposeBag)
+
+        multiExpenseVC.requestSingleMode
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] in
+                guard let self else { return }
+                if var current = viewModel.currentTransaction.value,
+                   let first = current.transactionInfoList.first {
+                    current.transactionInfoList = [first]
+                    current.totalAmount = first.amount
+                    viewModel.currentTransaction.accept(current)
+                }
+                resolvedExpenseMode.accept(.single)
             })
             .disposed(by: disposeBag)
     }
@@ -252,7 +282,7 @@ class TransactionContainerViewController: UIViewController {
         if isIncomeMode.value {
             newVC = incomeVC
         } else {
-            newVC = resolvedExpenseMode == .single ? singleExpenseVC : multiExpenseVC
+            newVC = resolvedExpenseMode.value == .single ? singleExpenseVC : multiExpenseVC
         }
         guard newVC !== currentChildVC else { return }
 

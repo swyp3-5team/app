@@ -29,6 +29,8 @@ class SingleExpenseViewController: UIViewController {
         return f
     }()
 
+    let requestMultiMode = PublishRelay<Void>()
+
     var canSave: Observable<Bool> {
         Observable.combineLatest(currentAmount, selectedCategoryId, selectedEmotion, selectedPayment)
             .map { amount, categoryId, emotion, payment in
@@ -148,7 +150,7 @@ class SingleExpenseViewController: UIViewController {
         let btn = UIButton(configuration: config)
         
         btn.addAction(UIAction { [weak self] _ in
-            
+            self?.requestMultiMode.accept(())
         }, for: .touchUpInside)
         
         return btn
