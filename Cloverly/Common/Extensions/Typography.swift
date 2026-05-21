@@ -106,7 +106,9 @@ class AppLabel: UILabel {
 
     private func applyTypography() {
         guard let style = typography else { return }
+        let alignment = textAlignment
         attributedText = style.attributedString(text ?? "", color: textColor)
+        textAlignment = alignment
     }
 }
 

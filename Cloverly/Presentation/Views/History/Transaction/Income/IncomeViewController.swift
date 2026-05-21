@@ -52,10 +52,10 @@ class IncomeViewController: UIViewController {
         return sv
     }()
 
-    private lazy var dateLabelView: UILabel = {
-        let label = UILabel()
+    private lazy var dateLabelView: AppLabel = {
+        let label = AppLabel()
         label.textAlignment = .right
-        label.font = Typography.b1.uiFont
+        label.typography = .b1
         label.textColor = .gray1
         return label
     }()
@@ -85,11 +85,11 @@ class IncomeViewController: UIViewController {
         return tf
     }()
 
-    private lazy var categoryLabelView: UILabel = {
-        let label = UILabel()
+    private lazy var categoryLabelView: AppLabel = {
+        let label = AppLabel()
         label.text = "카테고리를 선택하세요"
         label.textAlignment = .right
-        label.font = Typography.b3.uiFont
+        label.typography = .b3
         label.textColor = .gray6
         return label
     }()
@@ -171,7 +171,7 @@ class IncomeViewController: UIViewController {
 
         scrollView.snp.makeConstraints {
             $0.top.bottom.equalToSuperview()
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.leading.trailing.equalToSuperview().inset(16)
         }
 
         stackView.snp.makeConstraints {
@@ -199,15 +199,22 @@ class IncomeViewController: UIViewController {
 
                 if transaction.totalAmount > 0 {
                     self.amountTextField.text = "\(transaction.totalAmount.withComma)원"
+                    self.amountTextField.font = Typography.b1.uiFont
                 }
 
-                self.nameTextField.text = transaction.place ?? ""
-                self.memoTextField.text = transaction.paymentMemo
+                let name = transaction.place ?? ""
+                self.nameTextField.text = name
+                self.nameTextField.font = name.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
+
+                let memo = transaction.paymentMemo ?? ""
+                self.memoTextField.text = memo
+                self.memoTextField.font = memo.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
 
                 if let categoryId = transaction.transactionInfoList.first?.categoryId,
                    let category = IncomeCategory(rawValue: categoryId) {
                     self.selectedCategoryId.accept(categoryId)
                     self.categoryLabelView.text = category.fullDisplay
+                    self.categoryLabelView.typography = .b1
                     self.categoryLabelView.textColor = .gray1
                 }
             })
@@ -221,11 +228,17 @@ class IncomeViewController: UIViewController {
 
         nameTextField.rx.text.orEmpty
             .distinctUntilChanged()
+            .do(onNext: { [weak self] text in
+                self?.nameTextField.font = text.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
+            })
             .bind(onNext: viewModel.editName)
             .disposed(by: disposeBag)
 
         memoTextField.rx.text.orEmpty
             .distinctUntilChanged()
+            .do(onNext: { [weak self] text in
+                self?.memoTextField.font = text.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
+            })
             .bind(onNext: viewModel.editMemo)
             .disposed(by: disposeBag)
     }
@@ -255,6 +268,7 @@ class IncomeViewController: UIViewController {
             guard let self else { return }
             self.selectedCategoryId.accept(category.rawValue)
             self.categoryLabelView.text = category.fullDisplay
+            self.categoryLabelView.typography = .b1
             self.categoryLabelView.textColor = .gray1
             self.viewModel.editCategory(id: category.rawValue, name: category.name)
         }
@@ -321,9 +335,11 @@ extension IncomeViewController: UITextFieldDelegate {
 
         if digits.isEmpty {
             textField.text = ""
+            textField.font = Typography.b3.uiFont
         } else {
             let amount = Int(digits) ?? 0
             textField.text = "\(amount.withComma)원"
+            textField.font = Typography.b1.uiFont
             if let pos = textField.position(from: textField.endOfDocument, offset: -1) {
                 textField.selectedTextRange = textField.textRange(from: pos, to: pos)
             }
