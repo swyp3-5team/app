@@ -171,7 +171,7 @@ class IncomeViewController: UIViewController {
 
         scrollView.snp.makeConstraints {
             $0.top.bottom.equalToSuperview()
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(24)
         }
 
         stackView.snp.makeConstraints {
