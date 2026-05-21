@@ -26,7 +26,7 @@ class TransactionContainerViewController: UIViewController {
         let button = UIButton()
         button.setImage(UIImage(named: "Modal Close Button"), for: .normal)
         button.addAction(UIAction { [weak self] _ in
-            self?.dismiss(animated: true)
+            self?.navigationController?.popViewController(animated: true)
         }, for: .touchUpInside)
         return button
     }()
@@ -68,18 +68,19 @@ class TransactionContainerViewController: UIViewController {
     private lazy var saveButton: UIButton = {
         let button = UIButton()
         button.setTitle("저장", for: .normal)
-        button.setTitleColor(.gray10, for: .normal)
+        button.setTitleColor(.gray6, for: .normal)
         button.titleLabel?.font = Typography.b1.uiFont
         button.layer.cornerRadius = 8
         button.clipsToBounds = true
-        button.backgroundColor = .green5
+        button.backgroundColor = .gray8
+        button.isEnabled = false
         button.addAction(UIAction { [weak self] _ in
             guard let self else { return }
             Task {
                 do {
                     try await self.viewModel.saveTransaction()
                     self.viewModel.refreshTrigger.accept(())
-                    self.dismiss(animated: true)
+                    self.navigationController?.popViewController(animated: true)
                 } catch {
                     print("저장 실패: \(error)")
                 }
@@ -135,7 +136,6 @@ class TransactionContainerViewController: UIViewController {
         view.backgroundColor = .systemBackground
 
         navigationItem.titleView = titleLabel
-        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: xButton)
 
         let typeButtonContainer = UIView()
         typeButtonContainer.addSubview(typeButtonStack)
@@ -176,6 +176,23 @@ class TransactionContainerViewController: UIViewController {
                 self?.switchChildVC()
             })
             .disposed(by: disposeBag)
+
+        isIncomeMode
+            .flatMapLatest { [weak self] isIncome -> Observable<Bool> in
+                guard let self else { return .just(false) }
+                return isIncome ? self.incomeVC.canSave : self.expenseVC.canSave
+            }
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] isEnabled in
+                self?.updateSaveButton(isEnabled: isEnabled)
+            })
+            .disposed(by: disposeBag)
+    }
+
+    private func updateSaveButton(isEnabled: Bool) {
+        saveButton.isEnabled = isEnabled
+        saveButton.setTitleColor(isEnabled ? .gray10 : .gray6, for: .normal)
+        saveButton.backgroundColor = isEnabled ? .green5 : .gray8
     }
 
     private func setupViewMode() {
@@ -232,7 +249,7 @@ class TransactionContainerViewController: UIViewController {
                 do {
                     try await self?.viewModel.deleteTransaction()
                     self?.viewModel.refreshTrigger.accept(())
-                    self?.dismiss(animated: true)
+                    self?.navigationController?.popViewController(animated: true)
                 } catch {
                     print("삭제 실패: \(error)")
                 }

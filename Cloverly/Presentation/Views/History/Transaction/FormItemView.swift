@@ -12,10 +12,12 @@ class FormItemView: UIView {
     private let titleLabel: AppLabel = {
         let label = AppLabel()
         label.textColor = .gray2
-        label.typography = .b5
+        label.typography = .b2
+        label.setContentHuggingPriority(.required, for: .horizontal)
+        label.setContentCompressionResistancePriority(.required, for: .horizontal)
         return label
     }()
-    
+
     private let infoButton: UIButton = {
         let btn = UIButton()
         let config = UIImage.SymbolConfiguration(pointSize: 13, weight: .regular)
@@ -30,6 +32,8 @@ class FormItemView: UIView {
         stack.axis = .horizontal
         stack.spacing = 4
         stack.alignment = .center
+        stack.setContentHuggingPriority(.required, for: .horizontal)
+        stack.setContentCompressionResistancePriority(.required, for: .horizontal)
         return stack
     }()
 
@@ -41,15 +45,16 @@ class FormItemView: UIView {
         btn.isHidden = true
         return btn
     }()
-    
+
     var onAction: (() -> Void)?
-    
-    let contentView: UIView // 텍스트필드나 칩 뷰가 들어갈 자리
-    
+
+    let contentView: UIView
+
+
     init(title: String, content: UIView, showActionBtn: Bool = false, tooltipText: String? = nil) {
         self.contentView = content
         super.init(frame: .zero)
-        self.titleLabel.text = title
+        titleLabel.text = title
 
         if let tooltipText {
             infoButton.isHidden = false
@@ -60,40 +65,40 @@ class FormItemView: UIView {
         }
 
         if showActionBtn {
-            self.actionButton.isHidden = false
-            self.actionButton.addAction(UIAction { [weak self] _ in
+            actionButton.isHidden = false
+            actionButton.addAction(UIAction { [weak self] _ in
                 self?.onAction?()
             }, for: .touchUpInside)
         }
-        
+
         configureUI()
     }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
     func updateTitle(_ title: String) {
         titleLabel.text = title
     }
 
-    func configureUI() {
+    private func configureUI() {
         addSubview(titleStack)
         addSubview(actionButton)
         addSubview(contentView)
 
         titleStack.snp.makeConstraints {
-            $0.top.leading.equalToSuperview()
+            $0.leading.equalToSuperview()
+            $0.centerY.equalToSuperview()
         }
-        
+
         actionButton.snp.makeConstraints {
+            $0.trailing.equalToSuperview()
             $0.centerY.equalTo(titleStack)
-            $0.trailing.equalToSuperview() // 오른쪽 끝 정렬
         }
-        
+
         contentView.snp.makeConstraints {
-            $0.top.equalTo(titleStack.snp.bottom).offset(8)
-            $0.leading.trailing.bottom.equalToSuperview() // 좌우 꽉 채우기
+            $0.leading.equalTo(titleStack.snp.trailing).offset(16)
+            $0.trailing.equalTo(actionButton.isHidden ? snp.trailing : actionButton.snp.leading).offset(actionButton.isHidden ? 0 : -8)
+            $0.top.bottom.equalToSuperview()
         }
     }
 }
