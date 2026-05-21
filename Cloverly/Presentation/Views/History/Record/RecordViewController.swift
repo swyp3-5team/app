@@ -68,6 +68,12 @@ class RecordViewController: UIViewController {
         config.imagePadding = 4
         config.cornerStyle = .capsule
         
+        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
+            var attrs = attrs
+            attrs.font = Typography.b5.uiFont
+            return attrs
+        }
+        
         let button = UIButton(configuration: config)
         
         button.addAction(UIAction { [weak self] _ in
@@ -233,7 +239,10 @@ class RecordViewController: UIViewController {
                 title: "한 건 입력",
                 subtitle: "품목 하나만 빠르게"
             ) { [weak self] in
-                print("단일 품목 선택")
+                guard let self = self else { return }
+                viewModel.clearCurrentTransaction()
+                let vc = TransactionContainerViewController(viewModel: viewModel, expenseMode: .single)
+                self.navigationController?.pushViewController(vc, animated: true)
             },
             MenuItem(
                 image: UIImage(named: "Multiple Icon"),
@@ -570,11 +579,15 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let dateKey = viewModel.sortedDateKeys[indexPath.section]
-        
+
         if let transactions = viewModel.filteredTransactions.value[dateKey] {
             let transaction = transactions[indexPath.row]
             viewModel.currentTransaction.accept(transaction)
-            let vc = TransactionContainerViewController(viewModel: viewModel)
+
+            let isIncome = transaction.transactionInfoList.first?.type == "INCOME"
+            let expenseMode: ExpenseEntryMode = (!isIncome && transaction.transactionInfoList.count <= 1) ? .single : .multi
+
+            let vc = TransactionContainerViewController(viewModel: viewModel, expenseMode: expenseMode)
             self.navigationController?.pushViewController(vc, animated: true)
         }
     }

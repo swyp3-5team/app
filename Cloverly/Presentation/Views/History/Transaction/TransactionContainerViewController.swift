@@ -10,10 +10,17 @@ import SnapKit
 import RxSwift
 import RxCocoa
 
+enum ExpenseEntryMode {
+    case single
+    case multi
+}
+
 class TransactionContainerViewController: UIViewController {
     private let viewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
     private let isIncomeMode = BehaviorRelay<Bool>(value: false)
+    private let defaultExpenseMode: ExpenseEntryMode
+    private var resolvedExpenseMode: ExpenseEntryMode = .multi
 
     private let titleLabel: AppLabel = {
         let label = AppLabel()
@@ -78,6 +85,9 @@ class TransactionContainerViewController: UIViewController {
             guard let self else { return }
             Task {
                 do {
+                    if !self.isIncomeMode.value && self.resolvedExpenseMode == .single {
+                        self.singleExpenseVC.prepareSave()
+                    }
                     try await self.viewModel.saveTransaction()
                     self.viewModel.refreshTrigger.accept(())
                     self.navigationController?.popViewController(animated: true)
@@ -115,11 +125,13 @@ class TransactionContainerViewController: UIViewController {
     private let containerView = UIView()
 
     private lazy var incomeVC = IncomeViewController(viewModel: viewModel)
-    private lazy var expenseVC = ExpenseHistoryViewController(viewModel: viewModel)
+    private lazy var singleExpenseVC = SingleExpenseViewController(viewModel: viewModel)
+    private lazy var multiExpenseVC = MultiExpenseViewController(viewModel: viewModel)
     private var currentChildVC: UIViewController?
 
-    init(viewModel: CalendarViewModel) {
+    init(viewModel: CalendarViewModel, expenseMode: ExpenseEntryMode = .multi) {
         self.viewModel = viewModel
+        self.defaultExpenseMode = expenseMode
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -128,8 +140,8 @@ class TransactionContainerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
-        bind()
         setupViewMode()
+        bind()
     }
 
     private func configureUI() {
@@ -167,6 +179,31 @@ class TransactionContainerViewController: UIViewController {
         }
     }
 
+    private func setupViewMode() {
+        guard let current = viewModel.currentTransaction.value else {
+            titleLabel.text = "내역 추가"
+            deleteButton.isHidden = true
+            resolvedExpenseMode = defaultExpenseMode
+            return
+        }
+
+        if current.trGroupId != -1 {
+            titleLabel.text = "내역 수정"
+            deleteButton.isHidden = false
+            incomeButton.isEnabled = false
+            expenseButton.isEnabled = false
+            let isIncome = current.transactionInfoList.first?.type == "INCOME"
+            isIncomeMode.accept(isIncome)
+            if !isIncome {
+                resolvedExpenseMode = current.transactionInfoList.count <= 1 ? .single : .multi
+            }
+        } else {
+            titleLabel.text = "내역 추가"
+            deleteButton.isHidden = true
+            resolvedExpenseMode = defaultExpenseMode
+        }
+    }
+
     private func bind() {
         isIncomeMode
             .distinctUntilChanged()
@@ -180,7 +217,10 @@ class TransactionContainerViewController: UIViewController {
         isIncomeMode
             .flatMapLatest { [weak self] isIncome -> Observable<Bool> in
                 guard let self else { return .just(false) }
-                return isIncome ? self.incomeVC.canSave : self.expenseVC.canSave
+                if isIncome { return self.incomeVC.canSave }
+                return self.resolvedExpenseMode == .single
+                    ? self.singleExpenseVC.canSave
+                    : self.multiExpenseVC.canSave
             }
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] isEnabled in
@@ -193,25 +233,6 @@ class TransactionContainerViewController: UIViewController {
         saveButton.isEnabled = isEnabled
         saveButton.setTitleColor(isEnabled ? .gray10 : .gray6, for: .normal)
         saveButton.backgroundColor = isEnabled ? .green5 : .gray8
-    }
-
-    private func setupViewMode() {
-        guard let current = viewModel.currentTransaction.value else {
-            titleLabel.text = "내역 추가"
-            deleteButton.isHidden = true
-            return
-        }
-
-        if current.trGroupId != -1 {
-            titleLabel.text = "내역 수정"
-            deleteButton.isHidden = false
-            incomeButton.isEnabled = false
-            expenseButton.isEnabled = false
-            isIncomeMode.accept(current.transactionInfoList.first?.type == "INCOME")
-        } else {
-            titleLabel.text = "내역 추가"
-            deleteButton.isHidden = true
-        }
     }
 
     private func updateTypeButtons() {
@@ -227,7 +248,12 @@ class TransactionContainerViewController: UIViewController {
     }
 
     private func switchChildVC() {
-        let newVC: UIViewController = isIncomeMode.value ? incomeVC : expenseVC
+        let newVC: UIViewController
+        if isIncomeMode.value {
+            newVC = incomeVC
+        } else {
+            newVC = resolvedExpenseMode == .single ? singleExpenseVC : multiExpenseVC
+        }
         guard newVC !== currentChildVC else { return }
 
         currentChildVC?.willMove(toParent: nil)

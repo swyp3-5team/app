@@ -64,7 +64,7 @@ class ExpenseListViewController: UIViewController {
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             viewModel.clearCurrentTransaction()
-            let vc = ExpenseHistoryViewController(viewModel: viewModel)
+            let vc = MultiExpenseViewController(viewModel: viewModel)
             let nav = UINavigationController(rootViewController: vc)
             nav.modalPresentationStyle = .fullScreen
             present(nav, animated: true)
@@ -176,7 +176,7 @@ extension ExpenseListViewController: UITableViewDataSource, UITableViewDelegate 
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         viewModel.currentTransaction.accept(viewModel.currentDayTransactions[indexPath.row])
-        let vc = ExpenseHistoryViewController(viewModel: viewModel)
+        let vc = MultiExpenseViewController(viewModel: viewModel)
         let nav = UINavigationController(rootViewController: vc)
         nav.modalPresentationStyle = .fullScreen
         present(nav, animated: true)
