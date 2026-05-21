@@ -37,6 +37,7 @@ final class CalendarViewModel {
     // 내역 수정
     let currentTransaction = BehaviorRelay<Transaction?>(value: nil)
     let refreshTrigger = PublishRelay<Void>()
+    private var incomeCategoryName: String = ""
     
     // 내역-기록
     let filteredTransactions = BehaviorRelay<[String: [Transaction]]>(value: [:])
@@ -209,6 +210,7 @@ final class CalendarViewModel {
 
     func editCategory(id: Int, name: String) {
         guard var current = currentTransaction.value else { return }
+        incomeCategoryName = name
         current.transactionInfoList.indices.forEach {
             current.transactionInfoList[$0].categoryId = id
             current.transactionInfoList[$0].categoryName = name
@@ -261,7 +263,7 @@ final class CalendarViewModel {
     
     // 내역-추가
     func clearCurrentTransaction() {
-        // ID는 없거나 -1, 날짜는 오늘, 금액은 0원인 빈 객체를 만듭니다.
+        incomeCategoryName = ""
         let emptyTransaction = Transaction(
             trGroupId: -1, transactionDate: Date().toServerFormat, totalAmount: 0, payment: .card, emotion: .neutral, transactionInfoList: []
         )
@@ -282,7 +284,7 @@ final class CalendarViewModel {
                 )
             }
             if transactionDTOs.isEmpty {
-                transactionDTOs = [TransactionDTO(name: "", amount: current.totalAmount, categoryName: "")]
+                transactionDTOs = [TransactionDTO(name: "", amount: current.totalAmount, categoryName: incomeCategoryName)]
             }
             
             let requestBody = TransactionRequest(place: current.place, transactionDate: current.transactionDate, payment: current.payment, paymentMemo: current.paymentMemo, emotion: current.emotion, transactions: transactionDTOs)
