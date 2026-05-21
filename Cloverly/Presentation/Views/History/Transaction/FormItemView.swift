@@ -43,7 +43,7 @@ class FormItemView: UIView {
         }
 
         contentView.snp.makeConstraints {
-            $0.leading.equalTo(titleLabel.snp.trailing).offset(16)
+            $0.leading.greaterThanOrEqualTo(titleLabel.snp.trailing).offset(16)
             $0.trailing.equalToSuperview()
             $0.top.bottom.equalToSuperview()
         }

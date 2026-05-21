@@ -57,6 +57,7 @@ class IncomeViewController: UIViewController {
         label.textAlignment = .right
         label.typography = .b1
         label.textColor = .gray1
+        label.isUserInteractionEnabled = true
         return label
     }()
 
@@ -91,6 +92,7 @@ class IncomeViewController: UIViewController {
         label.textAlignment = .right
         label.typography = .b3
         label.textColor = .gray6
+        label.isUserInteractionEnabled = true
         return label
     }()
 
@@ -110,15 +112,13 @@ class IncomeViewController: UIViewController {
 
     private lazy var dateRow: FormItemView = {
         let row = FormItemView(title: "날짜", content: dateLabelView)
-        let tap = UITapGestureRecognizer(target: self, action: #selector(presentDatePicker))
-        row.addGestureRecognizer(tap)
+        dateLabelView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(presentDatePicker)))
         return row
     }()
 
     private lazy var categoryRow: FormItemView = {
         let row = FormItemView(title: "카테고리", content: categoryLabelView)
-        let tap = UITapGestureRecognizer(target: self, action: #selector(presentCategoryPicker))
-        row.addGestureRecognizer(tap)
+        categoryLabelView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(presentCategoryPicker)))
         return row
     }()
 
