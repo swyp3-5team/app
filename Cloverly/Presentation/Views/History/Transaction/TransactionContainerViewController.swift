@@ -34,9 +34,8 @@ class TransactionContainerViewController: UIViewController {
         let button = UIButton()
         button.setImage(UIImage(named: "Modal Close Button"), for: .normal)
         button.addAction(UIAction { [weak self] _ in
-            self?.dismiss(animated: true)
+            self?.handleBack()
         }, for: .touchUpInside)
-        
         return button
     }()
 
@@ -92,11 +91,7 @@ class TransactionContainerViewController: UIViewController {
                     }
                     try await self.viewModel.saveTransaction()
                     self.onComplete()
-                    if self.isModal {
-                        self.dismiss(animated: true)
-                    } else {
-                        self.navigationController?.popViewController(animated: true)
-                    }
+                    self.navigateBack()
                 } catch {
                     print("저장 실패: \(error)")
                 }
@@ -129,6 +124,7 @@ class TransactionContainerViewController: UIViewController {
     }()
 
     private let containerView = UIView()
+    private var originalTransaction: Transaction?
 
     private lazy var incomeVC = IncomeViewController(viewModel: viewModel)
     private lazy var singleExpenseVC = SingleExpenseViewController(viewModel: viewModel)
@@ -149,6 +145,8 @@ class TransactionContainerViewController: UIViewController {
         configureUI()
         setupViewMode()
         bind()
+        // bind() 이후 스냅샷: skip(1) 덕분에 child VC의 초기 텍스트 바인딩이 currentTransaction을 수정하지 않음
+        originalTransaction = viewModel.currentTransaction.value
         navigationController?.interactivePopGestureRecognizer?.delegate = self
     }
 
@@ -326,11 +324,66 @@ class TransactionContainerViewController: UIViewController {
     }
 
     @objc private func handleBack() {
+        if hasUnsavedChanges() {
+            showUnsavedChangesAlert()
+        } else {
+            navigateBack()
+        }
+    }
+
+    private func navigateBack() {
         if isModal {
             dismiss(animated: true)
         } else {
             navigationController?.popViewController(animated: true)
         }
+    }
+
+    private func hasUnsavedChanges() -> Bool {
+        guard let current = viewModel.currentTransaction.value else { return false }
+
+        if current.trGroupId != -1 {
+            // 수정 모드: 원본 스냅샷과 비교
+            guard let original = originalTransaction else { return false }
+
+            if isIncomeMode.value || resolvedExpenseMode.value == .multi {
+                return current != original
+            } else {
+                // 단일 지출: categoryId는 currentTransaction에 반영되지 않으므로 별도 비교
+                if current != original { return true }
+                return viewModel.selectedCategoryId.value != original.transactionInfoList.first?.categoryId
+            }
+        } else {
+            // 추가 모드: 의미 있는 입력값이 있으면 true
+            if isIncomeMode.value {
+                return current.totalAmount > 0
+                    || viewModel.selectedCategoryId.value != nil
+                    || current.place?.isEmpty == false
+                    || current.paymentMemo?.isEmpty == false
+            } else if resolvedExpenseMode.value == .single {
+                return current.totalAmount > 0
+                    || viewModel.selectedCategoryId.value != nil
+                    || viewModel.selectedEmotion.value != nil
+                    || viewModel.selectedPayment.value != nil
+                    || current.place?.isEmpty == false
+                    || current.paymentMemo?.isEmpty == false
+            } else {
+                return !current.transactionInfoList.isEmpty
+                    || viewModel.selectedEmotion.value != nil
+                    || viewModel.selectedPayment.value != nil
+                    || current.place?.isEmpty == false
+                    || current.paymentMemo?.isEmpty == false
+            }
+        }
+    }
+
+    private func showUnsavedChangesAlert() {
+        let alert = UIAlertController(title: "저장하지 않고 나가시겠습니까?", message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+        alert.addAction(UIAlertAction(title: "나가기", style: .destructive) { [weak self] _ in
+            self?.navigateBack()
+        })
+        present(alert, animated: true)
     }
 
     private func showDeleteAlert() {
@@ -341,11 +394,7 @@ class TransactionContainerViewController: UIViewController {
                 do {
                     try await self?.viewModel.deleteTransaction()
                     self?.onComplete()
-                    if self?.isModal == true {
-                        self?.dismiss(animated: true)
-                    } else {
-                        self?.navigationController?.popViewController(animated: true)
-                    }
+                    self?.navigateBack()
                 } catch {
                     print("삭제 실패: \(error)")
                 }
@@ -357,7 +406,11 @@ class TransactionContainerViewController: UIViewController {
 
 extension TransactionContainerViewController: UIGestureRecognizerDelegate {
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        handleBack()
+        if hasUnsavedChanges() {
+            showUnsavedChangesAlert()
+            return false
+        }
+        navigationController?.popViewController(animated: true)
         return false
     }
 }

@@ -17,7 +17,6 @@ final class TransactionViewModel {
     let selectedEmotion: BehaviorRelay<Emotion?>
     let selectedPayment: BehaviorRelay<Payment?>
     let selectedCategoryId: BehaviorRelay<Int?>
-    let currentAmount: BehaviorRelay<Int>
 
     private var incomeCategoryName: String = ""
 
@@ -33,7 +32,6 @@ final class TransactionViewModel {
         selectedEmotion = BehaviorRelay(value: nil)
         selectedPayment = BehaviorRelay(value: nil)
         selectedCategoryId = BehaviorRelay(value: nil)
-        currentAmount = BehaviorRelay(value: 0)
     }
 
     func configure(with transaction: Transaction? = nil) {
@@ -43,7 +41,6 @@ final class TransactionViewModel {
             selectedPayment.accept(t.payment)
             selectedCategoryId.accept(t.transactionInfoList.first?.categoryId)
             incomeCategoryName = t.transactionInfoList.first?.categoryName ?? ""
-            currentAmount.accept(t.transactionInfoList.first?.amount ?? 0)
         } else {
             currentTransaction.accept(Transaction(
                 trGroupId: -1,
@@ -57,7 +54,6 @@ final class TransactionViewModel {
             selectedPayment.accept(nil)
             selectedCategoryId.accept(nil)
             incomeCategoryName = ""
-            currentAmount.accept(0)
         }
     }
 

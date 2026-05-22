@@ -226,6 +226,7 @@ class IncomeViewController: UIViewController {
 
         nameTextField.rx.text.orEmpty
             .distinctUntilChanged()
+            .skip(1)
             .do(onNext: { [weak self] text in
                 self?.nameTextField.font = text.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
             })
@@ -234,6 +235,7 @@ class IncomeViewController: UIViewController {
 
         memoTextField.rx.text.orEmpty
             .distinctUntilChanged()
+            .skip(1)
             .do(onNext: { [weak self] text in
                 self?.memoTextField.font = text.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
             })

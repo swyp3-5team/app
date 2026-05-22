@@ -28,13 +28,14 @@ class SingleExpenseViewController: UIViewController {
 
     var canSave: Observable<Bool> {
         Observable.combineLatest(
-            viewModel.currentAmount,
+            viewModel.currentTransaction,
             viewModel.selectedCategoryId,
             viewModel.selectedEmotion,
             viewModel.selectedPayment
         )
-        .map { amount, categoryId, emotion, payment in
-            amount > 0 && categoryId != nil && emotion != nil && payment != nil
+        .map { transaction, categoryId, emotion, payment in
+            guard let t = transaction else { return false }
+            return t.totalAmount > 0 && categoryId != nil && emotion != nil && payment != nil
         }
     }
 
@@ -263,9 +264,8 @@ class SingleExpenseViewController: UIViewController {
                     self.updateDateLabel(with: date)
                 }
 
-                let amount = self.viewModel.currentAmount.value
-                if amount > 0 {
-                    self.amountTextField.text = "\(amount.withComma)원"
+                if transaction.totalAmount > 0 {
+                    self.amountTextField.text = "\(transaction.totalAmount.withComma)원"
                     self.amountTextField.font = Typography.b1.uiFont
                 }
 
@@ -292,11 +292,13 @@ class SingleExpenseViewController: UIViewController {
         amountTextField.rx.text.orEmpty
             .distinctUntilChanged()
             .map { Int($0.filter(\.isNumber)) ?? 0 }
-            .bind(to: viewModel.currentAmount)
+            .bind(onNext: viewModel.editAmount)
             .disposed(by: disposeBag)
 
+        // skip(1): 구독 시점 초기 emit이 editName/editMemo를 트리거해 currentTransaction을 수정하는 것을 방지
         nameTextField.rx.text.orEmpty
             .distinctUntilChanged()
+            .skip(1)
             .do(onNext: { [weak self] text in
                 self?.nameTextField.font = text.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
             })
@@ -305,6 +307,7 @@ class SingleExpenseViewController: UIViewController {
 
         memoTextField.rx.text.orEmpty
             .distinctUntilChanged()
+            .skip(1)
             .do(onNext: { [weak self] text in
                 self?.memoTextField.font = text.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
             })
@@ -316,19 +319,17 @@ class SingleExpenseViewController: UIViewController {
 
     func prepareSave() {
         guard var current = viewModel.currentTransaction.value else { return }
-        let amount = viewModel.currentAmount.value
         let categoryId = viewModel.selectedCategoryId.value ?? 0
         let name = nameTextField.text ?? ""
 
         let item = TransactionInfo(
             transactionId: current.transactionInfoList.first?.transactionId,
             name: name,
-            amount: amount,
+            amount: current.totalAmount,
             categoryId: categoryId,
             categoryName: ExpenseCategory(rawValue: categoryId)?.name ?? "기타"
         )
         current.transactionInfoList = [item]
-        current.totalAmount = amount
         viewModel.currentTransaction.accept(current)
     }
 
