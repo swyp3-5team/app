@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3CB535492F0785AE0006D32A /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = 3CB535482F0785AE0006D32A /* DGCharts */; };
+		3CE1D6392FC018EA0061A760 /* AdFitSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 3CE1D6382FC018EA0061A760 /* AdFitSDK */; };
 		C20C8C322F043B100093B69B /* FSCalendar in Frameworks */ = {isa = PBXBuildFile; productRef = C20C8C312F043B100093B69B /* FSCalendar */; };
 		C20C8C352F043B590093B69B /* Tabman in Frameworks */ = {isa = PBXBuildFile; productRef = C20C8C342F043B590093B69B /* Tabman */; };
 		C23F6B3A2F168E6A009BD442 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C23F6B392F168E6A009BD442 /* FirebaseAnalytics */; };
@@ -93,6 +94,7 @@
 				C20C8C352F043B590093B69B /* Tabman in Frameworks */,
 				C20C8C322F043B100093B69B /* FSCalendar in Frameworks */,
 				C2876D972EEB070100231C37 /* RxCocoa in Frameworks */,
+				3CE1D6392FC018EA0061A760 /* AdFitSDK in Frameworks */,
 				C2876D4D2EEB01E100231C37 /* KakaoSDKUser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -167,6 +169,7 @@
 				C23F6B392F168E6A009BD442 /* FirebaseAnalytics */,
 				C29CBEFA2F227DF80068AE60 /* SDWebImageWebPCoder */,
 				C26C0A282F9E6F3100B69ABF /* GoogleMobileAds */,
+				3CE1D6382FC018EA0061A760 /* AdFitSDK */,
 			);
 			productName = Cloverly;
 			productReference = C2876C202EEAFD3300231C37 /* Cloverly.app */;
@@ -262,6 +265,7 @@
 				C23F6B382F168E6A009BD442 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				C29CBEF92F227DF80068AE60 /* XCRemoteSwiftPackageReference "SDWebImageWebPCoder" */,
 				C26C0A272F9E6F3100B69ABF /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				3CE1D6372FC018E90061A760 /* XCRemoteSwiftPackageReference "adfit-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C2876C212EEAFD3300231C37 /* Products */;
@@ -678,6 +682,14 @@
 				minimumVersion = 5.1.0;
 			};
 		};
+		3CE1D6372FC018E90061A760 /* XCRemoteSwiftPackageReference "adfit-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/adfit/adfit-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.21.24;
+			};
+		};
 		C20C8C302F043B100093B69B /* XCRemoteSwiftPackageReference "FSCalendar" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/WenchaoD/FSCalendar.git";
@@ -757,6 +769,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3CB535472F0785AE0006D32A /* XCRemoteSwiftPackageReference "Charts" */;
 			productName = DGCharts;
+		};
+		3CE1D6382FC018EA0061A760 /* AdFitSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3CE1D6372FC018E90061A760 /* XCRemoteSwiftPackageReference "adfit-spm" */;
+			productName = AdFitSDK;
 		};
 		C20C8C312F043B100093B69B /* FSCalendar */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 import RxSwift
 import RxCocoa
-import GoogleMobileAds
+import AdFitSDK
 
 class RecordViewController: UIViewController {
     private let viewModel: CalendarViewModel
@@ -205,13 +205,10 @@ class RecordViewController: UIViewController {
         return button
     }()
     
-    private lazy var bannerView: BannerView = {
-        let bannerWidth = UIScreen.main.bounds.width - 32
-        let adSize = portraitAnchoredAdaptiveBanner(width: bannerWidth)
-        let banner = BannerView(adSize: adSize, origin: .zero)
-        banner.adUnitID = "ca-app-pub-8889421922972515/2490079929"
-//        banner.adUnitID = "ca-app-pub-3940256099942544/2934735716" // test
+    private lazy var bannerView: AdFitBannerAdView = {
+        let banner = AdFitBannerAdView(clientId: "DAN-VlURa9fxNUcIMzSd", adUnitSize: "320x100")
         banner.rootViewController = self
+        banner.delegate = self
         banner.layer.cornerRadius = 8
         banner.clipsToBounds = true
         return banner
@@ -297,11 +294,8 @@ class RecordViewController: UIViewController {
         super.viewDidLoad()
         configureUI()
         bind()
-        
-        bannerView.load(Request())
-        
-        print("banner adSize: \(bannerView.adSize)")
-        print("banner frame: \(bannerView.frame)")
+
+        bannerView.loadAd()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -322,7 +316,7 @@ class RecordViewController: UIViewController {
         headerContainer.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 400)
         
         [prevButton, headerLabel, nextButton, statsButton,
-         incomeRowStack, expenseRowStack, balanceRowStack, filterButton, bannerView].forEach {
+         incomeRowStack, expenseRowStack, balanceRowStack, bannerView, filterButton].forEach {
             headerContainer.addSubview($0)
         }
         
@@ -361,14 +355,12 @@ class RecordViewController: UIViewController {
             $0.centerY.equalTo(expenseRowStack)
         }
 
-        let bannerWidth = UIScreen.main.bounds.width - 32
-        let adSize = portraitAnchoredAdaptiveBanner(width: bannerWidth)
         bannerView.snp.makeConstraints {
             $0.top.equalTo(expenseRowStack.snp.bottom).offset(20)
             $0.leading.trailing.equalToSuperview().inset(16)
-            $0.height.equalTo(adSize.size.height)
+            $0.height.equalTo(100)
         }
-        
+
         filterButton.snp.makeConstraints {
             $0.top.equalTo(bannerView.snp.bottom).offset(20)
             $0.leading.equalToSuperview().offset(16)
@@ -640,5 +632,15 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return 22
+    }
+}
+
+extension RecordViewController: AdFitBannerAdViewDelegate {
+    func adViewDidReceiveAd(_ bannerAdView: AdFitBannerAdView) {
+        print("AdFit 광고 수신 성공")
+    }
+
+    func adViewDidFailToReceiveAd(_ bannerAdView: AdFitBannerAdView, error: Error) {
+        print("AdFit 광고 수신 실패: \(error.localizedDescription)")
     }
 }

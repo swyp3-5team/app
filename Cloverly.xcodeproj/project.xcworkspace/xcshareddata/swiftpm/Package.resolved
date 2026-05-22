@@ -1,5 +1,5 @@
 {
-  "originHash" : "5acdc1dbded4c8ff5a2748703a8d1d27ba802f0f0832cb47c7e7ce0e12fb7b9c",
+  "originHash" : "463cdfd442a35222b6d27dd27d5e95b02a9582aa461121100916e0d4b2628a89",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "bbe8b69694d7873315fd3a4ad41efe043e1c07c5",
         "version" : "1.2024072200.0"
+      }
+    },
+    {
+      "identity" : "adfit-spm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/adfit/adfit-spm.git",
+      "state" : {
+        "revision" : "f29d3d1abb7be92e424f98806da495e3d6aa9707",
+        "version" : "3.21.24"
       }
     },
     {
@@ -220,7 +229,7 @@
     {
       "identity" : "swift-package-manager-google-mobile-ads",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/googleads/swift-package-manager-google-mobile-ads",
+      "location" : "https://github.com/googleads/swift-package-manager-google-mobile-ads.git",
       "state" : {
         "revision" : "8d08e4396ea955a7d2baf067c0eedfc34ca0821d",
         "version" : "13.2.0"
