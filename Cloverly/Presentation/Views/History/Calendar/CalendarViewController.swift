@@ -13,10 +13,12 @@ import RxCocoa
 
 class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendarDelegate {
     private let viewModel: CalendarViewModel
+    private let transactionViewModel: TransactionViewModel
     private let disposeBag = DisposeBag()
-    
-    init(viewModel: CalendarViewModel) {
+
+    init(viewModel: CalendarViewModel, transactionViewModel: TransactionViewModel) {
         self.viewModel = viewModel
+        self.transactionViewModel = transactionViewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -251,7 +253,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
                 guard let self = self else { return }
                 
                 if isPresent {
-                    let vc = ExpenseListViewController(viewModel: viewModel)
+                    let vc = ExpenseListViewController(viewModel: viewModel, transactionViewModel: transactionViewModel)
                     let nav = UINavigationController(rootViewController: vc)
                     
                     if let sheet = nav.sheetPresentationController {

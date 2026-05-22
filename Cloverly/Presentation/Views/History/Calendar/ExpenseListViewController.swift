@@ -12,6 +12,7 @@ import RxCocoa
 
 class ExpenseListViewController: UIViewController {
     private let viewModel: CalendarViewModel
+    private let transactionViewModel: TransactionViewModel
     private let disposeBag = DisposeBag()
     
     var statusBarHeight: CGFloat {
@@ -63,8 +64,10 @@ class ExpenseListViewController: UIViewController {
         
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
-            viewModel.clearCurrentTransaction()
-            let vc = MultiExpenseViewController(viewModel: viewModel)
+            transactionViewModel.configure()
+            let vc = TransactionContainerViewController(viewModel: transactionViewModel, onComplete: { [weak self] in
+                self?.viewModel.refreshTrigger.accept(())
+            })
             let nav = UINavigationController(rootViewController: vc)
             nav.modalPresentationStyle = .fullScreen
             present(nav, animated: true)
@@ -85,8 +88,9 @@ class ExpenseListViewController: UIViewController {
         return tableView
     }()
     
-    init(viewModel: CalendarViewModel) {
+    init(viewModel: CalendarViewModel, transactionViewModel: TransactionViewModel) {
         self.viewModel = viewModel
+        self.transactionViewModel = transactionViewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -175,8 +179,14 @@ extension ExpenseListViewController: UITableViewDataSource, UITableViewDelegate 
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        viewModel.currentTransaction.accept(viewModel.currentDayTransactions[indexPath.row])
-        let vc = MultiExpenseViewController(viewModel: viewModel)
+        let transaction = viewModel.currentDayTransactions[indexPath.row]
+        let isIncome = transaction.transactionInfoList.first?.type == "INCOME"
+        let expenseMode: ExpenseEntryMode = (!isIncome && transaction.transactionInfoList.count <= 1) ? .single : .multi
+
+        transactionViewModel.configure(with: transaction)
+        let vc = TransactionContainerViewController(viewModel: transactionViewModel, expenseMode: expenseMode, onComplete: { [weak self] in
+            self?.viewModel.refreshTrigger.accept(())
+        })
         let nav = UINavigationController(rootViewController: vc)
         nav.modalPresentationStyle = .fullScreen
         present(nav, animated: true)

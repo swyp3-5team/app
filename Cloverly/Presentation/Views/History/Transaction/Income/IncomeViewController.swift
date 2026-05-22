@@ -11,15 +11,14 @@ import RxSwift
 import RxCocoa
 
 class IncomeViewController: UIViewController {
-    private let viewModel: CalendarViewModel
+    private let viewModel: TransactionViewModel
     private let disposeBag = DisposeBag()
-    private let selectedCategoryId = BehaviorRelay<Int?>(value: nil)
     private var selectedDate: Date = Date()
 
     var canSave: Observable<Bool> {
         Observable.combineLatest(
             viewModel.currentTransaction,
-            selectedCategoryId.asObservable()
+            viewModel.selectedCategoryId
         )
         .map { transaction, categoryId in
             guard let t = transaction else { return false }
@@ -124,7 +123,7 @@ class IncomeViewController: UIViewController {
 
     // MARK: - Init
 
-    init(viewModel: CalendarViewModel) {
+    init(viewModel: TransactionViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -210,9 +209,8 @@ class IncomeViewController: UIViewController {
                 self.memoTextField.text = memo
                 self.memoTextField.font = memo.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
 
-                if let categoryId = transaction.transactionInfoList.first?.categoryId,
+                if let categoryId = self.viewModel.selectedCategoryId.value,
                    let category = IncomeCategory(rawValue: categoryId) {
-                    self.selectedCategoryId.accept(categoryId)
                     self.categoryLabelView.text = category.fullDisplay
                     self.categoryLabelView.typography = .b1
                     self.categoryLabelView.textColor = .gray1
@@ -263,14 +261,13 @@ class IncomeViewController: UIViewController {
 
     @objc private func presentCategoryPicker() {
         view.endEditing(true)
-        let pickerVC = IncomeCategoryPickerViewController(selectedId: selectedCategoryId.value)
+        let pickerVC = IncomeCategoryPickerViewController(selectedId: viewModel.selectedCategoryId.value)
         pickerVC.onSelect = { [weak self] category in
             guard let self else { return }
-            self.selectedCategoryId.accept(category.rawValue)
+            self.viewModel.editCategory(id: category.rawValue, name: category.name)
             self.categoryLabelView.text = category.fullDisplay
             self.categoryLabelView.typography = .b1
             self.categoryLabelView.textColor = .gray1
-            self.viewModel.editCategory(id: category.rawValue, name: category.name)
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.custom { _ in 260 }]

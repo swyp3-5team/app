@@ -61,8 +61,9 @@ class HistoryTabViewController: TabmanViewController {
             $0.centerX.equalToSuperview()
         }
 
-        viewControllers.append(RecordViewController(viewModel: viewModel))
-        viewControllers.append(CalendarViewController(viewModel: viewModel))
+        let transactionViewModel = TransactionViewModel()
+        viewControllers.append(RecordViewController(viewModel: viewModel, transactionViewModel: transactionViewModel))
+        viewControllers.append(CalendarViewController(viewModel: viewModel, transactionViewModel: transactionViewModel))
         
         self.dataSource = self
         

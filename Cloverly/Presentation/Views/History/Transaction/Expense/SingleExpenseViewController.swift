@@ -11,14 +11,9 @@ import RxSwift
 import RxCocoa
 
 class SingleExpenseViewController: UIViewController {
-    private let viewModel: CalendarViewModel
+    private let viewModel: TransactionViewModel
     private let disposeBag = DisposeBag()
     private var selectedDate: Date = Date()
-    private let currentAmount = BehaviorRelay<Int>(value: 0)
-    private let selectedCategoryId = BehaviorRelay<Int?>(value: nil)
-    private var selectedCategoryName: String = ""
-    private let selectedEmotion = BehaviorRelay<Emotion?>(value: nil)
-    private let selectedPayment = BehaviorRelay<Payment?>(value: nil)
 
     private var originalContentOffset: CGPoint = .zero
     private var isScrolledForKeyboard = false
@@ -32,10 +27,15 @@ class SingleExpenseViewController: UIViewController {
     let requestMultiMode = PublishRelay<Void>()
 
     var canSave: Observable<Bool> {
-        Observable.combineLatest(currentAmount, selectedCategoryId, selectedEmotion, selectedPayment)
-            .map { amount, categoryId, emotion, payment in
-                amount > 0 && categoryId != nil && emotion != nil && payment != nil
-            }
+        Observable.combineLatest(
+            viewModel.currentAmount,
+            viewModel.selectedCategoryId,
+            viewModel.selectedEmotion,
+            viewModel.selectedPayment
+        )
+        .map { amount, categoryId, emotion, payment in
+            amount > 0 && categoryId != nil && emotion != nil && payment != nil
+        }
     }
 
     // MARK: - UI
@@ -184,7 +184,7 @@ class SingleExpenseViewController: UIViewController {
 
     // MARK: - Init
 
-    init(viewModel: CalendarViewModel) {
+    init(viewModel: TransactionViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -263,29 +263,25 @@ class SingleExpenseViewController: UIViewController {
                     self.updateDateLabel(with: date)
                 }
 
-                let item = transaction.transactionInfoList.first
-                if let item {
-                    self.currentAmount.accept(item.amount)
-                    self.amountTextField.text = "\(item.amount.withComma)원"
+                let amount = self.viewModel.currentAmount.value
+                if amount > 0 {
+                    self.amountTextField.text = "\(amount.withComma)원"
                     self.amountTextField.font = Typography.b1.uiFont
+                }
 
+                if let item = transaction.transactionInfoList.first {
                     self.nameTextField.text = item.name
                     self.nameTextField.font = item.name.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
 
                     if let category = ExpenseCategory(rawValue: item.categoryId) {
-                        self.selectedCategoryId.accept(category.rawValue)
-                        self.selectedCategoryName = category.name
                         self.categoryLabelView.text = category.fullDisplay
                         self.categoryLabelView.typography = .b1
                         self.categoryLabelView.textColor = .gray1
                     }
                 }
 
-                self.selectedEmotion.accept(transaction.emotion)
-                self.updateEmotionLabel(with: transaction.emotion)
-
-                self.selectedPayment.accept(transaction.payment)
-                self.updatePaymentLabel(with: transaction.payment)
+                self.updateEmotionLabel(with: self.viewModel.selectedEmotion.value)
+                self.updatePaymentLabel(with: self.viewModel.selectedPayment.value)
 
                 let memo = transaction.paymentMemo ?? ""
                 self.memoTextField.text = memo
@@ -296,7 +292,7 @@ class SingleExpenseViewController: UIViewController {
         amountTextField.rx.text.orEmpty
             .distinctUntilChanged()
             .map { Int($0.filter(\.isNumber)) ?? 0 }
-            .bind(to: currentAmount)
+            .bind(to: viewModel.currentAmount)
             .disposed(by: disposeBag)
 
         nameTextField.rx.text.orEmpty
@@ -320,8 +316,8 @@ class SingleExpenseViewController: UIViewController {
 
     func prepareSave() {
         guard var current = viewModel.currentTransaction.value else { return }
-        let amount = currentAmount.value
-        let categoryId = selectedCategoryId.value ?? 0
+        let amount = viewModel.currentAmount.value
+        let categoryId = viewModel.selectedCategoryId.value ?? 0
         let name = nameTextField.text ?? ""
 
         let item = TransactionInfo(
@@ -356,11 +352,10 @@ class SingleExpenseViewController: UIViewController {
 
     @objc private func presentCategoryPicker() {
         view.endEditing(true)
-        let pickerVC = ExpenseCategoryPickerViewController(selectedId: selectedCategoryId.value)
+        let pickerVC = ExpenseCategoryPickerViewController(selectedId: viewModel.selectedCategoryId.value)
         pickerVC.onSelect = { [weak self] category in
             guard let self else { return }
-            self.selectedCategoryId.accept(category.rawValue)
-            self.selectedCategoryName = category.name
+            viewModel.selectedCategoryId.accept(category.rawValue)
             self.categoryLabelView.text = category.fullDisplay
             self.categoryLabelView.typography = .b1
             self.categoryLabelView.textColor = .gray1
@@ -374,12 +369,11 @@ class SingleExpenseViewController: UIViewController {
 
     @objc private func presentEmotionPicker() {
         view.endEditing(true)
-        let pickerVC = EmotionPickerSheetViewController(emotion: selectedEmotion.value ?? .neutral)
+        let pickerVC = EmotionPickerSheetViewController(emotion: viewModel.selectedEmotion.value ?? .neutral)
         pickerVC.onSelect = { [weak self] emotion in
             guard let self else { return }
-            self.selectedEmotion.accept(emotion)
+            viewModel.editEmotion(emotion)
             self.updateEmotionLabel(with: emotion)
-            self.viewModel.editEmotion(emotion)
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.medium()]
@@ -390,12 +384,11 @@ class SingleExpenseViewController: UIViewController {
 
     @objc private func presentPaymentPicker() {
         view.endEditing(true)
-        let pickerVC = PaymentPickerSheetViewController(selectedPayment: selectedPayment.value ?? .card)
+        let pickerVC = PaymentPickerSheetViewController(selectedPayment: viewModel.selectedPayment.value ?? .card)
         pickerVC.onSelect = { [weak self] payment in
             guard let self else { return }
-            self.selectedPayment.accept(payment)
+            viewModel.editPaymentMethod(payment)
             self.updatePaymentLabel(with: payment)
-            self.viewModel.editPaymentMethod(payment)
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.custom { _ in 260 }]

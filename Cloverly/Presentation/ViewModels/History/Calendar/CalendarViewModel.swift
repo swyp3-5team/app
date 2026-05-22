@@ -8,7 +8,6 @@
 import Foundation
 import RxSwift
 import RxCocoa
-import FirebaseAnalytics
 
 final class CalendarViewModel {
     let transactionAPI = TransactionAPI()
@@ -34,11 +33,9 @@ final class CalendarViewModel {
     let categoryStatistics = BehaviorRelay<[CategoryStatistic]>(value: [])
     let categoryTransactions = BehaviorRelay<[TransactionRecord]>(value: [])
     
-    // 내역 수정
-    let currentTransaction = BehaviorRelay<Transaction?>(value: nil)
+    // 내역 수정/추가
     let refreshTrigger = PublishRelay<Void>()
-    private var incomeCategoryName: String = ""
-    
+
     // 내역-기록
     let filteredTransactions = BehaviorRelay<[String: [Transaction]]>(value: [:])
     let selectedCategories = BehaviorRelay<Set<ExpenseCategory>>(value: [])
@@ -171,58 +168,6 @@ final class CalendarViewModel {
     }
     
     
-    // 내역-수정
-    func editName(_ name: String) {
-        guard var current = currentTransaction.value else { return }
-        current.place = name // 상호명 수정
-        currentTransaction.accept(current)
-    }
-
-    func editAmount(_ amount: Int) {
-        guard var current = currentTransaction.value else { return }
-        current.totalAmount = amount // 금액 수정
-        currentTransaction.accept(current)
-    }
-
-    func editDate(_ date: Date) {
-        guard var current = currentTransaction.value else { return }
-        current.transactionDate = date.toServerFormat
-        currentTransaction.accept(current)
-    }
-
-    func editEmotion(_ emotion: Emotion) {
-        guard var current = currentTransaction.value else { return }
-        current.emotion = emotion // 감정 수정
-        currentTransaction.accept(current)
-    }
-
-    func editPaymentMethod(_ method: Payment) {
-        guard var current = currentTransaction.value else { return }
-        current.payment = method
-        currentTransaction.accept(current)
-    }
-
-    func editMemo(_ memo: String) {
-        guard var current = currentTransaction.value else { return }
-        current.paymentMemo = memo // 메모 수정
-        currentTransaction.accept(current)
-    }
-
-    func editCategory(id: Int, name: String) {
-        guard var current = currentTransaction.value else { return }
-        incomeCategoryName = name
-        current.transactionInfoList.indices.forEach {
-            current.transactionInfoList[$0].categoryId = id
-            current.transactionInfoList[$0].categoryName = name
-        }
-        currentTransaction.accept(current)
-    }
-    
-    func updateTransaction() async throws {
-        guard let current = currentTransaction.value else { return }
-        try await transactionAPI.updateTransaction(transaction: current)
-    }
-    
     // 내역-기록
     func applyFilter() {
         let origin = groupedTransactions.value
@@ -261,45 +206,4 @@ final class CalendarViewModel {
         filteredTransactions.accept(newGrouped)
     }
     
-    // 내역-추가
-    func clearCurrentTransaction() {
-        incomeCategoryName = ""
-        let emptyTransaction = Transaction(
-            trGroupId: -1, transactionDate: Date().toServerFormat, totalAmount: 0, payment: .card, emotion: .neutral, transactionInfoList: []
-        )
-        currentTransaction.accept(emptyTransaction)
-    }
-    
-    func saveTransaction() async throws {
-        guard let current = currentTransaction.value else { return }
-        
-        if current.trGroupId != -1 {
-            try await transactionAPI.updateTransaction(transaction: current)
-        } else {
-            var transactionDTOs = current.transactionInfoList.map { info in
-                return TransactionDTO(
-                    name: info.name,
-                    amount: info.amount,
-                    categoryName: info.categoryName
-                )
-            }
-            if transactionDTOs.isEmpty {
-                transactionDTOs = [TransactionDTO(name: "", amount: current.totalAmount, categoryName: incomeCategoryName)]
-            }
-            
-            let requestBody = TransactionRequest(place: current.place, transactionDate: current.transactionDate, payment: current.payment, paymentMemo: current.paymentMemo, emotion: current.emotion, transactions: transactionDTOs)
-            
-            print(requestBody)
-            try await transactionAPI.saveTransaction(requestBody: requestBody)
-            
-            Analytics.logEvent("transaction_saved", parameters: [
-                "source": "manual"
-            ])
-        }
-    }
-    
-    func deleteTransaction() async throws {
-        guard let current = currentTransaction.value else { return }
-        try await transactionAPI.deleteTransaction(trGroupId: current.trGroupId)
-    }
 }

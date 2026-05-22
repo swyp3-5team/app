@@ -13,6 +13,7 @@ import GoogleMobileAds
 
 class RecordViewController: UIViewController {
     private let viewModel: CalendarViewModel
+    private let transactionViewModel: TransactionViewModel
     private let disposeBag = DisposeBag()
     private var isMenuOpen = false
     
@@ -195,8 +196,10 @@ class RecordViewController: UIViewController {
         button.titleLabel?.font = Typography.b5.uiFont
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
-            viewModel.clearCurrentTransaction()
-            let vc = TransactionContainerViewController(viewModel: viewModel)
+            transactionViewModel.configure()
+            let vc = TransactionContainerViewController(viewModel: transactionViewModel, onComplete: { [weak self] in
+                self?.viewModel.refreshTrigger.accept(())
+            })
             self.navigationController?.pushViewController(vc, animated: true)
         }, for: .touchUpInside)
         return button
@@ -240,8 +243,10 @@ class RecordViewController: UIViewController {
                 subtitle: "품목 하나만 빠르게"
             ) { [weak self] in
                 guard let self = self else { return }
-                viewModel.clearCurrentTransaction()
-                let vc = TransactionContainerViewController(viewModel: viewModel, expenseMode: .single)
+                transactionViewModel.configure()
+                let vc = TransactionContainerViewController(viewModel: transactionViewModel, expenseMode: .single, onComplete: { [weak self] in
+                    self?.viewModel.refreshTrigger.accept(())
+                })
                 self.navigationController?.pushViewController(vc, animated: true)
             },
             MenuItem(
@@ -250,8 +255,10 @@ class RecordViewController: UIViewController {
                 subtitle: "여러 항목 입력"
             ) { [weak self] in
                 guard let self = self else { return }
-                viewModel.clearCurrentTransaction()
-                let vc = TransactionContainerViewController(viewModel: viewModel)
+                transactionViewModel.configure()
+                let vc = TransactionContainerViewController(viewModel: transactionViewModel, onComplete: { [weak self] in
+                    self?.viewModel.refreshTrigger.accept(())
+                })
                 self.navigationController?.pushViewController(vc, animated: true)
             }
         ])
@@ -276,8 +283,9 @@ class RecordViewController: UIViewController {
         return tableView
     }()
     
-    init(viewModel: CalendarViewModel) {
+    init(viewModel: CalendarViewModel, transactionViewModel: TransactionViewModel) {
         self.viewModel = viewModel
+        self.transactionViewModel = transactionViewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -582,12 +590,13 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
 
         if let transactions = viewModel.filteredTransactions.value[dateKey] {
             let transaction = transactions[indexPath.row]
-            viewModel.currentTransaction.accept(transaction)
-
             let isIncome = transaction.transactionInfoList.first?.type == "INCOME"
             let expenseMode: ExpenseEntryMode = (!isIncome && transaction.transactionInfoList.count <= 1) ? .single : .multi
 
-            let vc = TransactionContainerViewController(viewModel: viewModel, expenseMode: expenseMode)
+            transactionViewModel.configure(with: transaction)
+            let vc = TransactionContainerViewController(viewModel: transactionViewModel, expenseMode: expenseMode, onComplete: { [weak self] in
+                self?.viewModel.refreshTrigger.accept(())
+            })
             self.navigationController?.pushViewController(vc, animated: true)
         }
     }

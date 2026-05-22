@@ -11,11 +11,9 @@ import RxSwift
 import RxCocoa
 
 class MultiExpenseViewController: UIViewController {
-    private let viewModel: CalendarViewModel
+    private let viewModel: TransactionViewModel
     private let disposeBag = DisposeBag()
     private var selectedDate: Date = Date()
-    private let selectedEmotion = BehaviorRelay<Emotion?>(value: nil)
-    private let selectedPayment = BehaviorRelay<Payment?>(value: nil)
 
     // Keyboard handling
     private var originalContentOffset: CGPoint = .zero
@@ -32,8 +30,8 @@ class MultiExpenseViewController: UIViewController {
     var canSave: Observable<Bool> {
         Observable.combineLatest(
             viewModel.currentTransaction,
-            selectedEmotion.asObservable(),
-            selectedPayment.asObservable()
+            viewModel.selectedEmotion,
+            viewModel.selectedPayment
         )
         .map { transaction, emotion, payment in
             guard let t = transaction else { return false }
@@ -167,7 +165,7 @@ class MultiExpenseViewController: UIViewController {
 
     // MARK: - Init
 
-    init(viewModel: CalendarViewModel) {
+    init(viewModel: TransactionViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -259,11 +257,8 @@ class MultiExpenseViewController: UIViewController {
                 }
 
                 if transaction.trGroupId != -1 {
-                    self.selectedEmotion.accept(transaction.emotion)
-                    self.updateEmotionLabel(with: transaction.emotion)
-
-                    self.selectedPayment.accept(transaction.payment)
-                    self.updatePaymentLabel(with: transaction.payment)
+                    self.updateEmotionLabel(with: self.viewModel.selectedEmotion.value)
+                    self.updatePaymentLabel(with: self.viewModel.selectedPayment.value)
                 }
 
                 self.expandableListView.configure(with: transaction)
@@ -346,12 +341,11 @@ class MultiExpenseViewController: UIViewController {
 
     @objc private func presentEmotionPicker() {
         view.endEditing(true)
-        let pickerVC = EmotionPickerSheetViewController(emotion: selectedEmotion.value ?? .neutral)
+        let pickerVC = EmotionPickerSheetViewController(emotion: viewModel.selectedEmotion.value ?? .neutral)
         pickerVC.onSelect = { [weak self] emotion in
             guard let self else { return }
-            self.selectedEmotion.accept(emotion)
-            self.updateEmotionLabel(with: emotion)
             self.viewModel.editEmotion(emotion)
+            self.updateEmotionLabel(with: emotion)
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.medium()]
@@ -362,12 +356,11 @@ class MultiExpenseViewController: UIViewController {
 
     @objc private func presentPaymentPicker() {
         view.endEditing(true)
-        let pickerVC = PaymentPickerSheetViewController(selectedPayment: selectedPayment.value ?? .card)
+        let pickerVC = PaymentPickerSheetViewController(selectedPayment: viewModel.selectedPayment.value ?? .card)
         pickerVC.onSelect = { [weak self] payment in
             guard let self else { return }
-            self.selectedPayment.accept(payment)
-            self.updatePaymentLabel(with: payment)
             self.viewModel.editPaymentMethod(payment)
+            self.updatePaymentLabel(with: payment)
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.custom { _ in 260 }]
