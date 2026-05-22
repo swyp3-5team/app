@@ -19,7 +19,6 @@ final class TransactionViewModel {
     let selectedCategoryId: BehaviorRelay<Int?>
     let currentAmount: BehaviorRelay<Int>
 
-    private(set) var originalTransaction: Transaction?
     private var incomeCategoryName: String = ""
 
     init() {
@@ -39,7 +38,6 @@ final class TransactionViewModel {
 
     func configure(with transaction: Transaction? = nil) {
         if let t = transaction {
-            originalTransaction = t
             currentTransaction.accept(t)
             selectedEmotion.accept(t.emotion)
             selectedPayment.accept(t.payment)
@@ -47,7 +45,6 @@ final class TransactionViewModel {
             incomeCategoryName = t.transactionInfoList.first?.categoryName ?? ""
             currentAmount.accept(t.transactionInfoList.first?.amount ?? 0)
         } else {
-            originalTransaction = nil
             currentTransaction.accept(Transaction(
                 trGroupId: -1,
                 transactionDate: Date().toServerFormat,
@@ -111,30 +108,6 @@ final class TransactionViewModel {
             current.transactionInfoList[$0].categoryName = name
         }
         currentTransaction.accept(current)
-    }
-
-    func hasUnsavedChanges(isIncome: Bool, expenseMode: ExpenseEntryMode) -> Bool {
-        guard let current = currentTransaction.value else { return false }
-        guard current.trGroupId == -1 else {
-            return current != originalTransaction
-        }
-
-        let hasCommonInput = !(current.place ?? "").isEmpty || !(current.paymentMemo ?? "").isEmpty
-
-        if isIncome {
-            return current.totalAmount > 0 || hasCommonInput || selectedCategoryId.value != nil
-        } else if expenseMode == .single {
-            return hasCommonInput
-                || currentAmount.value > 0
-                || selectedCategoryId.value != nil
-                || selectedEmotion.value != nil
-                || selectedPayment.value != nil
-        } else {
-            return !current.transactionInfoList.isEmpty
-                || hasCommonInput
-                || selectedEmotion.value != nil
-                || selectedPayment.value != nil
-        }
     }
 
     func saveTransaction() async throws {
