@@ -16,7 +16,7 @@ class ProfileTableViewCell: UITableViewCell {
     
     private lazy var profileImageView: UIImageView = {
         let iv = UIImageView()
-        iv.image = UIImage(named: "mypage profile 1")
+        iv.image = UIImage(named: "mypage profile 2")
         iv.contentMode = .scaleAspectFit
         return iv
     }()
@@ -52,6 +52,7 @@ class ProfileTableViewCell: UITableViewCell {
         profileImageView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.centerY.equalToSuperview()
+            $0.width.height.equalTo(48)
         }
         
         nicknameLabel.snp.makeConstraints {

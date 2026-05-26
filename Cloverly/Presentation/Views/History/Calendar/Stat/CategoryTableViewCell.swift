@@ -19,28 +19,35 @@ class CategoryTableViewCell: UITableViewCell {
         return view
     }()
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardMedium, size: 16)
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .b2
         label.textAlignment = .center
         return label
     }()
-    
-    private let percentageLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardRegular, size: 14)
+
+    private let percentageLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray4
+        label.typography = .b7
         label.textAlignment = .center
         return label
     }()
     
-    private let priceLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 18)
+    private let priceLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .t1
         label.textAlignment = .center
         return label
+    }()
+    
+    private let chevronImageView: UIImageView = {
+        let iv = UIImageView()
+        iv.contentMode = .scaleAspectFit
+        iv.image = UIImage(named: "Chevron right gray")
+        return iv
     }()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -58,6 +65,7 @@ class CategoryTableViewCell: UITableViewCell {
         contentView.addSubview(titleLabel)
         contentView.addSubview(percentageLabel)
         contentView.addSubview(priceLabel)
+        contentView.addSubview(chevronImageView)
         
         indicatorView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
@@ -76,6 +84,11 @@ class CategoryTableViewCell: UITableViewCell {
         }
         
         priceLabel.snp.makeConstraints {
+            $0.trailing.equalTo(chevronImageView.snp.leading).offset(-4)
+            $0.centerY.equalToSuperview()
+        }
+        
+        chevronImageView.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-16)
             $0.centerY.equalToSuperview()
         }

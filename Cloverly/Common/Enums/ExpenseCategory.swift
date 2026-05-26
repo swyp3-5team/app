@@ -8,6 +8,11 @@
 import Foundation
 import UIKit
 
+// 16, 월급, type(INCOME)
+// 24, 기타수입
+// 19, 용돈
+// EXPENSE
+
 // MARK: - 1. 지출 카테고리 (Expense)
 enum ExpenseCategory: Int, CaseIterable, Codable {
     case food = 1           // 식비

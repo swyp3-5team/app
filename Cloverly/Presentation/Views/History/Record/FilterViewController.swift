@@ -13,147 +13,212 @@ import RxCocoa
 class FilterViewController: UIViewController {
     private let viewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
-    
-    private lazy var titleLabel: UILabel = {
-        let label = UILabel()
+
+    private let expenseCategories = ExpenseCategory.allCases
+    private let incomeCategories = IncomeCategory.allCases
+
+    // MARK: - Views
+
+    private lazy var titleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "필터"
         label.textColor = .gray1
-        label.font = .customFont(.pretendardSemiBold, size: 18)
+        label.typography = .t1
         return label
     }()
-    
+
     private lazy var xButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: "Modal Close Button"), for: .normal)
         button.addAction(UIAction { [weak self] _ in
             self?.dismiss(animated: true)
         }, for: .touchUpInside)
-        
         return button
     }()
-    
-    private lazy var subtitleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "카테고리"
-        label.textColor = .gray2
-        label.font = .customFont(.pretendardSemiBold, size: 14)
-        return label
-    }()
-    
-    private lazy var collectionView: UICollectionView = {
+
+    // 전체 내역 chip (단독)
+    private lazy var allChipCollectionView: SelfSizingCollectionView = {
         let layout = LeftAlignedCollectionViewFlowLayout()
-        layout.minimumLineSpacing = 8      // 줄 간격
-        layout.minimumInteritemSpacing = 8  // 아이템 간격
-        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize // 셀 크기 자동 계산
-        
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        layout.minimumLineSpacing = 8
+        layout.minimumInteritemSpacing = 8
+        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+        let cv = SelfSizingCollectionView(frame: .zero, collectionViewLayout: layout)
         cv.backgroundColor = .clear
         cv.register(FilterCategoryCell.self, forCellWithReuseIdentifier: FilterCategoryCell.identifier)
         cv.dataSource = self
         cv.delegate = self
-        cv.allowsMultipleSelection = true // 단일 선택
+        cv.allowsMultipleSelection = false
+        cv.isScrollEnabled = false
         return cv
     }()
-    
+
+    private lazy var expenseSubtitleLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "지출"
+        label.textColor = .gray2
+        label.typography = .b5
+        return label
+    }()
+
+    private lazy var expenseCollectionView: SelfSizingCollectionView = {
+        let layout = LeftAlignedCollectionViewFlowLayout()
+        layout.minimumLineSpacing = 8
+        layout.minimumInteritemSpacing = 8
+        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+        let cv = SelfSizingCollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.backgroundColor = .clear
+        cv.register(FilterCategoryCell.self, forCellWithReuseIdentifier: FilterCategoryCell.identifier)
+        cv.dataSource = self
+        cv.delegate = self
+        cv.allowsMultipleSelection = true
+        cv.isScrollEnabled = false
+        return cv
+    }()
+
+    private lazy var incomeSubtitleLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "수입"
+        label.textColor = .gray2
+        label.typography = .b5
+        return label
+    }()
+
+    private lazy var incomeCollectionView: SelfSizingCollectionView = {
+        let layout = LeftAlignedCollectionViewFlowLayout()
+        layout.minimumLineSpacing = 8
+        layout.minimumInteritemSpacing = 8
+        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+        let cv = SelfSizingCollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.backgroundColor = .clear
+        cv.register(FilterCategoryCell.self, forCellWithReuseIdentifier: FilterCategoryCell.identifier)
+        cv.dataSource = self
+        cv.delegate = self
+        cv.allowsMultipleSelection = true
+        cv.isScrollEnabled = false
+        return cv
+    }()
+
+    private lazy var scrollView: UIScrollView = {
+        let sv = UIScrollView()
+        sv.showsVerticalScrollIndicator = false
+        return sv
+    }()
+
+    private lazy var contentStackView: UIStackView = {
+        let sv = UIStackView(arrangedSubviews: [
+            allChipCollectionView,
+            expenseSubtitleLabel,
+            expenseCollectionView,
+            incomeSubtitleLabel,
+            incomeCollectionView
+        ])
+        sv.axis = .vertical
+        sv.spacing = 12
+        sv.setCustomSpacing(20, after: allChipCollectionView)
+        sv.setCustomSpacing(20, after: expenseCollectionView)
+        return sv
+    }()
+
     private lazy var resetButton: UIButton = {
         let button = UIButton()
         button.setTitle("초기화", for: .normal)
         button.setTitleColor(.gray1, for: .normal)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.titleLabel?.font = Typography.b1.uiFont
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.gray7.cgColor
         button.layer.cornerRadius = 8
         button.clipsToBounds = true
         button.addAction(UIAction { [weak self] _ in
-            guard let self = self else { return }
-            self.viewModel.tempSelectedCategories.removeAll()
-            
-            if let selectedItems = self.collectionView.indexPathsForSelectedItems {
-                for indexPath in selectedItems {
-                    self.collectionView.deselectItem(at: indexPath, animated: true)
-                }
-            }
-            // "전체" 다시 선택
-            let indexPath = IndexPath(item: 0, section: 0)
-            self.collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .top)
+            guard let self else { return }
+            viewModel.tempSelectedCategories.removeAll()
+            viewModel.tempSelectedIncomeCategories.removeAll()
+            deselectAll(in: expenseCollectionView)
+            deselectAll(in: incomeCollectionView)
+            allChipCollectionView.selectItem(at: IndexPath(item: 0, section: 0), animated: true, scrollPosition: [])
         }, for: .touchUpInside)
-        
         return button
     }()
-    
+
     private lazy var applyButton: UIButton = {
         let button = UIButton()
         button.setTitle("적용", for: .normal)
         button.setTitleColor(.gray10, for: .normal)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.titleLabel?.font = Typography.b1.uiFont
         button.layer.cornerRadius = 8
         button.clipsToBounds = true
         button.backgroundColor = .green5
         button.addAction(UIAction { [weak self] _ in
-            guard let self = self else { return }
-            self.viewModel.selectedCategories.accept(self.viewModel.tempSelectedCategories)
-            self.viewModel.applyFilter()
+            guard let self else { return }
+            viewModel.selectedCategories.accept(viewModel.tempSelectedCategories)
+            viewModel.selectedIncomeCategories.accept(viewModel.tempSelectedIncomeCategories)
+            viewModel.applyFilter()
             dismiss(animated: true)
         }, for: .touchUpInside)
-        
         return button
     }()
-    
+
+    // MARK: - Init
+
     init(viewModel: CalendarViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
+    // MARK: - Lifecycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
         viewModel.tempSelectedCategories = viewModel.selectedCategories.value
+        viewModel.tempSelectedIncomeCategories = viewModel.selectedIncomeCategories.value
         configureUI()
         syncSelectionState()
     }
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-
         guard let navBar = navigationController?.navigationBar else { return }
         let navBarFrameInView = navBar.convert(navBar.bounds, to: view)
-
         titleLabel.snp.remakeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.centerY.equalTo(navBarFrameInView.midY)
         }
     }
-    
+
+    // MARK: - UI
+
     func configureUI() {
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: xButton)
         view.backgroundColor = .gray10
+
         view.addSubview(titleLabel)
-        view.addSubview(subtitleLabel)
-        view.addSubview(collectionView)
+        view.addSubview(scrollView)
         view.addSubview(resetButton)
         view.addSubview(applyButton)
 
-        subtitleLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
-            $0.top.equalTo(titleLabel.snp.bottom).offset(24)
+        scrollView.addSubview(contentStackView)
+
+        contentStackView.snp.makeConstraints {
+            $0.edges.equalTo(scrollView.contentLayoutGuide)
+            $0.width.equalTo(scrollView.frameLayoutGuide)
         }
-        
-        collectionView.snp.makeConstraints {
-            $0.top.equalTo(subtitleLabel.snp.bottom).offset(12)
+
+        scrollView.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
             $0.leading.trailing.equalToSuperview().inset(16)
-            $0.bottom.equalTo(resetButton.snp.top).offset(-30)
+            $0.bottom.equalTo(resetButton.snp.top).offset(-20)
         }
-        
+
         resetButton.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
             $0.height.equalTo(56)
             $0.width.equalTo(applyButton.snp.width)
         }
-        
+
         applyButton.snp.makeConstraints {
             $0.leading.equalTo(resetButton.snp.trailing).offset(8)
             $0.trailing.equalToSuperview().offset(-16)
@@ -161,89 +226,99 @@ class FilterViewController: UIViewController {
             $0.height.equalTo(56)
         }
     }
-    
+
+    // MARK: - Selection
+
     private func syncSelectionState() {
-        let selected = viewModel.tempSelectedCategories
-        
-        if selected.isEmpty {
-            // 선택된게 없으면 "전체(0번)" 선택
-            collectionView.selectItem(at: IndexPath(item: 0, section: 0), animated: false, scrollPosition: .top)
+        let hasExpense = !viewModel.tempSelectedCategories.isEmpty
+        let hasIncome = !viewModel.tempSelectedIncomeCategories.isEmpty
+
+        if !hasExpense && !hasIncome {
+            allChipCollectionView.selectItem(at: IndexPath(item: 0, section: 0), animated: false, scrollPosition: [])
         } else {
-            // 선택된 카테고리들을 찾아서 선택 처리
-            for (index, category) in viewModel.categories.enumerated() {
-                if let cat = category, selected.contains(cat) {
-                    collectionView.selectItem(at: IndexPath(item: index, section: 0), animated: false, scrollPosition: .top)
+            for (index, category) in expenseCategories.enumerated() {
+                if viewModel.tempSelectedCategories.contains(category) {
+                    expenseCollectionView.selectItem(at: IndexPath(item: index, section: 0), animated: false, scrollPosition: [])
+                }
+            }
+            for (index, category) in incomeCategories.enumerated() {
+                if viewModel.tempSelectedIncomeCategories.contains(category) {
+                    incomeCollectionView.selectItem(at: IndexPath(item: index, section: 0), animated: false, scrollPosition: [])
                 }
             }
         }
     }
+
+    private func deselectAll(in cv: UICollectionView) {
+        cv.indexPathsForSelectedItems?.forEach { cv.deselectItem(at: $0, animated: false) }
+    }
+
+    private func selectAllChip() {
+        allChipCollectionView.selectItem(at: IndexPath(item: 0, section: 0), animated: true, scrollPosition: [])
+    }
+
+    private func deselectAllChip() {
+        allChipCollectionView.deselectItem(at: IndexPath(item: 0, section: 0), animated: false)
+    }
 }
 
+// MARK: - UICollectionViewDataSource, Delegate
+
 extension FilterViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    
+
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.categories.count
+        if collectionView === allChipCollectionView { return 1 }
+        if collectionView === expenseCollectionView { return expenseCategories.count }
+        return incomeCategories.count
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCategoryCell.identifier, for: indexPath) as? FilterCategoryCell else {
             return UICollectionViewCell()
         }
-        
-        let category = viewModel.categories[indexPath.item]
-        
-        // 텍스트 설정
-        if let category = category {
-            cell.configure(text: category.fullDisplay) // 예: "🍚 식비"
-        } else {
+
+        if collectionView === allChipCollectionView {
             cell.configure(text: "전체 내역")
+        } else if collectionView === expenseCollectionView {
+            cell.configure(text: expenseCategories[indexPath.item].fullDisplay)
+        } else {
+            cell.configure(text: incomeCategories[indexPath.item].fullDisplay)
         }
-        
+
         return cell
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        // A. "전체 내역(0번)"을 눌렀을 때
-        if indexPath.item == 0 {
-            // 다른 모든 선택 해제
+        if collectionView === allChipCollectionView {
             viewModel.tempSelectedCategories.removeAll()
-            
-            // UI에서도 0번 빼고 다 선택 해제
-            for i in 1..<viewModel.categories.count {
-                collectionView.deselectItem(at: IndexPath(item: i, section: 0), animated: true)
-            }
+            viewModel.tempSelectedIncomeCategories.removeAll()
+            deselectAll(in: expenseCollectionView)
+            deselectAll(in: incomeCollectionView)
             return
         }
-        
-        // B. 일반 카테고리를 눌렀을 때
-        // 1. "전체 내역(0번)"이 선택되어 있었다면 해제
-        if let selectedItems = collectionView.indexPathsForSelectedItems,
-           selectedItems.contains(where: { $0.item == 0 }) {
-            collectionView.deselectItem(at: IndexPath(item: 0, section: 0), animated: true)
-        }
-        
-        // 2. ViewModel Set에 추가
-        if let category = viewModel.categories[indexPath.item] {
-            viewModel.tempSelectedCategories.insert(category)
+
+        deselectAllChip()
+
+        if collectionView === expenseCollectionView {
+            viewModel.tempSelectedCategories.insert(expenseCategories[indexPath.item])
+        } else {
+            viewModel.tempSelectedIncomeCategories.insert(incomeCategories[indexPath.item])
         }
     }
-    
-    // 2. 셀 선택이 해제되었을 때 (다중 선택에서는 이것도 필요)
+
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
-        // A. "전체 내역"을 끄려고 시도 -> 못 끄게 막거나, 다시 켜주기 (최소 하나는 선택되어야 한다면)
-        if indexPath.item == 0 {
+        if collectionView === allChipCollectionView {
             collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
             return
         }
-        
-        // B. 일반 카테고리 해제
-        if let category = viewModel.categories[indexPath.item] {
-            viewModel.tempSelectedCategories.remove(category)
-            
-            // 만약 다 끄고 아무것도 안 남았다면? -> 자동으로 "전체" 선택
-            if viewModel.tempSelectedCategories.isEmpty {
-                collectionView.selectItem(at: IndexPath(item: 0, section: 0), animated: true, scrollPosition: [])
-            }
+
+        if collectionView === expenseCollectionView {
+            viewModel.tempSelectedCategories.remove(expenseCategories[indexPath.item])
+        } else {
+            viewModel.tempSelectedIncomeCategories.remove(incomeCategories[indexPath.item])
         }
+
+        let nothingSelected = viewModel.tempSelectedCategories.isEmpty && viewModel.tempSelectedIncomeCategories.isEmpty
+        if nothingSelected { selectAllChip() }
     }
 }

@@ -65,7 +65,7 @@ class CustomTabBar: UIView {
             config.imagePadding = 2
             
             var titleAttr = AttributedString(names[index])
-            titleAttr.font = .customFont(.pretendardSemiBold, size: 12)
+            titleAttr.font = Typography.l2.uiFont
             titleAttr.foregroundColor = isSelected ? .green5 : .gray3 // 색상도 초기화
             config.attributedTitle = titleAttr
             
@@ -98,7 +98,7 @@ class CustomTabBar: UIView {
             config?.image = UIImage(named: iconName)
             
             var titleAttr = AttributedString(names[index])
-            titleAttr.font = .customFont(.pretendardSemiBold, size: 12)
+            titleAttr.font = Typography.l2.uiFont
             titleAttr.foregroundColor = isSelected ? .green5 : .gray3
             config?.attributedTitle = titleAttr
             

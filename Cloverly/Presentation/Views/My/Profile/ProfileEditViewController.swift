@@ -25,7 +25,7 @@ class ProfileEditViewController: UIViewController {
         textField.text = AuthViewModel.shared.currentUser.value?.nickName
         textField.placeholder = "10글자 이하의 닉네임"
         textField.textColor = .gray1
-        textField.font = .customFont(.pretendardRegular, size: 14)
+        textField.font = Typography.b7.uiFont
         textField.layer.borderColor = UIColor.gray8.cgColor
         textField.layer.borderWidth = 1
         textField.layer.cornerRadius = 8
@@ -52,9 +52,9 @@ class ProfileEditViewController: UIViewController {
         return imageView
     }()
     
-    private let confirmLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardRegular, size: 12)
+    private let confirmLabel: AppLabel = {
+        let label = AppLabel()
+        label.typography = .l3
         label.isHidden = true
         return label
     }()
@@ -63,7 +63,7 @@ class ProfileEditViewController: UIViewController {
         let button = UIButton()
         button.setTitle("저장", for: .normal)
         button.setTitleColor(UIColor.gray, for: .normal)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.titleLabel?.font = Typography.b1.uiFont
         button.layer.cornerRadius = 8
         button.clipsToBounds = true
         

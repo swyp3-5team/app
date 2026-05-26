@@ -13,10 +13,12 @@ import RxCocoa
 
 class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendarDelegate {
     private let viewModel: CalendarViewModel
+    private let transactionViewModel: TransactionViewModel
     private let disposeBag = DisposeBag()
-    
-    init(viewModel: CalendarViewModel) {
+
+    init(viewModel: CalendarViewModel, transactionViewModel: TransactionViewModel) {
         self.viewModel = viewModel
+        self.transactionViewModel = transactionViewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -30,10 +32,10 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         return formatter
     }()
     
-    private lazy var headerLabel: UILabel = {
-        let label = UILabel()
-        label.font = .boldSystemFont(ofSize: 18)
-        label.textColor = .black
+    private lazy var headerLabel: AppLabel = {
+        let label = AppLabel()
+        label.textColor = .gray1
+        label.typography = .h2
         return label
     }()
     
@@ -87,21 +89,75 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         return button
     }()
     
-    private let expenseLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 18)
+    private let expenseTextLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "지출"
+        label.textColor = .gray4
+        label.typography = .b6
+        return label
+    }()
+
+    private let expenseLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .t1
         return label
     }()
-    
-    private let incomeLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 18)
+
+    private lazy var expenseRowStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [expenseTextLabel, expenseLabel])
+        stack.axis = .horizontal
+        stack.alignment = .bottom
+        stack.spacing = 8
+        return stack
+    }()
+
+    private let incomeTextLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "수입"
+        label.textColor = .gray4
+        label.typography = .b6
+        return label
+    }()
+
+    private let incomeLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .green5
-        label.text = "수입 0원"
+        label.typography = .t1
         return label
     }()
-    
+
+    private lazy var incomeRowStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [incomeTextLabel, incomeLabel])
+        stack.axis = .horizontal
+        stack.alignment = .bottom
+        stack.spacing = 8
+        return stack
+    }()
+
+    private let balanceTextLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "잔액"
+        label.textColor = .gray4
+        label.typography = .b6
+        return label
+    }()
+
+    private let balanceLabel: AppLabel = {
+        let label = AppLabel()
+        label.textColor = .gray1
+        label.typography = .t1
+        return label
+    }()
+
+    private lazy var balanceRowStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [balanceTextLabel, balanceLabel])
+        stack.axis = .horizontal
+        stack.alignment = .bottom
+        stack.spacing = 8
+        return stack
+    }()
+
     private let dividerView: UIView = {
         let view = UIView()
         view.backgroundColor = .gray9
@@ -135,48 +191,53 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         view.addSubview(headerLabel)
         view.addSubview(nextButton)
         view.addSubview(statsButton)
-        view.addSubview(expenseLabel)
-        //        view.addSubview(incomeLabel)
+        view.addSubview(incomeRowStack)
+        view.addSubview(expenseRowStack)
+        view.addSubview(balanceRowStack)
         view.addSubview(dividerView)
         view.addSubview(calendar)
-        
+
         prevButton.snp.makeConstraints {
             $0.centerY.equalTo(headerLabel)
             $0.leading.equalToSuperview().offset(16)
         }
-        
+
         headerLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(24)
             $0.leading.equalTo(prevButton.snp.trailing).offset(8)
         }
-        
+
         nextButton.snp.makeConstraints {
             $0.centerY.equalTo(headerLabel)
             $0.leading.equalTo(headerLabel.snp.trailing).offset(8)
         }
-        
+
         statsButton.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-16)
             $0.centerY.equalTo(headerLabel)
         }
-        
-        expenseLabel.snp.makeConstraints {
+
+        incomeRowStack.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.top.equalTo(statsButton.snp.bottom).offset(12)
         }
-        
-        // 수입 일단 제거
-        //        incomeLabel.snp.makeConstraints {
-        //            $0.leading.equalToSuperview().offset(16)
-        //            $0.top.equalTo(expenseLabel.snp.bottom).offset(8)
-        //        }
-        
+
+        expenseRowStack.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.top.equalTo(incomeRowStack.snp.bottom).offset(8)
+        }
+
+        balanceRowStack.snp.makeConstraints {
+            $0.trailing.equalToSuperview().offset(-16)
+            $0.centerY.equalTo(expenseRowStack)
+        }
+
         dividerView.snp.makeConstraints {
-            $0.top.equalTo(expenseLabel.snp.bottom).offset(20)
+            $0.top.equalTo(expenseRowStack.snp.bottom).offset(20)
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(6)
         }
-        
+
         calendar.snp.makeConstraints {
             $0.top.equalTo(headerLabel.snp.bottom).offset(100)
             $0.leading.trailing.equalToSuperview().inset(16)
@@ -192,7 +253,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
                 guard let self = self else { return }
                 
                 if isPresent {
-                    let vc = ExpenseListViewController(viewModel: viewModel)
+                    let vc = ExpenseListViewController(viewModel: viewModel, transactionViewModel: transactionViewModel)
                     let nav = UINavigationController(rootViewController: vc)
                     
                     if let sheet = nav.sheetPresentationController {
@@ -230,12 +291,37 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
             })
             .disposed(by: disposeBag)
         
-        viewModel.dailyTotalAmounts
+        viewModel.monthlyExpenseAmounts
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] amounts in
                 let total = amounts.values.reduce(0, +)
-                self?.expenseLabel.text = total > 0 ? "지출 -\(total.withComma)원" : "지출 0원"
+                self?.expenseLabel.text = total > 0 ? "-\(total.withComma)원" : "0원"
                 self?.calendar.reloadData()
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.monthlyIncomeAmounts
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] amounts in
+                let total = amounts.values.reduce(0, +)
+                self?.incomeLabel.text = total > 0 ? "+\(total.withComma)원": "0원"
+                self?.calendar.reloadData()
+            })
+            .disposed(by: disposeBag)
+
+        Observable.combineLatest(viewModel.monthlyExpenseAmounts, viewModel.monthlyIncomeAmounts)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] expenseAmounts, incomeAmounts in
+                let expenseTotal = expenseAmounts.values.reduce(0, +)
+                let incomeTotal = incomeAmounts.values.reduce(0, +)
+                let balance = incomeTotal - expenseTotal
+                if balance > 0 {
+                    self?.balanceLabel.text = "+\(balance.withComma)원"
+                } else if balance < 0 {
+                    self?.balanceLabel.text = "-\((-balance).withComma)원"
+                } else {
+                    self?.balanceLabel.text = "0원"
+                }
             })
             .disposed(by: disposeBag)
     }
@@ -248,7 +334,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
     // 내역 없는 날은 선택 안되게
 //    func calendar(_ calendar: FSCalendar, shouldSelect date: Date, at monthPosition: FSCalendarMonthPosition) -> Bool {
 //        let dateString = dateFormatter.string(from: date)
-//        
+//
 //        return viewModel.dailyTotalAmounts.value[dateString] != nil
 //    }
     
@@ -257,13 +343,9 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         
         let dateString = dateFormatter.string(from: date)
         
-        // 데이터가 있다면 라벨에 표시
-        if let totalAmount = viewModel.dailyTotalAmounts.value[dateString] {
-            // 세자리 콤마 포맷팅
-            cell.configure(with: "-\(totalAmount.withComma)")
-        } else {
-            cell.configure(with: "")
-        }
+        let expenseText = viewModel.monthlyExpenseAmounts.value[dateString].map { "-\($0.withComma)" } ?? ""
+        let incomeText = viewModel.monthlyIncomeAmounts.value[dateString].map { "+\($0.withComma)" } ?? ""
+        cell.configure(expense: expenseText, income: incomeText)
         
         return cell
     }

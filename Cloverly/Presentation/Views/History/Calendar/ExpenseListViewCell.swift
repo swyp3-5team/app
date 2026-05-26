@@ -19,18 +19,18 @@ class ExpenseListViewCell: UITableViewCell {
         return view
     }()
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardMedium, size: 16)
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .b2
         label.textAlignment = .center
         return label
     }()
-    
-    private let subtitleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardRegular, size: 14)
+
+    private let subtitleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray4
+        label.typography = .b7
         label.textAlignment = .center
         return label
     }()
@@ -44,10 +44,10 @@ class ExpenseListViewCell: UITableViewCell {
         return stack
     }()
 
-    private let priceLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 18)
+    private let priceLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .t1
         label.textAlignment = .center
         return label
     }()
@@ -85,11 +85,23 @@ class ExpenseListViewCell: UITableViewCell {
     }
     
     func configure(with transaction: Transaction) {
-        titleLabel.text = transaction.place?.isEmpty == false ? transaction.place : "미입력"
-        subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.transactionInfoList.max { $0.amount < $1.amount }?.categoryName ?? "내역 없음")"
+        let isIncome = transaction.transactionInfoList.first?.type == "INCOME"
+        let topCategory = transaction.transactionInfoList.max { $0.amount < $1.amount }?.categoryName ?? "내역 없음"
+        
+        titleLabel.text = transaction.place?.nilIfNullOrEmpty ?? "미입력"
+        subtitleLabel.text = isIncome ? topCategory : "\(transaction.emotion.displayName) · \(topCategory)"
         indicatorView.backgroundColor = transaction.transactionInfoList
             .max { $0.amount < $1.amount }
-            .map { ExpenseCategory.from(id: $0.categoryId).color }
-        priceLabel.text = "-\(transaction.totalAmount.withComma)원"
+            .map { isIncome ? IncomeCategory.from(id: $0.categoryId).color : ExpenseCategory.from(id: $0.categoryId).color }
+        priceLabel.text = isIncome ? "\(transaction.totalAmount.withComma)원" : "-\(transaction.totalAmount.withComma)원"
+    }
+
+    func configure(with transaction: TransactionRecord, color: UIColor, isIncome: Bool = false) {
+        titleLabel.text = transaction.name.nilIfNullOrEmpty ?? "미입력"
+        subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.payment.displayName)"
+        subtitleLabel.isHidden = isIncome
+        indicatorView.backgroundColor = color
+        let sign = isIncome ? "+" : "-"
+        priceLabel.text = "\(sign)\(transaction.amount.withComma)원"
     }
 }

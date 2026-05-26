@@ -10,32 +10,47 @@ import RxSwift
 import RxCocoa
 import FirebaseAnalytics
 
+struct MessageSection {
+    let dateString: String
+    let messages: [Message]
+}
+
 final class ChatViewModel {
     let ledgerMessages = BehaviorRelay<[Message]>(value: [])
     let chatMessages = BehaviorRelay<[Message]>(value: [])
-    
-    var currentMessages: [Message] {
+    let historyMessages = BehaviorRelay<[Message]>(value: [])
+
+    var currentSections: [MessageSection] {
         let mode = ChatMode(index: selectedIndex.value)
-        switch mode {
-        case .receipt:
-            return ledgerMessages.value
-        default:
-            return chatMessages.value
-        }
+        let messages = mode == .receipt ? ledgerMessages.value : historyMessages.value + chatMessages.value
+        return groupByDate(messages)
     }
-    
-    // View가 구독할 통합 스트림
-    var currentMessagesStream: Observable<[Message]> {
-        return Observable.combineLatest(
-            selectedIndex,       // 1. 모드가 바뀌거나
-            ledgerMessages,      // 2. 영수증 메시지가 바뀌거나
-            chatMessages         // 3. 채팅 메시지가 바뀔 때마다 실행
-        )
-        .map { index, ledger, chat -> [Message] in
-            // 현재 모드에 맞는 배열만 골라서 내보냄
-            let mode = ChatMode(index: index)
-            return mode == .receipt ? ledger : chat
+
+    var currentSectionsStream: Observable<[MessageSection]> {
+        return Observable.combineLatest(selectedIndex, ledgerMessages, chatMessages, historyMessages)
+            .map { [weak self] index, ledger, chat, history -> [MessageSection] in
+                guard let self = self else { return [] }
+                let mode = ChatMode(index: index)
+                let messages = mode == .receipt ? ledger : history + chat
+                return self.groupByDate(messages)
+            }
+    }
+
+    private func groupByDate(_ messages: [Message]) -> [MessageSection] {
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy년 MM월 dd일 EEEE"
+        formatter.locale = Locale(identifier: "ko_KR")
+
+        var groups: [(Date, [Message])] = []
+        for message in messages {
+            if let idx = groups.firstIndex(where: { calendar.isDate($0.0, inSameDayAs: message.date) }) {
+                groups[idx].1.append(message)
+            } else {
+                groups.append((calendar.startOfDay(for: message.date), [message]))
+            }
         }
+        return groups.map { MessageSection(dateString: formatter.string(from: $0.0), messages: $0.1) }
     }
     
     let isSheetPresent = BehaviorRelay<Bool>(value: false)
@@ -130,5 +145,24 @@ final class ChatViewModel {
         var currentMessages = ledgerMessages.value
         currentMessages.append(message)
         ledgerMessages.accept(currentMessages)
+    }
+    
+    func getChatHistory(size: Int) async throws {
+        let history = try await api.getChatHistory(page: 0, size: size)
+        let filtered = history.filter { !($0.chatContent.contains("결제함") && $0.chatContent.contains("소비")) }
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+
+        var messages = filtered.map { item -> Message in
+            let chatType: ChatType = item.chatType == .assistant ? .receive : .send
+            let date = dateFormatter.date(from: item.createdAt) ?? Date()
+            return Message(kind: .text(item.chatContent), chatType: chatType, date: date)
+        }
+        
+        messages = messages.sorted { $0.date < $1.date }
+        
+        historyMessages.accept(messages)
     }
 }

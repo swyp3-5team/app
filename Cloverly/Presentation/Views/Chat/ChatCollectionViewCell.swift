@@ -14,6 +14,8 @@ class ChatCollectionViewCell: UICollectionViewCell {
     private var trailingConstraint: NSLayoutConstraint!
     private var timeLeadingConstraint: NSLayoutConstraint!
     private var timeTrailingConstraint: NSLayoutConstraint!
+    private var receiveWidthConstraint: NSLayoutConstraint!
+    private var sendWidthConstraint: NSLayoutConstraint!
     
     lazy var stackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [messageImageView, messageTextView])
@@ -33,8 +35,8 @@ class ChatCollectionViewCell: UICollectionViewCell {
         return imageView
     }()
     
-    let messageTextView: UITextView = {
-        let textView = UITextView()
+    let messageTextView: AppTextView = {
+        let textView = AppTextView()
         textView.text = "Sample"
         textView.textColor = .gray1
         textView.backgroundColor = .white
@@ -44,8 +46,8 @@ class ChatCollectionViewCell: UICollectionViewCell {
         textView.isScrollEnabled = false
         textView.textContainerInset = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
         textView.textContainer.lineFragmentPadding = 0
-        textView.font = .customFont(.pretendardRegular, size: 16)
-        
+        textView.typography = .b3
+
         return textView
     }()
     
@@ -55,16 +57,16 @@ class ChatCollectionViewCell: UICollectionViewCell {
         return view
     }()
     
-    let timeLabel: UILabel = {
-        let label = UILabel()
+    let timeLabel: AppLabel = {
+        let label = AppLabel()
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "a h:mm"
 
         let timeString = formatter.string(from: Date())
-        
+
         label.textColor = .gray2
-        label.font = .customFont(.pretendardRegular, size: 12)
+        label.typography = .l3
         label.text = "\(timeString)"
         return label
     }()
@@ -99,7 +101,9 @@ class ChatCollectionViewCell: UICollectionViewCell {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        stackView.widthAnchor.constraint(lessThanOrEqualToConstant: 208).isActive = true
+        let containerWidth = UIScreen.main.bounds.width - 32
+        receiveWidthConstraint = stackView.widthAnchor.constraint(lessThanOrEqualToConstant: containerWidth * 0.67)
+        sendWidthConstraint = stackView.widthAnchor.constraint(lessThanOrEqualToConstant: containerWidth * 0.82)
         
         //        profileImageView.snp.makeConstraints {
         //            $0.top.equalToSuperview()
@@ -136,6 +140,11 @@ class ChatCollectionViewCell: UICollectionViewCell {
     }
     
     func bind(with message: Message) {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "a h:mm"
+        timeLabel.text = formatter.string(from: message.date)
+
         switch message.kind {
         case .text(let text):
             messageTextView.text = text
@@ -153,8 +162,10 @@ class ChatCollectionViewCell: UICollectionViewCell {
             trailingConstraint.isActive = false
             timeLeadingConstraint.isActive = true
             timeTrailingConstraint.isActive = false
+            sendWidthConstraint.isActive = false
+            receiveWidthConstraint.isActive = true
             messageTextView.backgroundColor = .green10
-            messageTextView.font = .customFont(.pretendardRegular, size: 16)
+            messageTextView.typography = .b3
             
             messageTextView.layer.maskedCorners = [
                 .layerMinXMinYCorner,
@@ -167,8 +178,10 @@ class ChatCollectionViewCell: UICollectionViewCell {
             trailingConstraint.isActive = true
             timeLeadingConstraint.isActive = false
             timeTrailingConstraint.isActive = true
+            receiveWidthConstraint.isActive = false
+            sendWidthConstraint.isActive = true
             messageTextView.backgroundColor = .gray9
-            messageTextView.font = .customFont(.pretendardMedium, size: 16)
+            messageTextView.typography = .b2
             
             messageTextView.layer.maskedCorners = [
                 .layerMinXMinYCorner,

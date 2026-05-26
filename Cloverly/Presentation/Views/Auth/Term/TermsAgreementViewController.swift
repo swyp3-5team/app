@@ -19,11 +19,11 @@ class TermsAgreementViewController: UIViewController {
     private lazy var subTermControls = [serviceTermControl, privacyTermControl, marketingTermControl]
     private lazy var mandatoryControls = [serviceTermControl, privacyTermControl]
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "클로버리를 시작하려면\n이용약관에 동의해주세요"
         label.textColor = .gray1
-        label.font = .customFont(.pretendardSemiBold, size: 22)
+        label.typography = .h2
         label.numberOfLines = 0
         return label
     }()
@@ -47,7 +47,7 @@ class TermsAgreementViewController: UIViewController {
         let button = UIButton()
         button.setTitle("다음", for: .normal)
         button.setTitleColor(.gray6, for: .normal)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.titleLabel?.font = Typography.b1.uiFont
         button.backgroundColor = .gray8
         button.layer.cornerRadius = 8
         button.clipsToBounds = true

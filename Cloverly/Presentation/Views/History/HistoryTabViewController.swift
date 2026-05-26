@@ -21,11 +21,11 @@ class HistoryTabViewController: TabmanViewController {
         return 0
     }
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "내역"
-        label.font = .customFont(.pretendardSemiBold, size: 18)
         label.textColor = .gray1
+        label.typography = .t1
         return label
     }()
     
@@ -61,8 +61,9 @@ class HistoryTabViewController: TabmanViewController {
             $0.centerX.equalToSuperview()
         }
 
-        viewControllers.append(RecordViewController(viewModel: viewModel))
-        viewControllers.append(CalendarViewController(viewModel: viewModel))
+        let transactionViewModel = TransactionViewModel()
+        viewControllers.append(RecordViewController(viewModel: viewModel, transactionViewModel: transactionViewModel))
+        viewControllers.append(CalendarViewController(viewModel: viewModel, transactionViewModel: transactionViewModel))
         
         self.dataSource = self
         

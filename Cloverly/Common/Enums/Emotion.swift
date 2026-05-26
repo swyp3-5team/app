@@ -9,8 +9,8 @@ import Foundation
 
 enum Emotion: String, Codable, CaseIterable {
     case neutral = "NEUTRAL"
-    case satisfaction = "SATISFACTION"
     case reward = "REWARD"
+    case satisfaction = "SATISFACTION"
     case stress_relief = "STRESS_RELIEF"
     case impulse = "IMPULSE"
     case regret = "REGRET"
@@ -19,27 +19,38 @@ enum Emotion: String, Codable, CaseIterable {
         switch self {
         case .neutral:
             "일상"
+        case .reward:
+            "보상심리"
         case .satisfaction:
             "만족"
-        case .reward:
-            "보상 심리"
         case .stress_relief:
-            "스트레스 해소"
+            "스트레스해소"
         case .impulse:
-            "충동 구매"
+            "충동구매"
         case .regret:
             "후회"
         }
     }
     
+    var icon: String {
+        switch self {
+        case .neutral:       "👀"
+        case .reward:        "🎁"
+        case .satisfaction:  "✌️"
+        case .stress_relief: "💨"
+        case .impulse:       "💥"
+        case .regret:        "💦"
+        }
+    }
+
     var imageName: String {
         switch self {
         case .neutral:
             "Emoji Normal"
-        case .satisfaction:
-            "Emoji Satisfaction"
         case .reward:
             "Emoji Self Reward"
+        case .satisfaction:
+            "Emoji Satisfaction"
         case .stress_relief:
             "Emoji Stress Relief"
         case .impulse:

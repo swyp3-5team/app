@@ -37,17 +37,17 @@ class OnboardingPageController: UIViewController {
     
     let nextTap = PublishRelay<Void>()
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 22)
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .h2
         return label
     }()
     
-    private let subtitleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardRegular, size: 16)
+    private let subtitleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray3
+        label.typography = .b3
         label.numberOfLines = 0
         return label
     }()

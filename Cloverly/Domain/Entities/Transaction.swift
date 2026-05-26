@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Transaction: nonisolated Codable {
+struct Transaction: nonisolated Codable, Equatable {
     let trGroupId: Int
     var transactionDate: String
     var totalAmount: Int
@@ -18,7 +18,7 @@ struct Transaction: nonisolated Codable {
     var transactionInfoList: [TransactionInfo] // 내부 리스트
 }
 
-struct TransactionInfo: nonisolated Codable {
+struct TransactionInfo: nonisolated Codable, Equatable {
     let transactionId: Int?
     var name: String
     var amount: Int

@@ -50,7 +50,7 @@ final class CustomSegmentedControl: UIView {
         for (index, title) in items.enumerated() {
             let button = UIButton(type: .system)
             button.setTitle(title, for: .normal)
-            button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 14)
+            button.titleLabel?.font = Typography.b5.uiFont
             button.setTitleColor(.gray10, for: .normal)
             button.tag = index
 
@@ -77,7 +77,7 @@ final class CustomSegmentedControl: UIView {
     private func updateUI(selectedIndex: Int) {
         for (i, button) in buttons.enumerated() {
             button.setTitleColor(i == selectedIndex ? .gray10 : .gray3 , for: .normal)
-            button.titleLabel?.font = i == selectedIndex ? .customFont(.pretendardSemiBold, size: 14) : .customFont(.pretendardMedium, size: 14)
+            button.titleLabel?.font = i == selectedIndex ? Typography.b5.uiFont : Typography.b6.uiFont
         }
 
         let target = buttons[selectedIndex]

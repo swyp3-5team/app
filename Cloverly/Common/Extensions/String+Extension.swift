@@ -21,4 +21,10 @@ extension String {
         formatter.locale = Locale(identifier: "ko_KR")
         return formatter.date(from: self)
     }
+    
+    var nilIfNullOrEmpty: String? {
+        let trimmed = self.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, trimmed.lowercased() != "null" else { return nil }
+        return trimmed
+    }
 }

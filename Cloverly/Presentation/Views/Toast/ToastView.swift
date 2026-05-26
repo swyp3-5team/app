@@ -12,10 +12,10 @@ class ToastView: UIView {
 
     var onActionTap: (() -> Void)?
     
-    private let messageLabel: UILabel = {
-        let label = UILabel()
+    private let messageLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray10
-        label.font = .customFont(.pretendardMedium, size: 16)
+        label.typography = .b2
         label.numberOfLines = 1
         return label
     }()
@@ -23,7 +23,7 @@ class ToastView: UIView {
     private lazy var actionButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitleColor(.gray10, for: .normal) // 버튼 색상 (원하는 색으로 변경)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 14)
+        button.titleLabel?.font = Typography.b5.uiFont
         
         button.setContentHuggingPriority(.required, for: .horizontal)
         button.setContentCompressionResistancePriority(.required, for: .horizontal)

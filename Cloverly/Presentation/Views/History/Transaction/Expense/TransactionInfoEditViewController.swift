@@ -1,0 +1,321 @@
+//
+//  TransactionInfoEditViewController.swift
+//  Cloverly
+//
+//  Created by 이인호 on 1/4/26.
+//
+
+import UIKit
+import SnapKit
+import RxSwift
+import RxCocoa
+
+class TransactionInfoEditViewController: UIViewController {
+    
+    enum Mode {
+        case add
+        case edit
+    }
+    
+    // ✨ 수정 완료 후 데이터를 돌려줄 클로저
+    var onSave: ((String, Int, Int) -> Void)?
+    
+    private let disposeBag = DisposeBag()
+    
+    // 초기 데이터 저장용
+    private let mode: Mode
+    private let isIncome: Bool
+    private let initialName: String?
+    private let initialAmount: Int?
+    private let selectedCategoryId = BehaviorRelay<Int?>(value: nil)
+
+    private struct CategoryItem {
+        let id: Int
+        let displayText: String
+    }
+
+    private lazy var categories: [CategoryItem] = {
+        if isIncome {
+            return IncomeCategory.allCases.map { CategoryItem(id: $0.rawValue, displayText: $0.fullDisplay) }
+        } else {
+            return ExpenseCategory.allCases.map { CategoryItem(id: $0.rawValue, displayText: $0.fullDisplay) }
+        }
+    }()
+    
+    // MARK: - UI Components
+    
+    // 이름 입력 필드
+    private lazy var nameTitleLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = isIncome ? "수입 내역" : "지출 내역"
+        label.textColor = .gray2
+        label.typography = .b5
+        return label
+    }()
+    
+    private lazy var nameTextField: UITextField = {
+        let tf = UITextField()
+        tf.placeholder = isIncome ? "수입내역 입력" : "지출내역 입력"
+        tf.text = initialName
+        tf.font = Typography.b7.uiFont
+        tf.layer.borderColor = UIColor.gray8.cgColor
+        tf.layer.borderWidth = 1
+        tf.layer.cornerRadius = 8
+        tf.clipsToBounds = true
+        
+        tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
+        tf.leftViewMode = .always
+        return tf
+    }()
+    
+    // 금액 입력 필드
+    private let amountTitleLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "금액"
+        label.textColor = .gray2
+        label.typography = .b5
+        return label
+    }()
+    
+    private lazy var amountTextField: UITextField = {
+        let tf = UITextField()
+        tf.placeholder = "금액 입력"
+
+        if let amount = initialAmount, amount > 0 {
+            tf.text = "\(amount.withComma)원"
+        }
+        tf.font = Typography.b7.uiFont
+        tf.keyboardType = .numberPad
+        tf.layer.borderColor = UIColor.gray8.cgColor
+        tf.layer.borderWidth = 1
+        tf.layer.cornerRadius = 8
+        tf.clipsToBounds = true
+        
+        tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
+        tf.leftViewMode = .always
+        return tf
+    }()
+    
+    // 카테고리 타이틀
+    private let categoryTitleLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "카테고리"
+        label.textColor = .gray2
+        label.typography = .b5
+        return label
+    }()
+    
+    // 카테고리 컬렉션뷰
+    private lazy var collectionView: SelfSizingCollectionView = {
+        let layout = LeftAlignedCollectionViewFlowLayout()
+        layout.minimumLineSpacing = 12
+        layout.minimumInteritemSpacing = 8
+        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+
+        let cv = SelfSizingCollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.backgroundColor = .clear
+        cv.isScrollEnabled = false
+        cv.register(FilterCategoryCell.self, forCellWithReuseIdentifier: FilterCategoryCell.identifier)
+        cv.dataSource = self
+        cv.delegate = self
+        cv.allowsMultipleSelection = false
+        return cv
+    }()
+    
+    private lazy var saveButton: UIButton = {
+        let btn = UIButton()
+        btn.setTitle(mode == .add ? "추가" : "저장", for: .normal)
+        btn.backgroundColor = .green5
+        btn.layer.cornerRadius = 8
+        return btn
+    }()
+    
+    // MARK: - Init
+    init(mode: Mode = .add, isIncome: Bool = false, name: String? = nil, amount: Int? = nil, categoryId: Int? = nil) {
+        self.mode = mode
+        self.isIncome = isIncome
+        self.initialName = name
+        self.initialAmount = amount
+        self.selectedCategoryId.accept(categoryId)
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) { fatalError() }
+    
+    // MARK: - Lifecycle
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .white
+        navigationItem.title = isIncome ? "수입내역" : "지출내역"
+        setupUI()
+        bind()
+
+        amountTextField.delegate = self
+
+        // 초기 카테고리 선택
+        selectInitialCategory()
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        tap.delegate = self
+        view.addGestureRecognizer(tap)
+    }
+    
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
+    private func setupUI() {
+        view.addSubview(nameTitleLabel)
+        view.addSubview(nameTextField)
+        view.addSubview(amountTitleLabel)
+        view.addSubview(amountTextField)
+        view.addSubview(categoryTitleLabel)
+        view.addSubview(collectionView)
+        view.addSubview(saveButton)
+        
+        nameTitleLabel.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
+            $0.leading.equalToSuperview().offset(16)
+        }
+        
+        nameTextField.snp.makeConstraints {
+            $0.top.equalTo(nameTitleLabel.snp.bottom).offset(8)
+            $0.leading.equalToSuperview().offset(16)
+            $0.width.equalTo(amountTextField.snp.width)
+            $0.height.equalTo(48)
+        }
+        
+        amountTitleLabel.snp.makeConstraints {
+            $0.top.equalTo(nameTitleLabel)
+            $0.leading.equalTo(nameTextField.snp.trailing).offset(16)
+        }
+        
+        amountTextField.snp.makeConstraints {
+            $0.top.equalTo(amountTitleLabel.snp.bottom).offset(8)
+            $0.leading.equalTo(amountTitleLabel)
+            $0.trailing.equalToSuperview().offset(-16)
+            $0.height.equalTo(48)
+        }
+        
+        categoryTitleLabel.snp.makeConstraints {
+            $0.top.equalTo(nameTextField.snp.bottom).offset(24)
+            $0.leading.equalToSuperview().offset(16)
+        }
+        
+        collectionView.snp.makeConstraints {
+            $0.top.equalTo(categoryTitleLabel.snp.bottom).offset(16)
+            $0.leading.trailing.equalToSuperview().inset(16)
+        }
+        
+        saveButton.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.bottom.equalTo(view.safeAreaLayoutGuide)
+            $0.height.equalTo(56)
+        }
+    }
+    
+    private func selectInitialCategory() {
+        if let index = categories.firstIndex(where: { $0.id == selectedCategoryId.value }) {
+            let indexPath = IndexPath(item: index, section: 0)
+            DispatchQueue.main.async {
+                self.collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+            }
+        }
+    }
+    
+    private func bind() {
+        let validation = Observable.combineLatest(
+            nameTextField.rx.text.orEmpty,
+            amountTextField.rx.text.orEmpty,
+            selectedCategoryId.asObservable()
+        )
+        .map { name, amount, categoryId in
+            return !name.isEmpty && !amount.isEmpty && categoryId != nil
+        }
+        
+        validation
+            .subscribe(onNext: { [weak self] validate in
+                guard let self = self else { return }
+                
+                self.saveButton.isEnabled = validate
+                self.saveButton.setTitleColor(validate ? .gray10 : .gray6, for: .normal)
+                self.saveButton.backgroundColor = validate ? .green5 : .gray8
+            })
+            .disposed(by: disposeBag)
+        
+        saveButton.rx.tap
+            .withLatestFrom(Observable.combineLatest(
+                nameTextField.rx.text.orEmpty,
+                amountTextField.rx.text.orEmpty,
+                selectedCategoryId.asObservable()
+            ))
+            .subscribe(onNext: { [weak self] name, amountText, categoryId in
+                guard let self = self, let categoryId = categoryId else { return }
+                
+                let amount = Int(amountText.filter(\.isNumber)) ?? 0
+                
+                // 데이터 전달
+                self.onSave?(name, amount, categoryId)
+                self.navigationController?.popViewController(animated: true)
+            })
+            .disposed(by: disposeBag)
+    }
+}
+
+// MARK: - CollectionView Delegate
+extension TransactionInfoEditViewController: UICollectionViewDataSource, UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return categories.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCategoryCell.identifier, for: indexPath) as? FilterCategoryCell else { return UICollectionViewCell() }
+        cell.configure(text: categories[indexPath.item].displayText)
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        self.selectedCategoryId.accept(categories[indexPath.item].id)
+    }
+}
+
+extension TransactionInfoEditViewController: UITextFieldDelegate {
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        guard textField == amountTextField else { return true }
+        guard string.isEmpty || string.allSatisfy({ $0.isNumber }) else { return false }
+
+        let current = (textField.text ?? "") as NSString
+        let proposed = current.replacingCharacters(in: range, with: string)
+        let digits = proposed.filter { $0.isNumber }
+
+        if digits.isEmpty {
+            textField.text = ""
+        } else {
+            let amount = Int(digits) ?? 0
+            textField.text = "\(amount.withComma)원"
+            if let pos = textField.position(from: textField.endOfDocument, offset: -1) {
+                textField.selectedTextRange = textField.textRange(from: pos, to: pos)
+            }
+        }
+
+        textField.sendActions(for: .editingChanged)
+        return false
+    }
+
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        guard textField == amountTextField,
+              let text = textField.text, text.hasSuffix("원"),
+              let pos = textField.position(from: textField.endOfDocument, offset: -1) else { return }
+        textField.selectedTextRange = textField.textRange(from: pos, to: pos)
+    }
+}
+
+extension TransactionInfoEditViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        if touch.view is UIButton {
+            return false
+        }
+        return true
+    }
+}

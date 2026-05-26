@@ -15,19 +15,19 @@ class SaveModalViewController: UIViewController {
     private let calendarViewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "아래와 같이 저장할까요?"
         label.textColor = .gray1
-        label.font = .customFont(.pretendardSemiBold, size: 18)
+        label.typography = .t1
         return label
     }()
     
-    private let subtitleLabel: UILabel = {
-        let label = UILabel()
+    private let subtitleLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "*홈 > 내역탭에서 수정이 가능합니다"
         label.textColor = .gray5
-        label.font = .customFont(.pretendardRegular, size: 13)
+        label.typography = .l1
         return label
     }()
     
@@ -57,20 +57,20 @@ class SaveModalViewController: UIViewController {
         return stack
     }()
     
-    private let storeNameValueLabel = UILabel()
-    private let amountValueLabel = UILabel()
-    private let dateValueLabel = UILabel()
-    private let emotionValueLabel = UILabel()
-    private let contentValueLabel = UILabel()
-    private let paymentMethodValueLabel = UILabel()
-    private let categoryValueLabel = UILabel()
-    private let memoLabel = UILabel()
+    private let storeNameValueLabel = AppLabel()
+    private let amountValueLabel = AppLabel()
+    private let dateValueLabel = AppLabel()
+    private let emotionValueLabel = AppLabel()
+    private let contentValueLabel = AppLabel()
+    private let paymentMethodValueLabel = AppLabel()
+    private let categoryValueLabel = AppLabel()
+    private let memoLabel = AppLabel()
     
     private lazy var saveButton: UIButton = {
         let button = UIButton()
         button.setTitle("저장", for: .normal)
         button.setTitleColor(.gray10, for: .normal)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.titleLabel?.font = Typography.b1.uiFont
         button.layer.cornerRadius = 8
         button.clipsToBounds = true
         button.backgroundColor = .green5
@@ -174,29 +174,29 @@ class SaveModalViewController: UIViewController {
         }
     }
     
-    private func addInfoRow(title: String, valueLabel: UILabel) {
+    private func addInfoRow(title: String, valueLabel: AppLabel) {
         let rowStack = UIStackView()
         rowStack.axis = .horizontal
         rowStack.spacing = 20
         rowStack.alignment = .firstBaseline
-        
-        let keyLabel = UILabel()
+
+        let keyLabel = AppLabel()
         keyLabel.text = title
-        keyLabel.font = .customFont(.pretendardRegular, size: 16)
+        keyLabel.typography = .b3
         keyLabel.textColor = .gray4
-        
+
         keyLabel.snp.makeConstraints {
             $0.width.equalTo(70)
         }
-        
-        valueLabel.font = .customFont(.pretendardMedium, size: 16)
+
+        valueLabel.typography = .b2
         valueLabel.textColor = .gray1
         valueLabel.numberOfLines = 0
         valueLabel.textAlignment = .left
-        
+
         rowStack.addArrangedSubview(keyLabel)
         rowStack.addArrangedSubview(valueLabel)
-        
+
         contentStackView.addArrangedSubview(rowStack)
     }
     
@@ -207,7 +207,7 @@ class SaveModalViewController: UIViewController {
             .subscribe(onNext: { [weak self] info in
                 guard let self = self, let transactionInfo = info.transactionInfo else { return }
 
-                storeNameValueLabel.text = transactionInfo.place ?? "미입력"
+                storeNameValueLabel.text = transactionInfo.place?.nilIfNullOrEmpty ?? "미입력"
                 amountValueLabel.text = "\(transactionInfo.totalAmount)"
                 dateValueLabel.text = transactionInfo.transactionDate
                 emotionValueLabel.text = transactionInfo.emotion.displayName

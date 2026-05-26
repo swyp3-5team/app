@@ -16,27 +16,27 @@ class StatsViewController: UIViewController {
     private let viewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
     
-    private let emptyStateLabel: UILabel = {
-        let label = UILabel()
+    private let emptyStateLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "내역이 없습니다."
-        label.font = .customFont(.pretendardMedium, size: 16)
         label.textColor = .gray
+        label.typography = .b2
         label.textAlignment = .center
         label.isHidden = true // 처음엔 숨겨둠
         return label
     }()
     
-    private let dateLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardMedium, size: 14)
+    private let dateLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray3
+        label.typography = .b6
         return label
     }()
     
-    private let totalAmount: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardSemiBold, size: 24)
+    private let totalAmount: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .h1
         return label
     }()
     
@@ -67,6 +67,7 @@ class StatsViewController: UIViewController {
     
     private lazy var categoryTableView: UITableView = {
         let tableView = UITableView()
+        tableView.backgroundColor = .systemBackground
         tableView.dataSource = self
         tableView.delegate = self
         tableView.separatorStyle = .none
@@ -90,9 +91,9 @@ class StatsViewController: UIViewController {
         super.viewDidLoad()
         configureUI()
         bind()
-        navigationItem.title = "통계"
-        
-        viewModel.getCategoryStatistics(yearMonth: viewModel.currentDate.value)
+        navigationItem.titleView = segmented
+
+        fetchStatistics(index: viewModel.selectedIndex.value)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -105,6 +106,7 @@ class StatsViewController: UIViewController {
     }
     
     func configureUI() {
+        view.backgroundColor = .systemBackground
         view.addSubview(dateLabel)
         view.addSubview(totalAmount)
         view.addSubview(dividerView)
@@ -163,22 +165,43 @@ class StatsViewController: UIViewController {
         viewModel.categoryStatistics
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] stats in
-                self?.updateHeader(stats: stats) // 총액 업데이트
+                self?.updateHeader(stats: stats)
                 self?.setChartData(data: stats)
                 self?.categoryTableView.reloadData()
+            })
+            .disposed(by: disposeBag)
+
+        viewModel.selectedIndex
+            .distinctUntilChanged()
+            .skip(1) // 초기값은 viewDidLoad에서 직접 호출
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] index in
+                self?.fetchStatistics(index: index)
             })
             .disposed(by: disposeBag)
     }
     
     private func updateHeader(stats: [CategoryStatistic]) {
         let total = stats.reduce(0) { $0 + $1.totalAmount }
-        
-        totalAmount.text = "\(total.withComma)원"
-        
-        // 날짜 라벨도 업데이트 (viewModel 날짜 가져와서)
+        totalAmount.text = "\(Int(total).withComma)원"
+
+        let isIncome = viewModel.selectedIndex.value == 0
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "M월 지출"
+        dateFormatter.dateFormat = isIncome ? "M월 수입" : "M월 지출"
         dateLabel.text = dateFormatter.string(from: viewModel.currentDate.value)
+    }
+
+    private func fetchStatistics(index: Int) {
+        if index == 0 {
+            viewModel.getCategoryStatisticsForIncome(yearMonth: viewModel.currentDate.value)
+        } else {
+            viewModel.getCategoryStatistics(yearMonth: viewModel.currentDate.value)
+        }
+    }
+
+    private func categoryColor(for categoryId: Int) -> UIColor {
+        if let expense = ExpenseCategory(rawValue: categoryId) { return expense.color }
+        return IncomeCategory(rawValue: categoryId)?.color ?? .systemTeal
     }
     
     func setChartData(data: [CategoryStatistic]) {
@@ -196,9 +219,7 @@ class StatsViewController: UIViewController {
         let entries = data.map { PieChartDataEntry(value: $0.totalAmount, label: $0.categoryName) }
         let dataSet = PieChartDataSet(entries: entries, label: "")
         
-        let colors = data.map { stat in
-            return ExpenseCategory.from(id: stat.categoryId).color
-        }
+        let colors = data.map { categoryColor(for: $0.categoryId) }
         
         dataSet.colors = colors
         dataSet.sliceSpace = 0 // 이미지처럼 딱 붙이려면 0, 살짝 떼려면 2
@@ -218,7 +239,13 @@ extension StatsViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         viewModel.categoryStatistics.value.count
     }
-    
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let item = viewModel.categoryStatistics.value[indexPath.row]
+        let vc = CategoryExpenseViewController(viewModel: viewModel, categoryId: item.categoryId, categoryName: item.categoryName)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: CategoryTableViewCell.identifier, for: indexPath) as? CategoryTableViewCell else {
             return UITableViewCell()
@@ -231,7 +258,7 @@ extension StatsViewController: UITableViewDataSource, UITableViewDelegate {
         let totalSum = stats.reduce(0.0) { $0 + $1.totalAmount }
         let percentage = totalSum == 0 ? 0 : (item.totalAmount / totalSum) * 100
         
-        let color = ExpenseCategory.from(id: item.categoryId).color
+        let color = categoryColor(for: item.categoryId)
         
         cell.configure(color: color, name: item.categoryName, amount: item.totalAmount, percent: percentage, categoryId: item.categoryId)
         

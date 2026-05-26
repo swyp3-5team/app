@@ -29,9 +29,9 @@ class InputBar: UIView {
         return textView
     }()
     
-    lazy var placeholderLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardMedium, size: 16)
+    lazy var placeholderLabel: AppLabel = {
+        let label = AppLabel()
+        label.typography = .b2
         label.textColor = .gray7
         label.sizeToFit()
         label.isHidden = !textView.text.isEmpty
@@ -55,13 +55,13 @@ class InputBar: UIView {
         config.cornerStyle = .capsule
         
         var titleAttr = AttributedString.init("사진")
-        titleAttr.font = .customFont(.pretendardMedium, size: 14)
+        titleAttr.font = Typography.b6.uiFont
         config.attributedTitle = titleAttr
-        
+
         let button = UIButton(configuration: config)
         return button
     }()
-    
+
     lazy var cameraButton: UIButton = {
         var config = UIButton.Configuration.plain()
         
@@ -77,7 +77,7 @@ class InputBar: UIView {
         config.cornerStyle = .capsule
         
         var titleAttr = AttributedString.init("카메라")
-        titleAttr.font = .customFont(.pretendardMedium, size: 14)
+        titleAttr.font = Typography.b6.uiFont
         config.attributedTitle = titleAttr
         
         let button = UIButton(configuration: config)
@@ -100,7 +100,7 @@ class InputBar: UIView {
         config.cornerStyle = .capsule
         
         var titleAttr = AttributedString.init("붙여넣기")
-        titleAttr.font = .customFont(.pretendardMedium, size: 14)
+        titleAttr.font = Typography.b6.uiFont
         config.attributedTitle = titleAttr
         
         let button = UIButton(configuration: config)

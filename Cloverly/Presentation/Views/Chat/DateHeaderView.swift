@@ -11,10 +11,10 @@ import SnapKit
 class DateHeaderView: UICollectionReusableView {
     static let id = "DateHeaderView"
     
-    let dateLabel: UILabel = {
-        let label = UILabel()
+    let dateLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray3
-        label.font = .customFont(.pretendardRegular, size: 13)
+        label.typography = .l1
         label.textAlignment = .center
         return label
     }()

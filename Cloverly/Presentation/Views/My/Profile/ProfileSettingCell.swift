@@ -11,10 +11,10 @@ import SnapKit
 class ProfileSettingCell: UITableViewCell {
     static let identifier = "ProfileSettingCell"
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardMedium, size: 16)
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray2
+        label.typography = .b2
         return label
     }()
     
@@ -28,10 +28,10 @@ class ProfileSettingCell: UITableViewCell {
     }()
     
     // 타입 1: 텍스트 (이름/이메일 등)
-    private let infoLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardMedium, size: 16)
+    private let infoLabel: AppLabel = {
+        let label = AppLabel()
         label.textColor = .gray1
+        label.typography = .b2
         label.isHidden = true
         label.numberOfLines = 1
         return label

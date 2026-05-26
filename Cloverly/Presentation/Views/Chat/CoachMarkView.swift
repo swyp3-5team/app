@@ -17,11 +17,11 @@ class NoFocusWindow: UIWindow {
 class CoachMarkView: UIView {
     var onDismiss: (() -> Void)?
     
-    private let topGuideLabel: UILabel = {
-        let label = UILabel()
+    private let topGuideLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "캐릭터와 대화하듯\n가계부를 작성해보세요\nex)"
         label.textColor = .gray10
-        label.font = .customFont(.pretendardSemiBold, size: 14)
+        label.typography = .b5
         label.numberOfLines = 0
         label.textAlignment = .left
         return label
@@ -44,22 +44,22 @@ class CoachMarkView: UIView {
         return btn
     }()
     
-    private let leftBottomGuideLabel: UILabel = {
-        let label = UILabel()
+    private let leftBottomGuideLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "사진/카메라로\n영수증을 촬영해보세요"
         label.textColor = .gray10
-        label.font = .customFont(.pretendardSemiBold, size: 14)
+        label.typography = .b5
         label.numberOfLines = 0
         label.textAlignment = .left
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
-    private let rightBottomGuideLabel: UILabel = {
-        let label = UILabel()
+    private let rightBottomGuideLabel: AppLabel = {
+        let label = AppLabel()
         label.text = "텍스트를 붙여넣으면\n자동으로 분류돼요"
         label.textColor = .gray10
-        label.font = .customFont(.pretendardSemiBold, size: 14)
+        label.typography = .b5
         label.numberOfLines = 0
         label.textAlignment = .left
         label.translatesAutoresizingMaskIntoConstraints = false

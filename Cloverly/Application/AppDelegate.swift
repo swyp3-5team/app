@@ -8,6 +8,9 @@
 import UIKit
 import KakaoSDKCommon
 import FirebaseCore
+import SDWebImage
+import SDWebImageWebPCoder
+import GoogleMobileAds
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -16,9 +19,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         FirebaseApp.configure()
+        SDImageCodersManager.shared.addCoder(SDImageWebPCoder.shared)
         
         let kakaoNativeAppKey = Bundle.main.infoDictionary?["NATIVE_APP_KEY"] as? String ?? ""
         KakaoSDK.initSDK(appKey: kakaoNativeAppKey)
+        
+        MobileAds.shared.start()
+//        MobileAds.shared.requestConfiguration.testDeviceIdentifiers = ["6beba0de74aecfc2d69d8b16a04e6898"] // test
         
         Thread.sleep(forTimeInterval: 1)
         

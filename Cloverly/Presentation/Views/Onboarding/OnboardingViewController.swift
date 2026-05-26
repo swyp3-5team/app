@@ -23,7 +23,7 @@ class OnboardingViewController: UIPageViewController {
         
         button.setTitle("다음", for: .normal)
         button.setTitleColor(.gray10, for: .normal)
-        button.titleLabel?.font = .customFont(.pretendardSemiBold, size: 16)
+        button.titleLabel?.font = Typography.b1.uiFont
         button.backgroundColor = .green5
         button.layer.cornerRadius = 8
         button.clipsToBounds = true

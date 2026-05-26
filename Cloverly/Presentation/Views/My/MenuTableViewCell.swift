@@ -12,9 +12,9 @@ class MenuTableViewCell: UITableViewCell {
     
     static let identifier = "MenuTableViewCell"
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .customFont(.pretendardMedium, size: 16)
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
+        label.typography = .b2
         label.textAlignment = .center
         return label
     }()
