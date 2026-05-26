@@ -147,11 +147,16 @@ class HomeViewController: UIViewController {
         configureUI()
         setupVideoBackground()
         AuthViewModel.shared.getProfile()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         preloadChatInterstitialAd()
     }
 
     private func preloadChatInterstitialAd() {
         guard !hasShownAdToday else { return }
+        guard preloadedInterstitialAd == nil else { return }
         let adUnitID = "ca-app-pub-8889421922972515/5880985432"
 //        let adUnitID = "ca-app-pub-3940256099942544/4411468910" // test
         InterstitialAd.load(with: adUnitID, request: Request()) { [weak self] ad, _ in
