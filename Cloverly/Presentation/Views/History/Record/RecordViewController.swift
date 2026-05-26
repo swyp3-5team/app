@@ -209,8 +209,6 @@ class RecordViewController: UIViewController {
         let banner = AdFitBannerAdView(clientId: "DAN-VlURa9fxNUcIMzSd", adUnitSize: "320x100")
         banner.rootViewController = self
         banner.delegate = self
-        banner.layer.cornerRadius = 8
-        banner.clipsToBounds = true
         return banner
     }()
     
