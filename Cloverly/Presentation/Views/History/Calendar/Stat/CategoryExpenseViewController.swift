@@ -220,7 +220,7 @@ extension CategoryExpenseViewController: UITableViewDataSource, UITableViewDeleg
     }
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 40
+        return 22
     }
 
     private func formatDateForHeader(_ dateString: String) -> String {

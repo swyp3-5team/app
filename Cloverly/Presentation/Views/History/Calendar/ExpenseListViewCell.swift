@@ -72,10 +72,11 @@ class ExpenseListViewCell: UITableViewCell {
             $0.top.bottom.equalToSuperview().inset(15)
             $0.width.equalTo(4)
         }
-        
+
         containerStackView.snp.makeConstraints {
             $0.leading.equalTo(indicatorView.snp.trailing).offset(16)
             $0.top.bottom.equalToSuperview().inset(7)
+            $0.height.greaterThanOrEqualTo(44)
         }
         
         priceLabel.snp.makeConstraints {
