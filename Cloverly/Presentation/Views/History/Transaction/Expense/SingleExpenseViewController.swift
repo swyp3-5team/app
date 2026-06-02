@@ -269,15 +269,15 @@ class SingleExpenseViewController: UIViewController {
                     self.amountTextField.font = Typography.b1.uiFont
                 }
 
-                if let item = transaction.transactionInfoList.first {
-                    self.nameTextField.text = item.name
-                    self.nameTextField.font = item.name.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
+                let name = transaction.place ?? ""
+                self.nameTextField.text = name
+                self.nameTextField.font = name.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
 
-                    if let category = ExpenseCategory(rawValue: item.categoryId) {
-                        self.categoryLabelView.text = category.fullDisplay
-                        self.categoryLabelView.typography = .b1
-                        self.categoryLabelView.textColor = .gray1
-                    }
+                if let item = transaction.transactionInfoList.first,
+                   let category = ExpenseCategory(rawValue: item.categoryId) {
+                    self.categoryLabelView.text = category.fullDisplay
+                    self.categoryLabelView.typography = .b1
+                    self.categoryLabelView.textColor = .gray1
                 }
 
                 self.updateEmotionLabel(with: self.viewModel.selectedEmotion.value)
@@ -319,6 +319,8 @@ class SingleExpenseViewController: UIViewController {
 
     func prepareSave() {
         guard var current = viewModel.currentTransaction.value else { return }
+        guard current.totalAmount > 0 else { return }
+
         let categoryId = viewModel.selectedCategoryId.value ?? 0
         let name = nameTextField.text ?? ""
 
