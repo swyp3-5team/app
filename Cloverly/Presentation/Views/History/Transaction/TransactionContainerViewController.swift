@@ -89,7 +89,7 @@ class TransactionContainerViewController: UIViewController {
                     if !self.isIncomeMode.value && self.resolvedExpenseMode.value == .single {
                         self.singleExpenseVC.prepareSave()
                     }
-                    try await self.viewModel.saveTransaction()
+                    try await self.viewModel.saveTransaction(isIncome: self.isIncomeMode.value)
                     self.onComplete()
                     self.navigateBack()
                 } catch {

@@ -106,7 +106,7 @@ final class TransactionViewModel {
         currentTransaction.accept(current)
     }
 
-    func saveTransaction() async throws {
+    func saveTransaction(isIncome: Bool) async throws {
         guard let current = currentTransaction.value else { return }
 
         if current.trGroupId != -1 {
@@ -115,8 +115,8 @@ final class TransactionViewModel {
             var transactionDTOs = current.transactionInfoList.map { info in
                 TransactionDTO(name: info.name, amount: info.amount, categoryName: info.categoryName)
             }
-            if transactionDTOs.isEmpty {
-                transactionDTOs = [TransactionDTO(name: "", amount: current.totalAmount, categoryName: incomeCategoryName)]
+            if isIncome {
+                transactionDTOs = [TransactionDTO(name: current.place ?? "", amount: current.totalAmount, categoryName: incomeCategoryName)]
             }
 
             let requestBody = TransactionRequest(
