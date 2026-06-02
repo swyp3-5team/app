@@ -24,7 +24,7 @@ enum Emotion: String, Codable, CaseIterable {
         case .satisfaction:
             "만족"
         case .stress_relief:
-            "스트레스해소"
+            "기분전환"
         case .impulse:
             "충동구매"
         case .regret:
