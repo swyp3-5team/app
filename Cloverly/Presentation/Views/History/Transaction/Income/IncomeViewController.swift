@@ -256,7 +256,6 @@ class IncomeViewController: UIViewController {
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
         }
         present(pickerVC, animated: true)
     }
@@ -273,7 +272,6 @@ class IncomeViewController: UIViewController {
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.custom { _ in 260 }]
-            sheet.prefersGrabberVisible = true
         }
         present(pickerVC, animated: true)
     }

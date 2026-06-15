@@ -348,7 +348,6 @@ class SingleExpenseViewController: UIViewController {
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
         }
         present(pickerVC, animated: true)
     }
@@ -365,7 +364,6 @@ class SingleExpenseViewController: UIViewController {
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
         }
         present(pickerVC, animated: true)
     }
@@ -380,7 +378,6 @@ class SingleExpenseViewController: UIViewController {
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
         }
         present(pickerVC, animated: true)
     }
@@ -395,7 +392,6 @@ class SingleExpenseViewController: UIViewController {
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.custom { _ in 260 }]
-            sheet.prefersGrabberVisible = true
         }
         present(pickerVC, animated: true)
     }
