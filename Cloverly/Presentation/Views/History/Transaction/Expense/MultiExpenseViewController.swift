@@ -9,6 +9,7 @@ import UIKit
 import SnapKit
 import RxSwift
 import RxCocoa
+import PhotosUI
 
 class MultiExpenseViewController: UIViewController {
     private let viewModel: TransactionViewModel
@@ -104,6 +105,26 @@ class MultiExpenseViewController: UIViewController {
         return tf
     }()
      
+    private lazy var cameraIconView: UIView = {
+        let container = UIView()
+        let iv = UIImageView(image: UIImage(named: "camera icon"))
+        iv.contentMode = .scaleAspectFit
+        container.addSubview(iv)
+        iv.snp.makeConstraints {
+            $0.width.height.equalTo(24)
+            $0.trailing.equalToSuperview()
+            $0.top.bottom.equalToSuperview()
+        }
+        return container
+    }()
+
+    private lazy var additionalInputRow: FormItemView = {
+        let row = FormItemView(title: "추가입력", content: cameraIconView)
+        row.isUserInteractionEnabled = true
+        row.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(presentImageSourcePicker)))
+        return row
+    }()
+
     private lazy var changeExpenseMode: UIButton = {
         var config = UIButton.Configuration.filled()
         config.title = "단일 품목 입력 "
@@ -191,7 +212,7 @@ class MultiExpenseViewController: UIViewController {
             self?.presentAddTransactionView()
         }
 
-        [amountLabel, expandableListView, dateRow, emotionRow, paymentRow, memoRow].forEach {
+        [amountLabel, expandableListView, dateRow, emotionRow, paymentRow, memoRow, additionalInputRow].forEach {
             stackView.addArrangedSubview($0)
         }
         
@@ -364,6 +385,79 @@ class MultiExpenseViewController: UIViewController {
         navigationController?.pushViewController(addVC, animated: true)
     }
 
+    // MARK: - Image Analysis
+
+    @objc private func presentImageSourcePicker() {
+        view.endEditing(true)
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "사진", style: .default) { [weak self] _ in
+            self?.openGallery()
+        })
+        alert.addAction(UIAlertAction(title: "카메라", style: .default) { [weak self] _ in
+            self?.openCamera()
+        })
+        present(alert, animated: true)
+    }
+
+    private func openGallery() {
+        var config = PHPickerConfiguration()
+        config.filter = .images
+        config.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+
+    private func openCamera() {
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else { return }
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+
+    private func handleSelectedImage(_ image: UIImage) {
+        Task {
+            do {
+                let info = try await viewModel.analyzeReceipt(image: image)
+                await MainActor.run { fillFields(from: info) }
+            } catch {
+                print("분석 실패: \(error)")
+            }
+        }
+    }
+
+    private func fillFields(from info: TransactionInfoDTO) {
+        if let date = info.transactionDate.toDate {
+            selectedDate = date
+            updateDateLabel(with: date)
+            viewModel.editDate(date)
+        }
+
+        viewModel.editEmotion(info.emotion)
+        updateEmotionLabel(with: info.emotion)
+
+        viewModel.editPaymentMethod(info.payment)
+        updatePaymentLabel(with: info.payment)
+
+        let memo = info.paymentMemo ?? ""
+        memoTextField.text = memo
+        memoTextField.font = memo.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
+        if !memo.isEmpty { viewModel.editMemo(memo) }
+
+        guard var current = viewModel.currentTransaction.value else { return }
+        let items = info.transactions.map { dto -> TransactionInfo in
+            let categoryId = ExpenseCategory.allCases.first(where: { $0.name == dto.categoryName })?.rawValue ?? ExpenseCategory.other.rawValue
+            return TransactionInfo(transactionId: nil, name: dto.name, amount: dto.amount, categoryId: categoryId, categoryName: dto.categoryName)
+        }
+        current.transactionInfoList = items
+        current.totalAmount = info.totalAmount
+        amountLabel.text = "총 금액 \(info.totalAmount.withComma)원"
+        amountLabel.textColor = info.totalAmount == 0 ? .gray6 : .gray1
+        viewModel.currentTransaction.accept(current)
+        expandableListView.configure(with: current)
+    }
+
     // MARK: - Label Updates
 
     private func updateDateLabel(with date: Date) {
@@ -429,6 +523,29 @@ class MultiExpenseViewController: UIViewController {
         guard isScrolledForKeyboard else { return }
         isScrolledForKeyboard = false
         scrollView.setContentOffset(originalContentOffset, animated: true)
+    }
+}
+
+// MARK: - PHPickerViewControllerDelegate
+
+extension MultiExpenseViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        guard let result = results.first else { return }
+        result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] image, _ in
+            DispatchQueue.main.async {
+                if let image = image as? UIImage { self?.handleSelectedImage(image) }
+            }
+        }
+    }
+}
+
+// MARK: - UIImagePickerControllerDelegate
+
+extension MultiExpenseViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+        dismiss(animated: true)
+        if let image = info[.originalImage] as? UIImage { handleSelectedImage(image) }
     }
 }
 

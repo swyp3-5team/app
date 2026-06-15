@@ -12,11 +12,13 @@ import FirebaseAnalytics
 
 final class TransactionViewModel {
     private let transactionAPI = TransactionAPI()
+    private let chatAPI = ChatAPI()
 
     let currentTransaction: BehaviorRelay<Transaction?>
     let selectedEmotion: BehaviorRelay<Emotion?>
     let selectedPayment: BehaviorRelay<Payment?>
     let selectedCategoryId: BehaviorRelay<Int?>
+    let isAnalyzing = BehaviorRelay<Bool>(value: false)
 
     private var incomeCategoryName: String = ""
 
@@ -141,6 +143,16 @@ final class TransactionViewModel {
 
             Analytics.logEvent("transaction_saved", parameters: ["source": "manual"])
         }
+    }
+
+    func analyzeReceipt(image: UIImage) async throws -> TransactionInfoDTO {
+        isAnalyzing.accept(true)
+        defer { isAnalyzing.accept(false) }
+        let response = try await chatAPI.sendChat(message: nil, mode: .receipt, image: image)
+        guard let info = response.transactionInfo else {
+            throw NSError(domain: "AnalyzeError", code: -1, userInfo: [NSLocalizedDescriptionKey: "분석 결과가 없습니다."])
+        }
+        return info
     }
 
     func deleteTransaction() async throws {

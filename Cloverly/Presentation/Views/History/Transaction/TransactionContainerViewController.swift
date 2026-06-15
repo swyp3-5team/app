@@ -9,6 +9,7 @@ import UIKit
 import SnapKit
 import RxSwift
 import RxCocoa
+import Lottie
 
 enum ExpenseEntryMode: Equatable {
     case single
@@ -128,6 +129,37 @@ class TransactionContainerViewController: UIViewController {
     private let containerView = UIView()
     private var originalTransaction: Transaction?
 
+    private lazy var lottieView: LottieAnimationView = {
+        let v = LottieAnimationView(name: "loadingSpinner")
+        v.loopMode = .loop
+        v.contentMode = .scaleAspectFit
+        v.animationSpeed = 1.0
+        return v
+    }()
+
+    private lazy var analyzeStatusLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "영수증 인식중"
+        label.textColor = .gray10
+        label.typography = .b5
+        label.textAlignment = .center
+        return label
+    }()
+
+    private lazy var analyzingOverlay: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [lottieView, analyzeStatusLabel])
+        stack.axis = .vertical
+        stack.spacing = 0
+        stack.alignment = .center
+        stack.backgroundColor = .gray1.withAlphaComponent(0.2)
+        stack.layer.cornerRadius = 16
+        stack.clipsToBounds = true
+        stack.layoutMargins = UIEdgeInsets(top: 6, left: 25, bottom: 14, right: 25)
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.isHidden = true
+        return stack
+    }()
+
     private lazy var incomeVC = IncomeViewController(viewModel: viewModel)
     private lazy var singleExpenseVC = SingleExpenseViewController(viewModel: viewModel)
     private lazy var multiExpenseVC = MultiExpenseViewController(viewModel: viewModel)
@@ -184,6 +216,7 @@ class TransactionContainerViewController: UIViewController {
         view.addSubview(typeButtonContainer)
         view.addSubview(containerView)
         view.addSubview(buttonStackView)
+        view.addSubview(analyzingOverlay)
 
         incomeButton.snp.makeConstraints { $0.height.equalTo(36) }
         expenseButton.snp.makeConstraints { $0.height.equalTo(36) }
@@ -204,6 +237,10 @@ class TransactionContainerViewController: UIViewController {
             $0.top.equalTo(typeButtonContainer.snp.bottom).offset(16)
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(buttonStackView.snp.top).offset(-10)
+        }
+
+        analyzingOverlay.snp.makeConstraints {
+            $0.center.equalToSuperview()
         }
     }
 
@@ -271,6 +308,23 @@ class TransactionContainerViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] isEnabled in
                 self?.updateSaveButton(isEnabled: isEnabled)
+            })
+            .disposed(by: disposeBag)
+
+        viewModel.isAnalyzing
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] isAnalyzing in
+                guard let self else { return }
+                if isAnalyzing {
+                    analyzingOverlay.isHidden = false
+                    lottieView.play()
+                    view.isUserInteractionEnabled = false
+                } else {
+                    lottieView.stop()
+                    analyzingOverlay.isHidden = true
+                    view.isUserInteractionEnabled = true
+                }
             })
             .disposed(by: disposeBag)
 
