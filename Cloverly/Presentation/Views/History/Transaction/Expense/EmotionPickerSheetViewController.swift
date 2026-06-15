@@ -11,7 +11,7 @@ import RxSwift
 
 class EmotionPickerSheetViewController: UIViewController {
     var onSelect: ((Emotion) -> Void)?
-    private var currentEmotion: Emotion
+    private var currentEmotion: Emotion?
     private let disposeBag = DisposeBag()
 
     // MARK: - UI
@@ -45,7 +45,9 @@ class EmotionPickerSheetViewController: UIViewController {
         btn.clipsToBounds = true
         btn.addAction(UIAction { [weak self] _ in
             guard let self else { return }
-            onSelect?(currentEmotion)
+            if let emotion = currentEmotion {
+                onSelect?(emotion)
+            }
             dismiss(animated: true)
         }, for: .touchUpInside)
         return btn
@@ -53,7 +55,7 @@ class EmotionPickerSheetViewController: UIViewController {
 
     // MARK: - Init
 
-    init(emotion: Emotion) {
+    init(emotion: Emotion?) {
         self.currentEmotion = emotion
         super.init(nibName: nil, bundle: nil)
     }
@@ -66,17 +68,26 @@ class EmotionPickerSheetViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         setupUI()
+        updateConfirmButton(enabled: currentEmotion != nil)
 
         emotionGridView.selectedEmotion
             .subscribe(onNext: { [weak self] emotion in
                 self?.currentEmotion = emotion
+                self?.updateConfirmButton(enabled: true)
             })
             .disposed(by: disposeBag)
     }
 
+    private func updateConfirmButton(enabled: Bool) {
+        confirmButton.isEnabled = enabled
+        confirmButton.backgroundColor = enabled ? .green5 : .gray8
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        emotionGridView.select(emotion: currentEmotion)
+        if let emotion = currentEmotion {
+            emotionGridView.select(emotion: emotion)
+        }
     }
 
     // MARK: - Setup

@@ -79,6 +79,12 @@ class IncomeCategoryPickerViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         setupUI()
+        updateConfirmButton(enabled: false)
+    }
+
+    private func updateConfirmButton(enabled: Bool) {
+        confirmButton.isEnabled = enabled
+        confirmButton.backgroundColor = enabled ? .green5 : .gray8
     }
 
     override func viewDidLayoutSubviews() {
@@ -120,6 +126,7 @@ class IncomeCategoryPickerViewController: UIViewController {
         guard let selectedId else { return }
         if let index = categories.firstIndex(where: { $0.rawValue == selectedId }) {
             collectionView.selectItem(at: IndexPath(item: index, section: 0), animated: false, scrollPosition: [])
+            updateConfirmButton(enabled: true)
         }
     }
 }
@@ -141,5 +148,6 @@ extension IncomeCategoryPickerViewController: UICollectionViewDataSource, UIColl
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         selectedId = categories[indexPath.item].rawValue
+        updateConfirmButton(enabled: true)
     }
 }

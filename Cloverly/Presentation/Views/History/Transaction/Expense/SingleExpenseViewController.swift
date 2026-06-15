@@ -391,7 +391,7 @@ class SingleExpenseViewController: UIViewController {
 
     @objc private func presentPaymentPicker() {
         view.endEditing(true)
-        let pickerVC = PaymentPickerSheetViewController(selectedPayment: viewModel.selectedPayment.value ?? .card)
+        let pickerVC = PaymentPickerSheetViewController(selectedPayment: viewModel.selectedPayment.value)
         pickerVC.onSelect = { [weak self] payment in
             guard let self else { return }
             viewModel.editPaymentMethod(payment)
