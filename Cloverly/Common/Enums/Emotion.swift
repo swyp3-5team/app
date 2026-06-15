@@ -37,7 +37,7 @@ enum Emotion: String, Codable, CaseIterable {
         case .neutral:       "👀"
         case .reward:        "🎁"
         case .satisfaction:  "✌️"
-        case .stress_relief: "💨"
+        case .stress_relief: "🌱"
         case .impulse:       "💥"
         case .regret:        "💦"
         }
