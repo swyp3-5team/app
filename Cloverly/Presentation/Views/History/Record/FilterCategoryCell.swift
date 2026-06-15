@@ -14,7 +14,7 @@ class FilterCategoryCell: UICollectionViewCell {
     private let label: AppLabel = {
         let label = AppLabel()
         label.textColor = .gray1
-        label.typography = .b4
+        label.typography = .b7
         label.textAlignment = .center
         return label
     }()
@@ -60,10 +60,10 @@ class FilterCategoryCell: UICollectionViewCell {
     private func updateAppearance() {
         if isSelected {
             contentView.layer.borderColor = UIColor.green5.cgColor
-            label.typography = .b1
+            label.typography = .b5
         } else {
             contentView.layer.borderColor = UIColor.gray8.cgColor
-            label.typography = .b3
+            label.typography = .b7
         }
     }
 }
