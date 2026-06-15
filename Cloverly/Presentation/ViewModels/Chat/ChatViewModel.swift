@@ -121,7 +121,6 @@ final class ChatViewModel {
         }
         
         let requestBody = TransactionRequest(
-            place: info.place,
             transactionDate: info.transactionDate,
             payment: info.payment,
             paymentMemo: info.paymentMemo,

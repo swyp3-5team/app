@@ -89,7 +89,7 @@ class ExpenseListViewCell: UITableViewCell {
         let isIncome = transaction.transactionInfoList.first?.type == "INCOME"
         let topCategory = transaction.transactionInfoList.max { $0.amount < $1.amount }?.categoryName ?? "내역 없음"
         
-        titleLabel.text = transaction.place?.nilIfNullOrEmpty ?? "미입력"
+        titleLabel.text = transaction.displayName
         subtitleLabel.text = isIncome ? topCategory : "\(transaction.emotion.displayName) · \(topCategory)"
         indicatorView.backgroundColor = transaction.transactionInfoList
             .max { $0.amount < $1.amount }

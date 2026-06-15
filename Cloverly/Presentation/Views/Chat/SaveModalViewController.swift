@@ -207,7 +207,14 @@ class SaveModalViewController: UIViewController {
             .subscribe(onNext: { [weak self] info in
                 guard let self = self, let transactionInfo = info.transactionInfo else { return }
 
-                storeNameValueLabel.text = transactionInfo.place?.nilIfNullOrEmpty ?? "미입력"
+                let items = transactionInfo.transactions
+                if items.count == 1 {
+                    storeNameValueLabel.text = items[0].name.nilIfNullOrEmpty ?? "미입력"
+                } else if items.count > 1 {
+                    storeNameValueLabel.text = "\(items[0].name) 외 \(items.count - 1)건"
+                } else {
+                    storeNameValueLabel.text = "미입력"
+                }
                 amountValueLabel.text = "\(transactionInfo.totalAmount)"
                 dateValueLabel.text = transactionInfo.transactionDate
                 emotionValueLabel.text = transactionInfo.emotion.displayName

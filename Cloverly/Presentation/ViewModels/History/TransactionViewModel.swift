@@ -59,13 +59,17 @@ final class TransactionViewModel {
 
     func editName(_ name: String) {
         guard var current = currentTransaction.value else { return }
-        current.place = name
+        guard !current.transactionInfoList.isEmpty else { return }
+        current.transactionInfoList[0].name = name
         currentTransaction.accept(current)
     }
 
     func editAmount(_ amount: Int) {
         guard var current = currentTransaction.value else { return }
         current.totalAmount = amount
+        if !current.transactionInfoList.isEmpty {
+            current.transactionInfoList[0].amount = amount
+        }
         currentTransaction.accept(current)
     }
 
@@ -99,9 +103,19 @@ final class TransactionViewModel {
         selectedCategoryId.accept(id)
         incomeCategoryName = name
         guard var current = currentTransaction.value else { return }
-        current.transactionInfoList.indices.forEach {
-            current.transactionInfoList[$0].categoryId = id
-            current.transactionInfoList[$0].categoryName = name
+        if current.transactionInfoList.isEmpty {
+            current.transactionInfoList = [TransactionInfo(
+                transactionId: nil,
+                name: "",
+                amount: current.totalAmount,
+                categoryId: id,
+                categoryName: name
+            )]
+        } else {
+            current.transactionInfoList.indices.forEach {
+                current.transactionInfoList[$0].categoryId = id
+                current.transactionInfoList[$0].categoryName = name
+            }
         }
         currentTransaction.accept(current)
     }
@@ -112,15 +126,11 @@ final class TransactionViewModel {
         if current.trGroupId != -1 {
             try await transactionAPI.updateTransaction(transaction: current)
         } else {
-            var transactionDTOs = current.transactionInfoList.map { info in
+            let transactionDTOs = current.transactionInfoList.map { info in
                 TransactionDTO(name: info.name, amount: info.amount, categoryName: info.categoryName)
-            }
-            if isIncome {
-                transactionDTOs = [TransactionDTO(name: current.place ?? "", amount: current.totalAmount, categoryName: incomeCategoryName)]
             }
 
             let requestBody = TransactionRequest(
-                place: current.place,
                 transactionDate: current.transactionDate,
                 payment: current.payment,
                 paymentMemo: current.paymentMemo,

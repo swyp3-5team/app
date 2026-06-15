@@ -358,20 +358,17 @@ class TransactionContainerViewController: UIViewController {
             if isIncomeMode.value {
                 return current.totalAmount > 0
                     || viewModel.selectedCategoryId.value != nil
-                    || current.place?.isEmpty == false
                     || current.paymentMemo?.isEmpty == false
             } else if resolvedExpenseMode.value == .single {
                 return current.totalAmount > 0
                     || viewModel.selectedCategoryId.value != nil
                     || viewModel.selectedEmotion.value != nil
                     || viewModel.selectedPayment.value != nil
-                    || current.place?.isEmpty == false
                     || current.paymentMemo?.isEmpty == false
             } else {
                 return !current.transactionInfoList.isEmpty
                     || viewModel.selectedEmotion.value != nil
                     || viewModel.selectedPayment.value != nil
-                    || current.place?.isEmpty == false
                     || current.paymentMemo?.isEmpty == false
             }
         }
