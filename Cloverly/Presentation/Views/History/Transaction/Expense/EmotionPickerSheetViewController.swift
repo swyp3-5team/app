@@ -18,7 +18,7 @@ class EmotionPickerSheetViewController: UIViewController {
 
     private lazy var titleLabel: AppLabel = {
         let label = AppLabel()
-        label.text = "소비감정"
+        label.text = "감정"
         label.typography = .t1
         label.textColor = .gray1
         return label

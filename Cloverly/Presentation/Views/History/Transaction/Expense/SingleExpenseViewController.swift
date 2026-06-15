@@ -100,7 +100,7 @@ class SingleExpenseViewController: UIViewController {
 
     private lazy var emotionLabelView: AppLabel = {
         let label = AppLabel()
-        label.text = "소비감정을 선택하세요"
+        label.text = "감정을 선택하세요"
         label.textAlignment = .right
         label.typography = .b3
         label.textColor = .gray6
@@ -412,7 +412,7 @@ class SingleExpenseViewController: UIViewController {
             emotionLabelView.typography = .b1
             emotionLabelView.textColor = .gray1
         } else {
-            emotionLabelView.text = "소비감정을 선택하세요"
+            emotionLabelView.text = "감정을 선택하세요"
             emotionLabelView.typography = .b3
             emotionLabelView.textColor = .gray6
         }

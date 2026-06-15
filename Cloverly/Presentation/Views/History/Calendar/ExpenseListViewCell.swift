@@ -102,7 +102,7 @@ class ExpenseListViewCell: UITableViewCell {
         subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.payment.displayName)"
         subtitleLabel.isHidden = isIncome
         indicatorView.backgroundColor = color
-        let sign = isIncome ? "+" : "-"
+        let sign = isIncome ? "" : "-"
         priceLabel.text = "\(sign)\(transaction.amount.withComma)원"
     }
 }
