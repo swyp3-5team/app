@@ -283,6 +283,25 @@ class IncomeViewController: UIViewController {
         present(pickerVC, animated: true)
     }
 
+    func prepareSave() {
+        guard var current = viewModel.currentTransaction.value else { return }
+        guard current.totalAmount > 0 else { return }
+
+        let categoryId = viewModel.selectedCategoryId.value ?? 0
+        let categoryName = IncomeCategory(rawValue: categoryId)?.name ?? ""
+        let name = nameTextField.text ?? ""
+
+        let item = TransactionInfo(
+            transactionId: current.transactionInfoList.first?.transactionId,
+            name: name,
+            amount: current.totalAmount,
+            categoryId: categoryId,
+            categoryName: categoryName
+        )
+        current.transactionInfoList = [item]
+        viewModel.currentTransaction.accept(current)
+    }
+
     func resetCategory() {
         viewModel.selectedCategoryId.accept(nil)
         categoryLabelView.text = "카테고리를 선택하세요"

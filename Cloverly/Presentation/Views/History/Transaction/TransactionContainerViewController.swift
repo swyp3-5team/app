@@ -86,7 +86,9 @@ class TransactionContainerViewController: UIViewController {
             guard let self else { return }
             Task {
                 do {
-                    if !self.isIncomeMode.value && self.resolvedExpenseMode.value == .single {
+                    if self.isIncomeMode.value {
+                        self.incomeVC.prepareSave()
+                    } else if self.resolvedExpenseMode.value == .single {
                         self.singleExpenseVC.prepareSave()
                     }
                     try await self.viewModel.saveTransaction(isIncome: self.isIncomeMode.value)
