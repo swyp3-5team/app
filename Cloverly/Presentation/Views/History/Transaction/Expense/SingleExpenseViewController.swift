@@ -322,6 +322,13 @@ class SingleExpenseViewController: UIViewController {
             .disposed(by: disposeBag)
     }
 
+    func resetCategory() {
+        viewModel.selectedCategoryId.accept(nil)
+        categoryLabelView.text = "카테고리를 선택하세요"
+        categoryLabelView.typography = .b3
+        categoryLabelView.textColor = .gray6
+    }
+
     // MARK: - Prepare Save
 
     func prepareSave() {

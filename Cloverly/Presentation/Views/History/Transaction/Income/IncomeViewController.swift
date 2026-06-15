@@ -283,6 +283,14 @@ class IncomeViewController: UIViewController {
         present(pickerVC, animated: true)
     }
 
+    func resetCategory() {
+        viewModel.selectedCategoryId.accept(nil)
+        categoryLabelView.text = "카테고리를 선택하세요"
+        categoryLabelView.typography = .b3
+        categoryLabelView.textColor = .gray6
+        nameFilled.accept(false)
+    }
+
     private func updateDateLabel(with date: Date) {
         dateLabelView.text = dateFormatter.string(from: date)
     }

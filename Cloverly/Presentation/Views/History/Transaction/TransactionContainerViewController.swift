@@ -239,6 +239,17 @@ class TransactionContainerViewController: UIViewController {
             })
             .disposed(by: disposeBag)
 
+        isIncomeMode
+            .distinctUntilChanged()
+            .skip(1)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] _ in
+                guard let self else { return }
+                incomeVC.resetCategory()
+                singleExpenseVC.resetCategory()
+            })
+            .disposed(by: disposeBag)
+
         Observable.combineLatest(isIncomeMode, resolvedExpenseMode)
             .distinctUntilChanged { $0 == $1 }
             .observe(on: MainScheduler.instance)
