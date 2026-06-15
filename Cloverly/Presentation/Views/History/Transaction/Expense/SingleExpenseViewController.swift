@@ -26,16 +26,19 @@ class SingleExpenseViewController: UIViewController {
 
     let requestMultiMode = PublishRelay<Void>()
 
+    private let nameFilled = BehaviorRelay<Bool>(value: false)
+
     var canSave: Observable<Bool> {
         Observable.combineLatest(
             viewModel.currentTransaction,
             viewModel.selectedCategoryId,
             viewModel.selectedEmotion,
-            viewModel.selectedPayment
+            viewModel.selectedPayment,
+            nameFilled
         )
-        .map { transaction, categoryId, emotion, payment in
+        .map { transaction, categoryId, emotion, payment, nameIsFilled in
             guard let t = transaction else { return false }
-            return t.totalAmount > 0 && categoryId != nil && emotion != nil && payment != nil
+            return t.totalAmount > 0 && categoryId != nil && emotion != nil && payment != nil && nameIsFilled
         }
     }
 
@@ -172,7 +175,7 @@ class SingleExpenseViewController: UIViewController {
     }()
 
     private lazy var emotionRow: FormItemView = {
-        let row = FormItemView(title: "소비 감정", content: emotionLabelView)
+        let row = FormItemView(title: "감정", content: emotionLabelView)
         emotionLabelView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(presentEmotionPicker)))
         return row
     }()
@@ -269,9 +272,10 @@ class SingleExpenseViewController: UIViewController {
                     self.amountTextField.font = Typography.b1.uiFont
                 }
 
-                let name = transaction.place ?? ""
+                let name = transaction.transactionInfoList.first?.name ?? ""
                 self.nameTextField.text = name
                 self.nameTextField.font = name.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
+                self.nameFilled.accept(!name.isEmpty)
 
                 if let item = transaction.transactionInfoList.first,
                    let category = ExpenseCategory(rawValue: item.categoryId) {
@@ -301,6 +305,9 @@ class SingleExpenseViewController: UIViewController {
             .skip(1)
             .do(onNext: { [weak self] text in
                 self?.nameTextField.font = text.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
+            })
+            .do(onNext: { [weak self] text in
+                self?.nameFilled.accept(!text.isEmpty)
             })
             .bind(onNext: viewModel.editName)
             .disposed(by: disposeBag)
@@ -370,7 +377,7 @@ class SingleExpenseViewController: UIViewController {
 
     @objc private func presentEmotionPicker() {
         view.endEditing(true)
-        let pickerVC = EmotionPickerSheetViewController(emotion: viewModel.selectedEmotion.value ?? .neutral)
+        let pickerVC = EmotionPickerSheetViewController(emotion: viewModel.selectedEmotion.value)
         pickerVC.onSelect = { [weak self] emotion in
             guard let self else { return }
             viewModel.editEmotion(emotion)
