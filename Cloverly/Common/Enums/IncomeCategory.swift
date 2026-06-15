@@ -26,7 +26,7 @@ enum IncomeCategory: Int, CaseIterable, Codable {
         case .salary: return "월급"
         case .sideIncome: return "부수입"
         case .allowance: return "용돈"
-        case .other: return "기타"
+        case .other: return "기타수입"
         }
     }
     
