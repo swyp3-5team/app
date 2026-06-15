@@ -116,7 +116,7 @@ class ExpenseListViewController: UIViewController {
 
         // navBar에 맞추기
         titleLabel.snp.remakeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.centerY.equalTo(navBarFrameInView.midY)
         }
     }

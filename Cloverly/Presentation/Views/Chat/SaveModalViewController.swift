@@ -133,7 +133,7 @@ class SaveModalViewController: UIViewController {
         let navBarFrameInView = navBar.convert(navBar.bounds, to: view)
 
         titleLabel.snp.remakeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.centerY.equalTo(navBarFrameInView.midY)
         }
     }
@@ -163,12 +163,12 @@ class SaveModalViewController: UIViewController {
         
         contentStackView.snp.makeConstraints {
             $0.top.equalTo(subtitleLabel.snp.bottom).offset(24)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.bottom.equalTo(saveButton.snp.top).offset(-30)
         }
         
         saveButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalToSuperview().offset(-34)
             $0.height.equalTo(56)
         }

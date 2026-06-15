@@ -176,12 +176,12 @@ class TransactionInfoEditViewController: UIViewController {
         
         nameTitleLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
         
         nameTextField.snp.makeConstraints {
             $0.top.equalTo(nameTitleLabel.snp.bottom).offset(8)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.width.equalTo(amountTextField.snp.width)
             $0.height.equalTo(48)
         }
@@ -194,22 +194,22 @@ class TransactionInfoEditViewController: UIViewController {
         amountTextField.snp.makeConstraints {
             $0.top.equalTo(amountTitleLabel.snp.bottom).offset(8)
             $0.leading.equalTo(amountTitleLabel)
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.height.equalTo(48)
         }
         
         categoryTitleLabel.snp.makeConstraints {
             $0.top.equalTo(nameTextField.snp.bottom).offset(24)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
         
         collectionView.snp.makeConstraints {
             $0.top.equalTo(categoryTitleLabel.snp.bottom).offset(16)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
         
         saveButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
             $0.height.equalTo(56)
         }

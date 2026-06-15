@@ -115,12 +115,12 @@ class StatsViewController: UIViewController {
         
         dateLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
         
         totalAmount.snp.makeConstraints {
             $0.top.equalTo(dateLabel.snp.bottom).offset(8)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
         
         dividerView.snp.makeConstraints {

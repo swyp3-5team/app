@@ -248,7 +248,7 @@ class HomeViewController: UIViewController {
         
         typeLogoImageView.snp.makeConstraints {
             $0.top.equalTo(view.snp.top).offset(statusBarHeight + 15)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
         
         bubbleImageView.snp.makeConstraints {

@@ -151,7 +151,7 @@ class InputBar: UIView {
         addSubview(sendButton)
         
         textView.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalTo(sendButton.snp.leading).offset(-8).priority(999)
             $0.top.equalToSuperview().offset(22)
             textViewHeightConstraint = $0.height.equalTo(minTextViewHeight).constraint
@@ -182,7 +182,7 @@ class InputBar: UIView {
         }
         
         sendButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.centerY.equalTo(galleryButton.snp.centerY)
             $0.width.equalTo(48)
         }

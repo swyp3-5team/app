@@ -95,7 +95,7 @@ class LoginViewController: UIViewController {
         
         titleLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(125)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
         
         subtitleLabel.snp.makeConstraints {
@@ -105,17 +105,17 @@ class LoginViewController: UIViewController {
         
         imageView.snp.makeConstraints {
             $0.top.equalTo(subtitleLabel.snp.bottom).offset(79)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
         
         kakaoLoginButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(56)
             $0.bottom.equalTo(appleLoginButton.snp.top).offset(-8)
         }
         
         appleLoginButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(56)
             $0.bottom.equalToSuperview().offset(-34)
         }

@@ -47,7 +47,7 @@ class FilterCategoryCell: UICollectionViewCell {
         contentView.addSubview(label)
         label.snp.makeConstraints {
             $0.top.bottom.equalToSuperview().inset(10)
-            $0.leading.trailing.equalToSuperview().inset(16) // 좌우 여백
+            $0.leading.trailing.equalToSuperview().inset(20) // 좌우 여백
         }
         
         updateAppearance() // 초기 상태 설정

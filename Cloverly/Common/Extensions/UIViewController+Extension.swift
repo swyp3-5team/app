@@ -29,8 +29,8 @@ extension UIViewController {
         
         toastView.snp.makeConstraints {
             $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-127)
-            $0.leading.equalToSuperview().offset(16)
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalToSuperview().offset(-20)
         }
         
         // 나타나기(Fade In) -> 대기 -> 사라지기(Fade Out)

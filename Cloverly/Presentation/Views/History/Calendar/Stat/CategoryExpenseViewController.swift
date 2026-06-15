@@ -111,12 +111,12 @@ class CategoryExpenseViewController: UIViewController {
 
         dateLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
 
         totalAmount.snp.makeConstraints {
             $0.top.equalTo(dateLabel.snp.bottom).offset(8)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
 
         dividerView.snp.makeConstraints {
@@ -127,7 +127,7 @@ class CategoryExpenseViewController: UIViewController {
 
         summaryRowView.snp.makeConstraints {
             $0.top.equalTo(dividerView.snp.bottom)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(44)
         }
 
@@ -212,7 +212,7 @@ extension CategoryExpenseViewController: UITableViewDataSource, UITableViewDeleg
 
         headerView.addSubview(label)
         label.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.bottom.equalToSuperview().offset(-8)
         }
 

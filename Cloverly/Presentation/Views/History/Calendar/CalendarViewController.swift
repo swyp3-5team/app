@@ -199,7 +199,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
 
         prevButton.snp.makeConstraints {
             $0.centerY.equalTo(headerLabel)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
 
         headerLabel.snp.makeConstraints {
@@ -213,22 +213,22 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         }
 
         statsButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.centerY.equalTo(headerLabel)
         }
 
         incomeRowStack.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.top.equalTo(statsButton.snp.bottom).offset(12)
         }
 
         expenseRowStack.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.top.equalTo(incomeRowStack.snp.bottom).offset(8)
         }
 
         balanceRowStack.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.centerY.equalTo(expenseRowStack)
         }
 
@@ -240,7 +240,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
 
         calendar.snp.makeConstraints {
             $0.top.equalTo(headerLabel.snp.bottom).offset(100)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-16)
         }
     }

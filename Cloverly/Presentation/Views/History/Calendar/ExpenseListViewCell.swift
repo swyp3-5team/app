@@ -68,7 +68,7 @@ class ExpenseListViewCell: UITableViewCell {
         contentView.addSubview(priceLabel)
         
         indicatorView.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.top.bottom.equalToSuperview().inset(15)
             $0.width.equalTo(4)
         }
@@ -80,7 +80,7 @@ class ExpenseListViewCell: UITableViewCell {
         }
         
         priceLabel.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.centerY.equalTo(containerStackView)
         }
     }
