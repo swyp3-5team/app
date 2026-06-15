@@ -57,14 +57,12 @@ class SaveModalViewController: UIViewController {
         return stack
     }()
     
-    private let storeNameValueLabel = AppLabel()
     private let amountValueLabel = AppLabel()
     private let dateValueLabel = AppLabel()
     private let emotionValueLabel = AppLabel()
     private let contentValueLabel = AppLabel()
     private let paymentMethodValueLabel = AppLabel()
     private let categoryValueLabel = AppLabel()
-    private let memoLabel = AppLabel()
     
     private lazy var saveButton: UIButton = {
         let button = UIButton()
@@ -147,14 +145,12 @@ class SaveModalViewController: UIViewController {
         view.addSubview(contentStackView)
         view.addSubview(saveButton)
         
-        addInfoRow(title: "금액", valueLabel: amountValueLabel)
         addInfoRow(title: "날짜", valueLabel: dateValueLabel)
+        addInfoRow(title: "금액", valueLabel: amountValueLabel)
+        addInfoRow(title: "내용", valueLabel: contentValueLabel)
+        addInfoRow(title: "카테고리", valueLabel: categoryValueLabel)
         addInfoRow(title: "감정", valueLabel: emotionValueLabel)
         addInfoRow(title: "결제수단", valueLabel: paymentMethodValueLabel)
-        addInfoRow(title: "메모", valueLabel: memoLabel)
-        addInfoRow(title: "내용", valueLabel: storeNameValueLabel)
-        addInfoRow(title: "지출내역", valueLabel: contentValueLabel)
-        addInfoRow(title: "카테고리", valueLabel: categoryValueLabel)
         
         subtitleLabel.snp.makeConstraints {
             $0.leading.equalTo(titleLabel.snp.leading)
@@ -208,20 +204,12 @@ class SaveModalViewController: UIViewController {
                 guard let self = self, let transactionInfo = info.transactionInfo else { return }
 
                 let items = transactionInfo.transactions
-                if items.count == 1 {
-                    storeNameValueLabel.text = items[0].name.nilIfNullOrEmpty ?? "미입력"
-                } else if items.count > 1 {
-                    storeNameValueLabel.text = "\(items[0].name) 외 \(items.count - 1)건"
-                } else {
-                    storeNameValueLabel.text = "미입력"
-                }
-                amountValueLabel.text = "\(transactionInfo.totalAmount)"
                 dateValueLabel.text = transactionInfo.transactionDate
+                amountValueLabel.text = "\(transactionInfo.totalAmount.withComma)원"
+                contentValueLabel.text = items.isEmpty ? "미입력" : items.map { $0.name }.joined(separator: ", ")
+                categoryValueLabel.text = Array(Set(items.map { $0.categoryName })).joined(separator: ", ")
                 emotionValueLabel.text = transactionInfo.emotion.displayName
-                contentValueLabel.text = transactionInfo.transactions.map { $0.name }.joined(separator: ", ")
                 paymentMethodValueLabel.text = transactionInfo.payment.displayName
-                categoryValueLabel.text = Array(Set(transactionInfo.transactions.map { $0.categoryName })).joined(separator: ", ")
-                memoLabel.text = transactionInfo.paymentMemo ?? "미입력"
             })
             .disposed(by: disposeBag)
     }
