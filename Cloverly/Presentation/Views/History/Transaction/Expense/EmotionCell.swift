@@ -23,7 +23,7 @@ class EmotionCell: UICollectionViewCell {
     private let titleLabel: AppLabel = {
         let label = AppLabel()
         label.textColor = .gray5
-        label.typography = .b6
+        label.typography = .b2
         label.textAlignment = .center
         return label
     }()
@@ -103,7 +103,7 @@ class EmotionCell: UICollectionViewCell {
             contentView.layer.borderColor = UIColor.green5.cgColor
             contentView.backgroundColor = .white
             titleLabel.textColor = .gray1
-            titleLabel.typography = .b5
+            titleLabel.typography = .b1
             if let emotion {
                 titleLabel.text = "\(emotion.displayName)\(emotion.icon)"
             }
@@ -123,7 +123,7 @@ class EmotionCell: UICollectionViewCell {
             contentView.layer.borderWidth = 0
             contentView.backgroundColor = .gray9
             titleLabel.textColor = .gray5
-            titleLabel.typography = .b6
+            titleLabel.typography = .b2
             if let emotion {
                 titleLabel.text = emotion.displayName
             }

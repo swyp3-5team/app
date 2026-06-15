@@ -148,11 +148,11 @@ class SaveModalViewController: UIViewController {
         view.addSubview(saveButton)
         
         addInfoRow(title: "금액", valueLabel: amountValueLabel)
-        addInfoRow(title: "상호명", valueLabel: storeNameValueLabel)
         addInfoRow(title: "날짜", valueLabel: dateValueLabel)
         addInfoRow(title: "감정", valueLabel: emotionValueLabel)
         addInfoRow(title: "결제수단", valueLabel: paymentMethodValueLabel)
         addInfoRow(title: "메모", valueLabel: memoLabel)
+        addInfoRow(title: "내용", valueLabel: storeNameValueLabel)
         addInfoRow(title: "지출내역", valueLabel: contentValueLabel)
         addInfoRow(title: "카테고리", valueLabel: categoryValueLabel)
         
