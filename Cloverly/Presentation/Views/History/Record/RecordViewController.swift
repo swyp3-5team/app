@@ -414,7 +414,7 @@ class RecordViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] amounts in
                 let total = amounts.values.reduce(0, +)
-                self?.incomeLabel.text = total > 0 ? "+\(total.withComma)원" : "0원"
+                self?.incomeLabel.text = total > 0 ? "\(total.withComma)원" : "0원"
             })
             .disposed(by: disposeBag)
 
@@ -425,7 +425,7 @@ class RecordViewController: UIViewController {
                 let incomeTotal = incomeAmounts.values.reduce(0, +)
                 let balance = incomeTotal - expenseTotal
                 if balance > 0 {
-                    self?.balanceLabel.text = "+\(balance.withComma)원"
+                    self?.balanceLabel.text = "\(balance.withComma)원"
                 } else if balance < 0 {
                     self?.balanceLabel.text = "-\((-balance).withComma)원"
                 } else {

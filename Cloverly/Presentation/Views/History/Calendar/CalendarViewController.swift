@@ -304,7 +304,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] amounts in
                 let total = amounts.values.reduce(0, +)
-                self?.incomeLabel.text = total > 0 ? "+\(total.withComma)원": "0원"
+                self?.incomeLabel.text = total > 0 ? "\(total.withComma)원": "0원"
                 self?.calendar.reloadData()
             })
             .disposed(by: disposeBag)
@@ -316,7 +316,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
                 let incomeTotal = incomeAmounts.values.reduce(0, +)
                 let balance = incomeTotal - expenseTotal
                 if balance > 0 {
-                    self?.balanceLabel.text = "+\(balance.withComma)원"
+                    self?.balanceLabel.text = "\(balance.withComma)원"
                 } else if balance < 0 {
                     self?.balanceLabel.text = "-\((-balance).withComma)원"
                 } else {
@@ -344,7 +344,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         let dateString = dateFormatter.string(from: date)
         
         let expenseText = viewModel.monthlyExpenseAmounts.value[dateString].map { "-\($0.withComma)" } ?? ""
-        let incomeText = viewModel.monthlyIncomeAmounts.value[dateString].map { "+\($0.withComma)" } ?? ""
+        let incomeText = viewModel.monthlyIncomeAmounts.value[dateString].map { "\($0.withComma)" } ?? ""
         cell.configure(expense: expenseText, income: incomeText)
         
         return cell
