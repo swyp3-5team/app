@@ -47,7 +47,7 @@ class TransactionInfoEditViewController: UIViewController {
     // 이름 입력 필드
     private lazy var nameTitleLabel: AppLabel = {
         let label = AppLabel()
-        label.text = isIncome ? "수입 내역" : "지출 내역"
+        label.text = "내용"
         label.textColor = .gray2
         label.typography = .b5
         return label
@@ -55,7 +55,7 @@ class TransactionInfoEditViewController: UIViewController {
     
     private lazy var nameTextField: UITextField = {
         let tf = UITextField()
-        tf.placeholder = isIncome ? "수입내역 입력" : "지출내역 입력"
+        tf.placeholder = "내용 입력"
         tf.text = initialName
         tf.font = Typography.b7.uiFont
         tf.layer.borderColor = UIColor.gray8.cgColor
@@ -146,7 +146,7 @@ class TransactionInfoEditViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        navigationItem.title = isIncome ? "수입내역" : "지출내역"
+        navigationItem.title = "내용"
         setupUI()
         bind()
 

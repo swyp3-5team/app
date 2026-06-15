@@ -63,18 +63,6 @@ class MultiExpenseViewController: UIViewController {
     
     private let expandableListView = ExpandableListView()
 
-    private lazy var nameTextField: UITextField = {
-        let tf = UITextField()
-        tf.attributedPlaceholder = NSAttributedString(
-            string: "내용을 입력하세요",
-            attributes: [.foregroundColor: UIColor.gray6, .font: Typography.b3.uiFont]
-        )
-        tf.textAlignment = .right
-        tf.font = Typography.b3.uiFont
-        tf.borderStyle = .none
-        return tf
-    }()
-
     private lazy var dateLabelView: AppLabel = {
         let label = AppLabel()
         label.textAlignment = .right
@@ -152,7 +140,7 @@ class MultiExpenseViewController: UIViewController {
     }()
 
     private lazy var emotionRow: FormItemView = {
-        let row = FormItemView(title: "소비 감정", content: emotionLabelView)
+        let row = FormItemView(title: "감정", content: emotionLabelView)
         emotionLabelView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(presentEmotionPicker)))
         return row
     }()
@@ -197,14 +185,13 @@ class MultiExpenseViewController: UIViewController {
     private func configureUI() {
         view.backgroundColor = .systemBackground
 
-        let nameRow = FormItemView(title: "내용", content: nameTextField)
         let memoRow = FormItemView(title: "메모", content: memoTextField)
 
         expandableListView.onAction = { [weak self] in
             self?.presentAddTransactionView()
         }
 
-        [amountLabel, expandableListView, dateRow, nameRow, emotionRow, paymentRow, memoRow].forEach {
+        [amountLabel, expandableListView, dateRow, emotionRow, paymentRow, memoRow].forEach {
             stackView.addArrangedSubview($0)
         }
         
@@ -243,10 +230,6 @@ class MultiExpenseViewController: UIViewController {
                 self.amountLabel.text = "총 금액 \(transaction.totalAmount.withComma)원"
                 self.amountLabel.textColor = transaction.totalAmount == 0 ? .gray6 : .gray1
 
-                let name = transaction.place ?? ""
-                self.nameTextField.text = name
-                self.nameTextField.font = name.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
-
                 let memo = transaction.paymentMemo ?? ""
                 self.memoTextField.text = memo
                 self.memoTextField.font = memo.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
@@ -263,15 +246,6 @@ class MultiExpenseViewController: UIViewController {
 
                 self.expandableListView.configure(with: transaction)
             })
-            .disposed(by: disposeBag)
-
-        nameTextField.rx.text.orEmpty
-            .distinctUntilChanged()
-            .skip(1)
-            .do(onNext: { [weak self] text in
-                self?.nameTextField.font = text.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
-            })
-            .bind(onNext: viewModel.editName)
             .disposed(by: disposeBag)
 
         memoTextField.rx.text.orEmpty
@@ -342,7 +316,7 @@ class MultiExpenseViewController: UIViewController {
 
     @objc private func presentEmotionPicker() {
         view.endEditing(true)
-        let pickerVC = EmotionPickerSheetViewController(emotion: viewModel.selectedEmotion.value ?? .neutral)
+        let pickerVC = EmotionPickerSheetViewController(emotion: viewModel.selectedEmotion.value)
         pickerVC.onSelect = { [weak self] emotion in
             guard let self else { return }
             self.viewModel.editEmotion(emotion)
@@ -356,7 +330,7 @@ class MultiExpenseViewController: UIViewController {
 
     @objc private func presentPaymentPicker() {
         view.endEditing(true)
-        let pickerVC = PaymentPickerSheetViewController(selectedPayment: viewModel.selectedPayment.value ?? .card)
+        let pickerVC = PaymentPickerSheetViewController(selectedPayment: viewModel.selectedPayment.value)
         pickerVC.onSelect = { [weak self] payment in
             guard let self else { return }
             self.viewModel.editPaymentMethod(payment)

@@ -20,7 +20,7 @@ class ExpandableListView: UIView {
 
     private let titleLabel: AppLabel = {
         let label = AppLabel()
-        label.text = "지출내역"
+        label.text = "내용"
         label.textColor = .gray2
         label.typography = .b2
         label.setContentHuggingPriority(.required, for: .horizontal)
@@ -87,7 +87,7 @@ class ExpandableListView: UIView {
     private let contentStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
-        stack.spacing = 8
+        stack.spacing = 12
         stack.isHidden = true
         stack.alpha = 0
         stack.isLayoutMarginsRelativeArrangement = true
@@ -98,7 +98,7 @@ class ExpandableListView: UIView {
     private let mainStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
-        stack.spacing = 12
+        stack.spacing = 16
         stack.alignment = .fill
         return stack
     }()
@@ -148,7 +148,7 @@ class ExpandableListView: UIView {
             guard let self else { return }
             TooltipView.show(
                 from: self.infoButton,
-                text: "우측 추가 버튼을 눌러 지출 항목과\n금액, 카테고리를 입력할 수 있습니다.\n지출내역 추가 완료 시 총 금액에 반영됩니다."
+                text: "우측 추가 버튼을 눌러 지출 항목과\n금액, 카테고리를 입력할 수 있습니다.\n추가 완료 시 총 금액에 반영됩니다."
             )
         }, for: .touchUpInside)
 
