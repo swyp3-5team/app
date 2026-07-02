@@ -183,7 +183,7 @@ class FilterViewController: UIViewController {
         guard let navBar = navigationController?.navigationBar else { return }
         let navBarFrameInView = navBar.convert(navBar.bounds, to: view)
         titleLabel.snp.remakeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.centerY.equalTo(navBarFrameInView.midY)
         }
     }
@@ -208,12 +208,12 @@ class FilterViewController: UIViewController {
 
         scrollView.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalTo(resetButton.snp.top).offset(-20)
         }
 
         resetButton.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
             $0.height.equalTo(56)
             $0.width.equalTo(applyButton.snp.width)
@@ -221,7 +221,7 @@ class FilterViewController: UIViewController {
 
         applyButton.snp.makeConstraints {
             $0.leading.equalTo(resetButton.snp.trailing).offset(8)
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
             $0.height.equalTo(56)
         }

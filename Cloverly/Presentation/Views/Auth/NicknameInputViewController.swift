@@ -174,7 +174,7 @@ class NicknameInputViewController: UIViewController {
         
         titleLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(127)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
         
         subtitleLabel.snp.makeConstraints {
@@ -184,7 +184,7 @@ class NicknameInputViewController: UIViewController {
         
         nicknameTextField.snp.makeConstraints {
             $0.top.equalTo(subtitleLabel.snp.bottom).offset(40)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(48)
         }
         
@@ -194,7 +194,7 @@ class NicknameInputViewController: UIViewController {
         }
         
         confirmImage.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.centerY.equalTo(confirmLabel)
         }
         
@@ -204,7 +204,7 @@ class NicknameInputViewController: UIViewController {
         }
         
         startButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
             $0.height.equalTo(50)
         }

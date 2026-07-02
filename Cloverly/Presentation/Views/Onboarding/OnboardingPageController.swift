@@ -81,7 +81,7 @@ class OnboardingPageController: UIViewController {
         
         titleLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(127)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
         
         subtitleLabel.snp.makeConstraints {
@@ -92,7 +92,7 @@ class OnboardingPageController: UIViewController {
         imageView.snp.makeConstraints {
             $0.top.equalToSuperview().offset(267)
 //            $0.centerY.equalToSuperview()
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
     }
     

@@ -38,9 +38,9 @@ class NoticeListCell: UITableViewCell {
         contentView.addSubview(dateLabel)
         
         titleLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.top.equalToSuperview().offset(16)
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
         }
         
         dateLabel.snp.makeConstraints {

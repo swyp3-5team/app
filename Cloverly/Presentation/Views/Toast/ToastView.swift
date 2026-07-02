@@ -56,12 +56,12 @@ class ToastView: UIView {
         
         messageLabel.snp.makeConstraints {
             $0.top.bottom.equalToSuperview().inset(15)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
         
         actionButton.snp.makeConstraints {
             $0.centerY.equalTo(messageLabel.snp.centerY)
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
         }
     }
 }

@@ -122,7 +122,7 @@ class ProfileEditViewController: UIViewController {
         
         nicknameTextField.snp.makeConstraints {
             $0.top.equalTo(profileImage.snp.bottom).offset(40)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(48)
         }
         
@@ -132,7 +132,7 @@ class ProfileEditViewController: UIViewController {
         }
         
         confirmImage.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.centerY.equalTo(confirmLabel)
         }
         
@@ -142,7 +142,7 @@ class ProfileEditViewController: UIViewController {
         }
         
         saveButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
             $0.height.equalTo(50)
         }

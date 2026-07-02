@@ -38,12 +38,12 @@ class CharacterToneViewController: UIViewController {
         
         boxA.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(24)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
         
         boxB.snp.makeConstraints {
             $0.top.equalTo(boxA.snp.bottom).offset(8)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
         
         boxA.setContents(

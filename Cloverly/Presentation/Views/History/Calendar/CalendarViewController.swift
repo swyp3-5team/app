@@ -199,7 +199,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
 
         prevButton.snp.makeConstraints {
             $0.centerY.equalTo(headerLabel)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
 
         headerLabel.snp.makeConstraints {
@@ -213,22 +213,22 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         }
 
         statsButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.centerY.equalTo(headerLabel)
         }
 
         incomeRowStack.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.top.equalTo(statsButton.snp.bottom).offset(12)
         }
 
         expenseRowStack.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.top.equalTo(incomeRowStack.snp.bottom).offset(8)
         }
 
         balanceRowStack.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.centerY.equalTo(expenseRowStack)
         }
 
@@ -240,7 +240,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
 
         calendar.snp.makeConstraints {
             $0.top.equalTo(headerLabel.snp.bottom).offset(100)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-16)
         }
     }
@@ -304,7 +304,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] amounts in
                 let total = amounts.values.reduce(0, +)
-                self?.incomeLabel.text = total > 0 ? "+\(total.withComma)원": "0원"
+                self?.incomeLabel.text = total > 0 ? "\(total.withComma)원": "0원"
                 self?.calendar.reloadData()
             })
             .disposed(by: disposeBag)
@@ -316,7 +316,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
                 let incomeTotal = incomeAmounts.values.reduce(0, +)
                 let balance = incomeTotal - expenseTotal
                 if balance > 0 {
-                    self?.balanceLabel.text = "+\(balance.withComma)원"
+                    self?.balanceLabel.text = "\(balance.withComma)원"
                 } else if balance < 0 {
                     self?.balanceLabel.text = "-\((-balance).withComma)원"
                 } else {
@@ -344,7 +344,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         let dateString = dateFormatter.string(from: date)
         
         let expenseText = viewModel.monthlyExpenseAmounts.value[dateString].map { "-\($0.withComma)" } ?? ""
-        let incomeText = viewModel.monthlyIncomeAmounts.value[dateString].map { "+\($0.withComma)" } ?? ""
+        let incomeText = viewModel.monthlyIncomeAmounts.value[dateString].map { "\($0.withComma)" } ?? ""
         cell.configure(expense: expenseText, income: incomeText)
         
         return cell

@@ -8,7 +8,6 @@
 import Foundation
 
 struct TransactionRequest: nonisolated Codable {
-    let place: String?
     let transactionDate: String
     let payment: Payment
     let paymentMemo: String?

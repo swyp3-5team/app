@@ -79,12 +79,12 @@ class PaymentDropDown: UIView {
         }
         
         titleLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.centerY.equalToSuperview()
         }
         
         arrowIcon.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.centerY.equalToSuperview()
             $0.width.height.equalTo(16)
         }

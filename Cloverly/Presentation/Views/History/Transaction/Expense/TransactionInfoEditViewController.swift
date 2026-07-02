@@ -47,7 +47,7 @@ class TransactionInfoEditViewController: UIViewController {
     // 이름 입력 필드
     private lazy var nameTitleLabel: AppLabel = {
         let label = AppLabel()
-        label.text = isIncome ? "수입 내역" : "지출 내역"
+        label.text = "내용"
         label.textColor = .gray2
         label.typography = .b5
         return label
@@ -55,7 +55,7 @@ class TransactionInfoEditViewController: UIViewController {
     
     private lazy var nameTextField: UITextField = {
         let tf = UITextField()
-        tf.placeholder = isIncome ? "수입내역 입력" : "지출내역 입력"
+        tf.placeholder = "내용 입력"
         tf.text = initialName
         tf.font = Typography.b7.uiFont
         tf.layer.borderColor = UIColor.gray8.cgColor
@@ -146,7 +146,7 @@ class TransactionInfoEditViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        navigationItem.title = isIncome ? "수입내역" : "지출내역"
+        navigationItem.title = "내용"
         setupUI()
         bind()
 
@@ -176,12 +176,12 @@ class TransactionInfoEditViewController: UIViewController {
         
         nameTitleLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
         
         nameTextField.snp.makeConstraints {
             $0.top.equalTo(nameTitleLabel.snp.bottom).offset(8)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.width.equalTo(amountTextField.snp.width)
             $0.height.equalTo(48)
         }
@@ -194,22 +194,22 @@ class TransactionInfoEditViewController: UIViewController {
         amountTextField.snp.makeConstraints {
             $0.top.equalTo(amountTitleLabel.snp.bottom).offset(8)
             $0.leading.equalTo(amountTitleLabel)
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.height.equalTo(48)
         }
         
         categoryTitleLabel.snp.makeConstraints {
             $0.top.equalTo(nameTextField.snp.bottom).offset(24)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
         
         collectionView.snp.makeConstraints {
             $0.top.equalTo(categoryTitleLabel.snp.bottom).offset(16)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
         
         saveButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
             $0.height.equalTo(56)
         }

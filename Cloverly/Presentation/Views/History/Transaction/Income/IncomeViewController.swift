@@ -15,14 +15,17 @@ class IncomeViewController: UIViewController {
     private let disposeBag = DisposeBag()
     private var selectedDate: Date = Date()
 
+    private let nameFilled = BehaviorRelay<Bool>(value: false)
+
     var canSave: Observable<Bool> {
         Observable.combineLatest(
             viewModel.currentTransaction,
-            viewModel.selectedCategoryId
+            viewModel.selectedCategoryId,
+            nameFilled
         )
-        .map { transaction, categoryId in
+        .map { transaction, categoryId, nameIsFilled in
             guard let t = transaction else { return false }
-            return t.totalAmount > 0 && categoryId != nil
+            return t.totalAmount > 0 && categoryId != nil && nameIsFilled
         }
     }
 
@@ -201,9 +204,10 @@ class IncomeViewController: UIViewController {
                     self.amountTextField.font = Typography.b1.uiFont
                 }
 
-                let name = transaction.place ?? ""
+                let name = transaction.transactionInfoList.first?.name ?? ""
                 self.nameTextField.text = name
                 self.nameTextField.font = name.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
+                self.nameFilled.accept(!name.isEmpty)
 
                 let memo = transaction.paymentMemo ?? ""
                 self.memoTextField.text = memo
@@ -229,6 +233,9 @@ class IncomeViewController: UIViewController {
             .skip(1)
             .do(onNext: { [weak self] text in
                 self?.nameTextField.font = text.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
+            })
+            .do(onNext: { [weak self] text in
+                self?.nameFilled.accept(!text.isEmpty)
             })
             .bind(onNext: viewModel.editName)
             .disposed(by: disposeBag)
@@ -256,7 +263,6 @@ class IncomeViewController: UIViewController {
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
         }
         present(pickerVC, animated: true)
     }
@@ -273,9 +279,35 @@ class IncomeViewController: UIViewController {
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.custom { _ in 260 }]
-            sheet.prefersGrabberVisible = true
         }
         present(pickerVC, animated: true)
+    }
+
+    func prepareSave() {
+        guard var current = viewModel.currentTransaction.value else { return }
+        guard current.totalAmount > 0 else { return }
+
+        let categoryId = viewModel.selectedCategoryId.value ?? 0
+        let categoryName = IncomeCategory(rawValue: categoryId)?.name ?? ""
+        let name = nameTextField.text ?? ""
+
+        let item = TransactionInfo(
+            transactionId: current.transactionInfoList.first?.transactionId,
+            name: name,
+            amount: current.totalAmount,
+            categoryId: categoryId,
+            categoryName: categoryName
+        )
+        current.transactionInfoList = [item]
+        viewModel.currentTransaction.accept(current)
+    }
+
+    func resetCategory() {
+        viewModel.selectedCategoryId.accept(nil)
+        categoryLabelView.text = "카테고리를 선택하세요"
+        categoryLabelView.typography = .b3
+        categoryLabelView.textColor = .gray6
+        nameFilled.accept(false)
     }
 
     private func updateDateLabel(with date: Date) {

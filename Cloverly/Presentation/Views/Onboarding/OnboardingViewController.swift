@@ -65,7 +65,7 @@ class OnboardingViewController: UIPageViewController {
         
         
         button.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalToSuperview().offset(-34)
             $0.height.equalTo(56)
         }

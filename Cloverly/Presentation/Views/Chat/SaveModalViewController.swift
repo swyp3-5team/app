@@ -57,14 +57,12 @@ class SaveModalViewController: UIViewController {
         return stack
     }()
     
-    private let storeNameValueLabel = AppLabel()
     private let amountValueLabel = AppLabel()
     private let dateValueLabel = AppLabel()
     private let emotionValueLabel = AppLabel()
     private let contentValueLabel = AppLabel()
     private let paymentMethodValueLabel = AppLabel()
     private let categoryValueLabel = AppLabel()
-    private let memoLabel = AppLabel()
     
     private lazy var saveButton: UIButton = {
         let button = UIButton()
@@ -133,7 +131,7 @@ class SaveModalViewController: UIViewController {
         let navBarFrameInView = navBar.convert(navBar.bounds, to: view)
 
         titleLabel.snp.remakeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.centerY.equalTo(navBarFrameInView.midY)
         }
     }
@@ -147,14 +145,12 @@ class SaveModalViewController: UIViewController {
         view.addSubview(contentStackView)
         view.addSubview(saveButton)
         
-        addInfoRow(title: "금액", valueLabel: amountValueLabel)
-        addInfoRow(title: "상호명", valueLabel: storeNameValueLabel)
         addInfoRow(title: "날짜", valueLabel: dateValueLabel)
+        addInfoRow(title: "금액", valueLabel: amountValueLabel)
+        addInfoRow(title: "내용", valueLabel: contentValueLabel)
+        addInfoRow(title: "카테고리", valueLabel: categoryValueLabel)
         addInfoRow(title: "감정", valueLabel: emotionValueLabel)
         addInfoRow(title: "결제수단", valueLabel: paymentMethodValueLabel)
-        addInfoRow(title: "메모", valueLabel: memoLabel)
-        addInfoRow(title: "지출내역", valueLabel: contentValueLabel)
-        addInfoRow(title: "카테고리", valueLabel: categoryValueLabel)
         
         subtitleLabel.snp.makeConstraints {
             $0.leading.equalTo(titleLabel.snp.leading)
@@ -163,12 +159,12 @@ class SaveModalViewController: UIViewController {
         
         contentStackView.snp.makeConstraints {
             $0.top.equalTo(subtitleLabel.snp.bottom).offset(24)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.bottom.equalTo(saveButton.snp.top).offset(-30)
         }
         
         saveButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalToSuperview().offset(-34)
             $0.height.equalTo(56)
         }
@@ -207,14 +203,13 @@ class SaveModalViewController: UIViewController {
             .subscribe(onNext: { [weak self] info in
                 guard let self = self, let transactionInfo = info.transactionInfo else { return }
 
-                storeNameValueLabel.text = transactionInfo.place?.nilIfNullOrEmpty ?? "미입력"
-                amountValueLabel.text = "\(transactionInfo.totalAmount)"
+                let items = transactionInfo.transactions
                 dateValueLabel.text = transactionInfo.transactionDate
+                amountValueLabel.text = "\(transactionInfo.totalAmount.withComma)원"
+                contentValueLabel.text = items.isEmpty ? "미입력" : items.map { $0.name }.joined(separator: ", ")
+                categoryValueLabel.text = Array(Set(items.map { $0.categoryName })).joined(separator: ", ")
                 emotionValueLabel.text = transactionInfo.emotion.displayName
-                contentValueLabel.text = transactionInfo.transactions.map { $0.name }.joined(separator: ", ")
                 paymentMethodValueLabel.text = transactionInfo.payment.displayName
-                categoryValueLabel.text = Array(Set(transactionInfo.transactions.map { $0.categoryName })).joined(separator: ", ")
-                memoLabel.text = transactionInfo.paymentMemo ?? "미입력"
             })
             .disposed(by: disposeBag)
     }

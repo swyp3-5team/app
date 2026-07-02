@@ -209,8 +209,6 @@ class RecordViewController: UIViewController {
         let banner = AdFitBannerAdView(clientId: "DAN-VlURa9fxNUcIMzSd", adUnitSize: "320x100")
         banner.rootViewController = self
         banner.delegate = self
-        banner.layer.cornerRadius = 8
-        banner.clipsToBounds = true
         return banner
     }()
     
@@ -327,7 +325,7 @@ class RecordViewController: UIViewController {
         
         prevButton.snp.makeConstraints {
             $0.centerY.equalTo(headerLabel)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
         
         nextButton.snp.makeConstraints {
@@ -336,39 +334,39 @@ class RecordViewController: UIViewController {
         }
         
         statsButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.centerY.equalTo(headerLabel)
         }
         
         incomeRowStack.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.top.equalTo(statsButton.snp.bottom).offset(20)
         }
 
         expenseRowStack.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.top.equalTo(incomeRowStack.snp.bottom).offset(8)
         }
 
         balanceRowStack.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.centerY.equalTo(expenseRowStack)
         }
 
         bannerView.snp.makeConstraints {
             $0.top.equalTo(expenseRowStack.snp.bottom).offset(20)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(100)
         }
 
         filterButton.snp.makeConstraints {
             $0.top.equalTo(bannerView.snp.bottom).offset(20)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.bottom.equalToSuperview().inset(22)
         }
         
         floatingButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-16)
             $0.width.height.equalTo(56)
         }
@@ -416,7 +414,7 @@ class RecordViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] amounts in
                 let total = amounts.values.reduce(0, +)
-                self?.incomeLabel.text = total > 0 ? "+\(total.withComma)원" : "0원"
+                self?.incomeLabel.text = total > 0 ? "\(total.withComma)원" : "0원"
             })
             .disposed(by: disposeBag)
 
@@ -427,7 +425,7 @@ class RecordViewController: UIViewController {
                 let incomeTotal = incomeAmounts.values.reduce(0, +)
                 let balance = incomeTotal - expenseTotal
                 if balance > 0 {
-                    self?.balanceLabel.text = "+\(balance.withComma)원"
+                    self?.balanceLabel.text = "\(balance.withComma)원"
                 } else if balance < 0 {
                     self?.balanceLabel.text = "-\((-balance).withComma)원"
                 } else {
@@ -533,7 +531,7 @@ class RecordViewController: UIViewController {
             self.floatingButton.translatesAutoresizingMaskIntoConstraints = false
             self.view.addSubview(self.floatingButton)
             self.floatingButton.snp.makeConstraints {
-                $0.trailing.equalToSuperview().offset(-16)
+                $0.trailing.equalToSuperview().offset(-20)
                 $0.bottom.equalTo(self.view.safeAreaLayoutGuide).offset(-16)
                 $0.width.height.equalTo(56)
             }
@@ -610,7 +608,7 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
         
         headerView.addSubview(label)
         label.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.bottom.equalToSuperview().offset(-8)
         }
         

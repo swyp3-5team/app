@@ -26,16 +26,19 @@ class SingleExpenseViewController: UIViewController {
 
     let requestMultiMode = PublishRelay<Void>()
 
+    private let nameFilled = BehaviorRelay<Bool>(value: false)
+
     var canSave: Observable<Bool> {
         Observable.combineLatest(
             viewModel.currentTransaction,
             viewModel.selectedCategoryId,
             viewModel.selectedEmotion,
-            viewModel.selectedPayment
+            viewModel.selectedPayment,
+            nameFilled
         )
-        .map { transaction, categoryId, emotion, payment in
+        .map { transaction, categoryId, emotion, payment, nameIsFilled in
             guard let t = transaction else { return false }
-            return t.totalAmount > 0 && categoryId != nil && emotion != nil && payment != nil
+            return t.totalAmount > 0 && categoryId != nil && emotion != nil && payment != nil && nameIsFilled
         }
     }
 
@@ -100,7 +103,7 @@ class SingleExpenseViewController: UIViewController {
 
     private lazy var emotionLabelView: AppLabel = {
         let label = AppLabel()
-        label.text = "소비감정을 선택하세요"
+        label.text = "감정을 선택하세요"
         label.textAlignment = .right
         label.typography = .b3
         label.textColor = .gray6
@@ -172,7 +175,7 @@ class SingleExpenseViewController: UIViewController {
     }()
 
     private lazy var emotionRow: FormItemView = {
-        let row = FormItemView(title: "소비 감정", content: emotionLabelView)
+        let row = FormItemView(title: "감정", content: emotionLabelView)
         emotionLabelView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(presentEmotionPicker)))
         return row
     }()
@@ -269,15 +272,16 @@ class SingleExpenseViewController: UIViewController {
                     self.amountTextField.font = Typography.b1.uiFont
                 }
 
-                if let item = transaction.transactionInfoList.first {
-                    self.nameTextField.text = item.name
-                    self.nameTextField.font = item.name.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
+                let name = transaction.transactionInfoList.first?.name ?? ""
+                self.nameTextField.text = name
+                self.nameTextField.font = name.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
+                self.nameFilled.accept(!name.isEmpty)
 
-                    if let category = ExpenseCategory(rawValue: item.categoryId) {
-                        self.categoryLabelView.text = category.fullDisplay
-                        self.categoryLabelView.typography = .b1
-                        self.categoryLabelView.textColor = .gray1
-                    }
+                if let item = transaction.transactionInfoList.first,
+                   let category = ExpenseCategory(rawValue: item.categoryId) {
+                    self.categoryLabelView.text = category.fullDisplay
+                    self.categoryLabelView.typography = .b1
+                    self.categoryLabelView.textColor = .gray1
                 }
 
                 self.updateEmotionLabel(with: self.viewModel.selectedEmotion.value)
@@ -302,6 +306,9 @@ class SingleExpenseViewController: UIViewController {
             .do(onNext: { [weak self] text in
                 self?.nameTextField.font = text.isEmpty ? Typography.b3.uiFont : Typography.b1.uiFont
             })
+            .do(onNext: { [weak self] text in
+                self?.nameFilled.accept(!text.isEmpty)
+            })
             .bind(onNext: viewModel.editName)
             .disposed(by: disposeBag)
 
@@ -315,10 +322,19 @@ class SingleExpenseViewController: UIViewController {
             .disposed(by: disposeBag)
     }
 
+    func resetCategory() {
+        viewModel.selectedCategoryId.accept(nil)
+        categoryLabelView.text = "카테고리를 선택하세요"
+        categoryLabelView.typography = .b3
+        categoryLabelView.textColor = .gray6
+    }
+
     // MARK: - Prepare Save
 
     func prepareSave() {
         guard var current = viewModel.currentTransaction.value else { return }
+        guard current.totalAmount > 0 else { return }
+
         let categoryId = viewModel.selectedCategoryId.value ?? 0
         let name = nameTextField.text ?? ""
 
@@ -346,7 +362,6 @@ class SingleExpenseViewController: UIViewController {
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
         }
         present(pickerVC, animated: true)
     }
@@ -363,14 +378,13 @@ class SingleExpenseViewController: UIViewController {
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
         }
         present(pickerVC, animated: true)
     }
 
     @objc private func presentEmotionPicker() {
         view.endEditing(true)
-        let pickerVC = EmotionPickerSheetViewController(emotion: viewModel.selectedEmotion.value ?? .neutral)
+        let pickerVC = EmotionPickerSheetViewController(emotion: viewModel.selectedEmotion.value)
         pickerVC.onSelect = { [weak self] emotion in
             guard let self else { return }
             viewModel.editEmotion(emotion)
@@ -378,14 +392,13 @@ class SingleExpenseViewController: UIViewController {
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
         }
         present(pickerVC, animated: true)
     }
 
     @objc private func presentPaymentPicker() {
         view.endEditing(true)
-        let pickerVC = PaymentPickerSheetViewController(selectedPayment: viewModel.selectedPayment.value ?? .card)
+        let pickerVC = PaymentPickerSheetViewController(selectedPayment: viewModel.selectedPayment.value)
         pickerVC.onSelect = { [weak self] payment in
             guard let self else { return }
             viewModel.editPaymentMethod(payment)
@@ -393,7 +406,6 @@ class SingleExpenseViewController: UIViewController {
         }
         if let sheet = pickerVC.sheetPresentationController {
             sheet.detents = [.custom { _ in 260 }]
-            sheet.prefersGrabberVisible = true
         }
         present(pickerVC, animated: true)
     }
@@ -410,7 +422,7 @@ class SingleExpenseViewController: UIViewController {
             emotionLabelView.typography = .b1
             emotionLabelView.textColor = .gray1
         } else {
-            emotionLabelView.text = "소비감정을 선택하세요"
+            emotionLabelView.text = "감정을 선택하세요"
             emotionLabelView.typography = .b3
             emotionLabelView.textColor = .gray6
         }

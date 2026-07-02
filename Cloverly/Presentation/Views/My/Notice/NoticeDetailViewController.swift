@@ -68,7 +68,7 @@ class NoticeDetailViewController: UIViewController {
         
         titleLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(16)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
         
         dateLabel.snp.makeConstraints {
@@ -78,13 +78,13 @@ class NoticeDetailViewController: UIViewController {
         
         dividerView.snp.makeConstraints {
             $0.top.equalTo(dateLabel.snp.bottom).offset(16)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(1)
         }
         
         contentTextView.snp.makeConstraints {
             $0.top.equalTo(dividerView.snp.bottom).offset(24)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
         }
     }

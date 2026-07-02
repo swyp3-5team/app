@@ -79,6 +79,12 @@ class IncomeCategoryPickerViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         setupUI()
+        updateConfirmButton(enabled: false)
+    }
+
+    private func updateConfirmButton(enabled: Bool) {
+        confirmButton.isEnabled = enabled
+        confirmButton.backgroundColor = enabled ? .green5 : .gray8
     }
 
     override func viewDidLayoutSubviews() {
@@ -96,22 +102,22 @@ class IncomeCategoryPickerViewController: UIViewController {
 
         titleLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(24)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
 
         xButton.snp.makeConstraints {
             $0.centerY.equalTo(titleLabel)
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
         }
 
         collectionView.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(20)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
 
         confirmButton.snp.makeConstraints {
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(56)
         }
     }
@@ -120,6 +126,7 @@ class IncomeCategoryPickerViewController: UIViewController {
         guard let selectedId else { return }
         if let index = categories.firstIndex(where: { $0.rawValue == selectedId }) {
             collectionView.selectItem(at: IndexPath(item: index, section: 0), animated: false, scrollPosition: [])
+            updateConfirmButton(enabled: true)
         }
     }
 }
@@ -141,5 +148,6 @@ extension IncomeCategoryPickerViewController: UICollectionViewDataSource, UIColl
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         selectedId = categories[indexPath.item].rawValue
+        updateConfirmButton(enabled: true)
     }
 }

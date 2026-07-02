@@ -11,14 +11,14 @@ import RxSwift
 
 class EmotionPickerSheetViewController: UIViewController {
     var onSelect: ((Emotion) -> Void)?
-    private var currentEmotion: Emotion
+    private var currentEmotion: Emotion?
     private let disposeBag = DisposeBag()
 
     // MARK: - UI
 
     private lazy var titleLabel: AppLabel = {
         let label = AppLabel()
-        label.text = "소비감정"
+        label.text = "감정"
         label.typography = .t1
         label.textColor = .gray1
         return label
@@ -45,7 +45,9 @@ class EmotionPickerSheetViewController: UIViewController {
         btn.clipsToBounds = true
         btn.addAction(UIAction { [weak self] _ in
             guard let self else { return }
-            onSelect?(currentEmotion)
+            if let emotion = currentEmotion {
+                onSelect?(emotion)
+            }
             dismiss(animated: true)
         }, for: .touchUpInside)
         return btn
@@ -53,7 +55,7 @@ class EmotionPickerSheetViewController: UIViewController {
 
     // MARK: - Init
 
-    init(emotion: Emotion) {
+    init(emotion: Emotion?) {
         self.currentEmotion = emotion
         super.init(nibName: nil, bundle: nil)
     }
@@ -66,17 +68,26 @@ class EmotionPickerSheetViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         setupUI()
+        updateConfirmButton(enabled: currentEmotion != nil)
 
         emotionGridView.selectedEmotion
             .subscribe(onNext: { [weak self] emotion in
                 self?.currentEmotion = emotion
+                self?.updateConfirmButton(enabled: true)
             })
             .disposed(by: disposeBag)
     }
 
+    private func updateConfirmButton(enabled: Bool) {
+        confirmButton.isEnabled = enabled
+        confirmButton.backgroundColor = enabled ? .green5 : .gray8
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        emotionGridView.select(emotion: currentEmotion)
+        if let emotion = currentEmotion {
+            emotionGridView.select(emotion: emotion)
+        }
     }
 
     // MARK: - Setup
@@ -89,23 +100,23 @@ class EmotionPickerSheetViewController: UIViewController {
 
         titleLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(24)
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
         }
 
         xButton.snp.makeConstraints {
             $0.centerY.equalTo(titleLabel)
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
         }
 
         emotionGridView.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(20)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(268)
         }
 
         confirmButton.snp.makeConstraints {
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(56)
         }
     }

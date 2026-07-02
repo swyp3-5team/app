@@ -50,7 +50,7 @@ class ProfileTableViewCell: UITableViewCell {
         contentView.addSubview(chevronImageView)
         
         profileImageView.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.centerY.equalToSuperview()
             $0.width.height.equalTo(48)
         }
@@ -61,7 +61,7 @@ class ProfileTableViewCell: UITableViewCell {
         }
         
         chevronImageView.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.centerY.equalTo(profileImageView.snp.centerY)
         }
     }

@@ -68,18 +68,19 @@ class ExpenseListViewCell: UITableViewCell {
         contentView.addSubview(priceLabel)
         
         indicatorView.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(16)
+            $0.leading.equalToSuperview().offset(20)
             $0.top.bottom.equalToSuperview().inset(15)
             $0.width.equalTo(4)
         }
-        
+
         containerStackView.snp.makeConstraints {
             $0.leading.equalTo(indicatorView.snp.trailing).offset(16)
             $0.top.bottom.equalToSuperview().inset(7)
+            $0.height.greaterThanOrEqualTo(44)
         }
         
         priceLabel.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.centerY.equalTo(containerStackView)
         }
     }
@@ -88,7 +89,7 @@ class ExpenseListViewCell: UITableViewCell {
         let isIncome = transaction.transactionInfoList.first?.type == "INCOME"
         let topCategory = transaction.transactionInfoList.max { $0.amount < $1.amount }?.categoryName ?? "내역 없음"
         
-        titleLabel.text = transaction.place?.nilIfNullOrEmpty ?? "미입력"
+        titleLabel.text = transaction.displayName
         subtitleLabel.text = isIncome ? topCategory : "\(transaction.emotion.displayName) · \(topCategory)"
         indicatorView.backgroundColor = transaction.transactionInfoList
             .max { $0.amount < $1.amount }
@@ -101,7 +102,7 @@ class ExpenseListViewCell: UITableViewCell {
         subtitleLabel.text = "\(transaction.emotion.displayName) · \(transaction.payment.displayName)"
         subtitleLabel.isHidden = isIncome
         indicatorView.backgroundColor = color
-        let sign = isIncome ? "+" : "-"
+        let sign = isIncome ? "" : "-"
         priceLabel.text = "\(sign)\(transaction.amount.withComma)원"
     }
 }
