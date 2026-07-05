@@ -134,15 +134,19 @@ class NicknameInputViewController: UIViewController {
 
             guard let nickname = self.nicknameTextField.text?.trimmingCharacters(in: .whitespaces),
                   !nickname.isEmpty else {
-                print("닉네임을 입력해주세요!")
                 return
             }
 
-            viewModel.saveUser(nickname: nickname)
-            
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let sceneDelegate = windowScene.delegate as? SceneDelegate {
-                sceneDelegate.checkAndUpdateRootViewController()
+            Task {
+                do {
+                    try await self.viewModel.saveUser(nickname: nickname)
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let sceneDelegate = windowScene.delegate as? SceneDelegate {
+                        sceneDelegate.checkAndUpdateRootViewController()
+                    }
+                } catch {
+                    self.showErrorToast(error)
+                }
             }
         }, for: .touchUpInside)
         return button
