@@ -25,7 +25,7 @@ class SaveModalViewController: UIViewController {
     
     private let subtitleLabel: AppLabel = {
         let label = AppLabel()
-        label.text = "*홈 > 내역탭에서 수정이 가능합니다"
+        label.text = "*하단 [내역]탭에서 수정이 가능합니다."
         label.textColor = .gray5
         label.typography = .l1
         return label
