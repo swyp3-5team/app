@@ -149,8 +149,8 @@ final class TransactionViewModel {
         isAnalyzing.accept(true)
         defer { isAnalyzing.accept(false) }
         let response = try await chatAPI.sendChat(message: nil, mode: .receipt, image: image)
-        guard let info = response.transactionInfo else {
-            throw NSError(domain: "AnalyzeError", code: -1, userInfo: [NSLocalizedDescriptionKey: "분석 결과가 없습니다."])
+        guard let info = response.transactionInfo, info.totalAmount > 0 else {
+            throw AppError.notReceipt
         }
         return info
     }

@@ -353,11 +353,11 @@ class ChatViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] isLoading in
                 guard let self = self else { return }
-                
+
                 if isLoading {
                     self.loadingStackView.isHidden = false
                     self.lottieView.play()
-                    
+
                     // 로딩 중엔 다른 버튼 못 누르게 막기
                     self.view.isUserInteractionEnabled = false
                 } else {
@@ -365,6 +365,15 @@ class ChatViewController: UIViewController {
                     self.loadingStackView.isHidden = true
                     self.view.isUserInteractionEnabled = true
                 }
+            })
+            .disposed(by: disposeBag)
+
+        viewModel.errorRelay
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] error in
+                guard let self else { return }
+                let appError = AppError.from(error)
+                self.showToast(message: appError.errorDescription ?? AppError.unknown.errorDescription!)
             })
             .disposed(by: disposeBag)
     }

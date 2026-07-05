@@ -99,11 +99,11 @@ class SaveModalViewController: UIViewController {
                         )
                     }
                 } catch {
-                    print("저장 실패: \(error)")
+                    self.showErrorToast(error)
                 }
             }
         }, for: .touchUpInside)
-        
+
         return button
     }()
     

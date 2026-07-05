@@ -96,7 +96,7 @@ class TransactionContainerViewController: UIViewController {
                     self.onComplete()
                     self.navigateBack()
                 } catch {
-                    print("저장 실패: \(error)")
+                    self.showErrorToast(error, above: self.buttonStackView)
                 }
             }
         }, for: .touchUpInside)
@@ -460,7 +460,8 @@ class TransactionContainerViewController: UIViewController {
                     self?.onComplete()
                     self?.navigateBack()
                 } catch {
-                    print("삭제 실패: \(error)")
+                    guard let self else { return }
+                    self.showErrorToast(error, above: self.buttonStackView)
                 }
             }
         })
