@@ -49,18 +49,21 @@ class HomeViewController: UIViewController {
     }
 
     private var timeBasedBackgroundVideoName: String {
-        let hour = Calendar.current.component(.hour, from: Date())
+        let calendar = Calendar.current
+        let now = Date()
+        let hour = calendar.component(.hour, from: now)
+        let month = calendar.component(.month, from: now)
+        let isSummer = (6...9).contains(month)
 
+        let baseName: String
         switch hour {
-        case 6..<12:
-            return "morning"
-        case 12..<18:
-            return "afternoon"
-        case 18..<22:
-            return "evening"
-        default:
-            return "night"
+        case 6..<12:  baseName = "morning"
+        case 12..<18: baseName = "afternoon"
+        case 18..<22: baseName = "evening"
+        default:      baseName = "night"
         }
+
+        return isSummer ? "\(baseName)_summer" : baseName
     }
 
     private var player: AVPlayer?
