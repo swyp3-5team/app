@@ -46,7 +46,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
         textView.isScrollEnabled = false
         textView.textContainerInset = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
         textView.textContainer.lineFragmentPadding = 0
-        textView.typography = .b3
+        textView.typography = .b2
 
         return textView
     }()

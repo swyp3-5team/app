@@ -45,6 +45,7 @@ final class CalendarViewModel {
     var sortedDateKeys: [String] = []
     
     let selectedIndex = BehaviorRelay<Int>(value: 0)
+    let errorRelay = PublishRelay<AppError>()
     private let disposeBag = DisposeBag()
     
     init() {
@@ -108,7 +109,7 @@ final class CalendarViewModel {
                 groupedTransactions.accept(grouped)
                 applyFilter()
             } catch {
-                print("지출 내역 데이터 로드 실패: \(error)")
+                errorRelay.accept(AppError.from(error))
             }
         }
     }
@@ -124,7 +125,7 @@ final class CalendarViewModel {
                 let sortedList = categoryStatisticsList.sorted { $0.totalAmount > $1.totalAmount }
                 categoryStatistics.accept(sortedList)
             } catch {
-                print("카테고리 통계 데이터 로드 실패: \(error)")
+                errorRelay.accept(AppError.from(error))
             }
         }
     }
@@ -139,7 +140,7 @@ final class CalendarViewModel {
                 let transactions = try await transactionAPI.getCategoryTransactions(yearMonth: yearMonthString, categoryId: categoryId)
                 categoryTransactions.accept(transactions)
             } catch {
-                print("카테고리별 지출 내역 조회 실패: \(error)")
+                errorRelay.accept(AppError.from(error))
             }
         }
     }
@@ -162,7 +163,7 @@ final class CalendarViewModel {
                 let sorted = result.sorted { $0.totalAmount > $1.totalAmount }
                 categoryStatistics.accept(sorted)
             } catch {
-                print("수입 카테고리별 데이터 로드 실패: \(error)")
+                errorRelay.accept(AppError.from(error))
             }
         }
     }

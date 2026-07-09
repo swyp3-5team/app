@@ -59,6 +59,13 @@ class NoticeViewController: UIViewController {
                 self?.tableView.reloadData()
             })
             .disposed(by: disposeBag)
+
+        viewModel.errorRelay
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] error in
+                self?.showErrorToast(error)
+            })
+            .disposed(by: disposeBag)
     }
 }
 

@@ -422,7 +422,7 @@ class MultiExpenseViewController: UIViewController {
                 let info = try await viewModel.analyzeReceipt(image: image)
                 await MainActor.run { fillFields(from: info) }
             } catch {
-                print("분석 실패: \(error)")
+                await MainActor.run { self.showErrorToast(error) }
             }
         }
     }

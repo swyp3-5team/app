@@ -81,7 +81,7 @@ class ProfileEditViewController: UIViewController {
                     try await AuthViewModel.shared.updateProfile(nickname: nickname)
                     self.navigationController?.popViewController(animated: true)
                 } catch {
-                    print("프로필 수정 실패: \(error)")
+                    self.showErrorToast(error)
                 }
             }
             

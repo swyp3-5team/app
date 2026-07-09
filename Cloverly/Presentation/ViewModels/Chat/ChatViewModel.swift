@@ -58,6 +58,7 @@ final class ChatViewModel {
     let api = ChatAPI()
     var chatResponse = BehaviorRelay<ChatResponse?>(value: nil)
     let isLoading = BehaviorRelay<Bool>(value: false)
+    let errorRelay = PublishRelay<AppError>()
     
     func sendChat(message: String? = nil, image: UIImage? = nil) {
         let mode = ChatMode(index: selectedIndex.value)
@@ -75,29 +76,35 @@ final class ChatViewModel {
         Task {
             if mode == .receipt {
                 isLoading.accept(true)
-                
+
                 defer {
                     isLoading.accept(false)
                 }
-                
+
                 do {
                     let response = try await api.sendChat(message: message, mode: mode, image: image)
+
+                    guard let info = response.transactionInfo, info.totalAmount > 0 else {
+                        errorRelay.accept(.notReceipt)
+                        return
+                    }
+
                     self.chatResponse.accept(response)
                     self.isSheetPresent.accept(true)
                 } catch {
-                    print("채팅 전송 실패: \(error.localizedDescription)")
+                    errorRelay.accept(AppError.from(error))
                 }
             } else {
                 do {
                     let response = try await api.sendChat(message: message, mode: mode, image: image)
-                    
+
                     let message = Message(kind: .text("\(response.message)"), chatType: .receive)
                     var currentMessages = chatMessages.value
                     currentMessages.append(message)
                     chatMessages.accept(currentMessages)
-                    
+
                 } catch {
-                    print("채팅 전송 실패: \(error.localizedDescription)")
+                    errorRelay.accept(AppError.from(error))
                 }
             }
         }
@@ -117,7 +124,7 @@ final class ChatViewModel {
     
     func saveTransaction() async throws {
         guard let info = chatResponse.value?.transactionInfo else {
-            throw NSError(domain: "DataError", code: -1, userInfo: [NSLocalizedDescriptionKey: "저장할 데이터가 없습니다."])
+            throw AppError.unknown
         }
         
         let requestBody = TransactionRequest(

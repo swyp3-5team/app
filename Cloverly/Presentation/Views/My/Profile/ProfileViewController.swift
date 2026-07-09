@@ -131,10 +131,10 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
                     } else {
                         try await AuthViewModel.shared.deleteKakaoUser()
                     }
-                    
+
                     self.reloadRootView()
                 } catch {
-                    print("탈퇴 실패: \(error)")
+                    self.showErrorToast(error)
                 }
             }
         }

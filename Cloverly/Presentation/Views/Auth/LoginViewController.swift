@@ -69,7 +69,7 @@ class LoginViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] status in
                 guard let self = self else { return }
-                
+
                 switch status {
                 case .needsOnboarding:
                     let vc = TermsAgreementViewController()
@@ -82,6 +82,13 @@ class LoginViewController: UIViewController {
                 default:
                     break
                 }
+            })
+            .disposed(by: disposeBag)
+
+        viewModel.errorRelay
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] error in
+                self?.showErrorToast(error)
             })
             .disposed(by: disposeBag)
     }
@@ -142,10 +149,12 @@ extension LoginViewController: ASAuthorizationControllerPresentationContextProvi
 
 extension LoginViewController: ASAuthorizationControllerDelegate {
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: any Error) {
-        print("애플 로그인 실패: \(error.localizedDescription)")
         viewModel.authStatus.accept(.unauthenticated)
+        if !AuthViewModel.isUserCancellation(error) {
+            showErrorToast(error)
+        }
     }
-    
+
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         viewModel.appleLogin(auth: authorization)
     }
