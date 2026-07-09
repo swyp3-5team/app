@@ -77,7 +77,7 @@ class LoginViewController: UIViewController {
                 case .authenticated:
                     if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                        let sceneDelegate = windowScene.delegate as? SceneDelegate {
-                        sceneDelegate.checkAndUpdateRootViewController()
+                        sceneDelegate.showMain()
                     }
                 default:
                     break

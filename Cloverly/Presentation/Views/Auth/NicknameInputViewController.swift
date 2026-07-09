@@ -142,7 +142,7 @@ class NicknameInputViewController: UIViewController {
                     try await self.viewModel.saveUser(nickname: nickname)
                     if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                        let sceneDelegate = windowScene.delegate as? SceneDelegate {
-                        sceneDelegate.checkAndUpdateRootViewController()
+                        sceneDelegate.showMain()
                     }
                 } catch {
                     self.showErrorToast(error)
