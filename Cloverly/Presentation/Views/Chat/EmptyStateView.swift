@@ -36,7 +36,7 @@ class EmptyStateView: UIView {
 
     let exampleLabel: AppLabel = {
         let label = AppLabel()
-        label.text = "ex) 오늘 메가커피에서 아메리카노\n4,500원짜리 사먹었어"
+        label.text = "ex) 오늘 커피 사는데 4천원 썼어"
         label.textColor = .gray6
         label.typography = .b7
         label.textAlignment = .center

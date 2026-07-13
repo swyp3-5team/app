@@ -27,12 +27,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let onboardingVC = OnboardingViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
         changeRootViewController(onboardingVC)
     }
-    
-    private func showMain() {
+
+    func showMain() {
         let mainVC = UINavigationController(rootViewController: CustomTabBarViewController())
         changeRootViewController(mainVC)
     }
-    
+
     private func showLogin() {
         let loginVC = UINavigationController(rootViewController: LoginViewController())
         changeRootViewController(loginVC)

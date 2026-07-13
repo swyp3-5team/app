@@ -19,13 +19,31 @@ class CustomTabBarViewController: UITabBarController {
         super.viewDidLoad()
         setupViewControllers()
         configureUI()
-        
+        bindError()
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleTabChange(_:)),
             name: .changeTab,
             object: nil
         )
+    }
+
+    private func bindError() {
+        calendarViewModel.errorRelay
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] error in
+                self?.topmostViewController()?.showErrorToast(error)
+            })
+            .disposed(by: disposeBag)
+    }
+
+    private func topmostViewController() -> UIViewController? {
+        var top: UIViewController = self
+        while let presented = top.presentedViewController {
+            top = presented
+        }
+        return top
     }
     
     func setupViewControllers() {

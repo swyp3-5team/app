@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 import Alamofire
 
 class AuthInterceptor: RequestInterceptor {
@@ -26,23 +27,38 @@ class AuthInterceptor: RequestInterceptor {
             completion(.doNotRetryWithError(error))
             return
         }
-        
+
         if request.retryCount >= 2 {
+            forceLogout()
             completion(.doNotRetryWithError(error))
             return
         }
-        
+
         Task {
             do {
                 let isSuccess = try await api.renewAccessToken()
-                
+
                 if isSuccess {
                     completion(.retry)
                 } else {
+                    forceLogout()
                     completion(.doNotRetryWithError(error))
                 }
             } catch {
+                forceLogout()
                 completion(.doNotRetryWithError(error))
+            }
+        }
+    }
+
+    private func forceLogout() {
+        KeychainManager.shared.delete(key: "accessToken")
+        KeychainManager.shared.delete(key: "refreshToken")
+
+        DispatchQueue.main.async {
+            if let sceneDelegate = UIApplication.shared.connectedScenes
+                .first?.delegate as? SceneDelegate {
+                sceneDelegate.checkAndUpdateRootViewController()
             }
         }
     }

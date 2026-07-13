@@ -8,16 +8,19 @@
 import Foundation
 import KakaoSDKUser
 import KakaoSDKAuth
+import KakaoSDKCommon
 import Combine
 import AuthenticationServices
+import RxSwift
 import RxCocoa
 
 @MainActor
 final class AuthViewModel: ObservableObject {
     static let shared = AuthViewModel()
     var authStatus = PublishRelay<AuthStatus>()
+    let errorRelay = PublishRelay<AppError>()
     let api = LoginAPI()
-    
+
     let currentUser = BehaviorRelay<User?>(value: nil)
     
     var serviceTerm = false
@@ -31,65 +34,68 @@ final class AuthViewModel: ObservableObject {
     
     func kakaoLogin() {
         if UserApi.isKakaoTalkLoginAvailable() {
-            UserApi.shared.loginWithKakaoTalk {oauthToken, error in
-                if let error = error {
-                    print("카카오 로그인 실패: \(error.localizedDescription)")
-                    self.authStatus.accept(.unauthenticated)
-                    return
-                }
-                
-                guard let idToken = oauthToken?.idToken else {
-                    print("ID Token을 가져오지 못했습니다")
-                    self.authStatus.accept(.unauthenticated)
-                    return
-                }
-                
-                self.loginWithServer(idToken: idToken, provider: .kakao)
+            UserApi.shared.loginWithKakaoTalk { [weak self] oauthToken, error in
+                self?.handleKakaoLoginResult(oauthToken: oauthToken, error: error)
             }
         } else {
-            UserApi.shared.loginWithKakaoAccount {oauthToken, error in
-                if let error = error {
-                    print("카카오계정 로그인 실패: \(error.localizedDescription)")
-                    self.authStatus.accept(.unauthenticated)
-                    return
-                }
-                
-                guard let idToken = oauthToken?.idToken else {
-                    print("ID Token을 가져오지 못했습니다")
-                    self.authStatus.accept(.unauthenticated)
-                    return
-                }
-                
-                self.loginWithServer(idToken: idToken, provider: .kakao)
+            UserApi.shared.loginWithKakaoAccount { [weak self] oauthToken, error in
+                self?.handleKakaoLoginResult(oauthToken: oauthToken, error: error)
             }
         }
     }
-    
+
+    private func handleKakaoLoginResult(oauthToken: OAuthToken?, error: Error?) {
+        if let error = error {
+            self.authStatus.accept(.unauthenticated)
+            if !Self.isUserCancellation(error) {
+                self.errorRelay.accept(.unknown)
+            }
+            return
+        }
+
+        guard let idToken = oauthToken?.idToken else {
+            self.authStatus.accept(.unauthenticated)
+            self.errorRelay.accept(.unknown)
+            return
+        }
+
+        self.loginWithServer(idToken: idToken, provider: .kakao)
+    }
+
     func appleLogin(auth: ASAuthorization) {
         guard let credential = auth.credential as? ASAuthorizationAppleIDCredential else {
-            print("로그인 인증 실패")
             self.authStatus.accept(.unauthenticated)
+            self.errorRelay.accept(.unknown)
             return
         }
-        
+
         guard let codeData = credential.authorizationCode, let code = String(data: codeData, encoding: .utf8) else {
-            print("토큰 얻기 실패")
             self.authStatus.accept(.unauthenticated)
+            self.errorRelay.accept(.unknown)
             return
         }
-        
+
         loginWithServer(idToken: code, provider: .apple)
+    }
+
+    static func isUserCancellation(_ error: Error) -> Bool {
+        if let asError = error as? ASAuthorizationError {
+            return asError.code == .canceled
+        }
+        if let sdkError = error as? SdkError,
+           case .ClientFailed(let reason, _) = sdkError,
+           reason == .Cancelled {
+            return true
+        }
+        return false
     }
 
     private func loginWithServer(idToken: String, provider: AuthProvider) {
         Task {
             do {
                 let response = try await api.socialLogin(idToken: idToken, provider: provider)
-                
-                print("응답결과: \(response)")
-                
+
                 if response.newUser {
-                    let tokenData = TokenRequest(accessToken: response.accessToken, refreshToken: response.refreshToken)
                     tempAccessToken = response.accessToken
                     tempRefreshToken = response.refreshToken
                     self.authStatus.accept(.needsOnboarding)
@@ -98,8 +104,8 @@ final class AuthViewModel: ObservableObject {
                     self.authStatus.accept(.authenticated)
                 }
             } catch {
-                print("결과 가져오기 실패: \(error.localizedDescription)")
                 self.authStatus.accept(.unauthenticated)
+                self.errorRelay.accept(AppError.from(error))
             }
         }
     }
@@ -124,16 +130,10 @@ final class AuthViewModel: ObservableObject {
         }
     }
     
-    func saveUser(nickname: String) {
-        Task {
-            do {
-                try await api.saveUser(nickname: nickname, marketingEnable: marketingEnable, token: tempAccessToken)
-                KeychainManager.shared.save(accessToken: tempAccessToken, refreshToken: tempRefreshToken)
-                self.authStatus.accept(.authenticated)
-            } catch {
-                print("유저 저장 실패: \(error.localizedDescription)")
-            }
-        }
+    func saveUser(nickname: String) async throws {
+        try await api.saveUser(nickname: nickname, marketingEnable: marketingEnable, token: tempAccessToken)
+        KeychainManager.shared.save(accessToken: tempAccessToken, refreshToken: tempRefreshToken)
+        self.authStatus.accept(.authenticated)
     }
     
     func getProfile() {

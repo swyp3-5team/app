@@ -9,26 +9,39 @@ import UIKit
 import SnapKit
 
 extension UIViewController {
-    
-    func showToast(message: String, buttonTitle: String? = nil, duration: TimeInterval = 2.0, action: (() -> Void)? = nil) {
-        
+
+    func showErrorToast(_ error: Error, above anchor: UIView? = nil) {
+        let appError = AppError.from(error)
+        showToast(
+            message: appError.errorDescription ?? AppError.unknown.errorDescription!,
+            bottomOffset: -20,
+            above: anchor
+        )
+    }
+
+    func showToast(message: String, buttonTitle: String? = nil, duration: TimeInterval = 2.0, bottomOffset: CGFloat = -127, above anchor: UIView? = nil, action: (() -> Void)? = nil) {
+
         let toastView = ToastView(message: message, buttonTitle: buttonTitle ?? "")
-        
+
         toastView.onActionTap = {
             action?()
-            
+
             UIView.animate(withDuration: 0.3, animations: {
                 toastView.alpha = 0
             }) { _ in
                 toastView.removeFromSuperview()
             }
         }
-        
+
         view.addSubview(toastView)
         toastView.alpha = 0
-        
+
         toastView.snp.makeConstraints {
-            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-127)
+            if let anchor = anchor {
+                $0.bottom.equalTo(anchor.snp.top).offset(bottomOffset)
+            } else {
+                $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(bottomOffset)
+            }
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalToSuperview().offset(-20)
         }
