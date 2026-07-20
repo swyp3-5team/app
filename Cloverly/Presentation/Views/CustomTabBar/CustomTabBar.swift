@@ -12,7 +12,9 @@ import RxCocoa
 
 class CustomTabBar: UIView {
     let itemTapped = PublishSubject<Int>()
-    
+
+    private var hasShadow: Bool = true
+
     var buttons: [UIButton] = []
     let selectedIcons = ["home icon enabled", "list icon enabled", "mypage icon enabled"]
     let unselectedIcons = ["home icon disabled", "list icon disabled", "mypage icon disabled"]
@@ -38,6 +40,15 @@ class CustomTabBar: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         applyTopShadow(color: .shadow2, yOffset: -6)
+        if !hasShadow {
+            layer.shadowOpacity = 0
+        }
+    }
+
+    func setShadowHidden(_ hidden: Bool) {
+        guard hasShadow == hidden else { return }
+        hasShadow = !hidden
+        setNeedsLayout()
     }
     
     func configureUI() {

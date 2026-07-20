@@ -20,6 +20,7 @@ class CustomTabBarViewController: UITabBarController {
         setupViewControllers()
         configureUI()
         bindError()
+        applyTabBarStyle(for: selectedIndex)
 
         NotificationCenter.default.addObserver(
             self,
@@ -50,14 +51,20 @@ class CustomTabBarViewController: UITabBarController {
         let homeVC = HomeViewController(calendarViewModel: calendarViewModel)
         let historyVC = HistoryTabViewController(viewModel: calendarViewModel)
         let myVC = MyPageViewController()
-        
+
         viewControllers = [homeVC, historyVC, myVC]
-        
+
         customTabBar.itemTapped
             .subscribe(onNext: { [weak self] index in
                 self?.selectedIndex = index
+                self?.applyTabBarStyle(for: index)
             })
             .disposed(by: disposeBag)
+    }
+
+    private func applyTabBarStyle(for index: Int) {
+        // 홈(0)에서는 인풋바가 탭바 코너를 채우므로 shadow 제거
+        customTabBar.setShadowHidden(index == 0)
     }
     
     func configureUI() {
@@ -79,6 +86,7 @@ class CustomTabBarViewController: UITabBarController {
         DispatchQueue.main.async { [weak self] in
             self?.selectedIndex = index
             self?.customTabBar.updateButtonState(selectedIndex: index)
+            self?.applyTabBarStyle(for: index)
         }
     }
     
