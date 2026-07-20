@@ -165,7 +165,6 @@ class ChatCollectionViewCell: UICollectionViewCell {
             sendWidthConstraint.isActive = false
             receiveWidthConstraint.isActive = true
             messageTextView.backgroundColor = .green10
-            messageTextView.typography = .b3
             
             messageTextView.layer.maskedCorners = [
                 .layerMinXMinYCorner,
@@ -181,7 +180,6 @@ class ChatCollectionViewCell: UICollectionViewCell {
             receiveWidthConstraint.isActive = false
             sendWidthConstraint.isActive = true
             messageTextView.backgroundColor = .gray9
-            messageTextView.typography = .b2
             
             messageTextView.layer.maskedCorners = [
                 .layerMinXMinYCorner,
