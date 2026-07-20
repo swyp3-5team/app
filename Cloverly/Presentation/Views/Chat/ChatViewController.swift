@@ -31,7 +31,8 @@ class ChatViewController: UIViewController {
     var overlayWindow: UIWindow?
 
     private var interstitialAd: InterstitialAd?
-    
+    private let initialMessage: String?
+
     private lazy var imagePicker: UIImagePickerController = {
         let imagePicker = UIImagePickerController()
         imagePicker.delegate = self
@@ -94,9 +95,10 @@ class ChatViewController: UIViewController {
         return stack
     }()
     
-    init(calendarViewModel: CalendarViewModel, interstitialAd: InterstitialAd? = nil) {
+    init(calendarViewModel: CalendarViewModel, interstitialAd: InterstitialAd? = nil, initialMessage: String? = nil) {
         self.calendarViewModel = calendarViewModel
         self.interstitialAd = interstitialAd
+        self.initialMessage = initialMessage
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -112,6 +114,12 @@ class ChatViewController: UIViewController {
 
         Task {
             try? await viewModel.getChatHistory(size: 1000)
+
+            if let message = initialMessage?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !message.isEmpty {
+                viewModel.selectedIndex.accept(0)
+                viewModel.sendChat(message: message)
+            }
         }
 
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
