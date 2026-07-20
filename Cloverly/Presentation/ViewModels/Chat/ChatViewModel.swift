@@ -59,6 +59,7 @@ final class ChatViewModel {
     var chatResponse = BehaviorRelay<ChatResponse?>(value: nil)
     let isLoading = BehaviorRelay<Bool>(value: false)
     let errorRelay = PublishRelay<AppError>()
+    let didSaveTransaction = PublishRelay<Void>()
     
     func sendChat(message: String? = nil, image: UIImage? = nil) {
         let mode = ChatMode(index: selectedIndex.value)
@@ -151,6 +152,8 @@ final class ChatViewModel {
         var currentMessages = ledgerMessages.value
         currentMessages.append(message)
         ledgerMessages.accept(currentMessages)
+
+        didSaveTransaction.accept(())
     }
     
     func getChatHistory(size: Int) async throws {

@@ -32,6 +32,7 @@ class ChatViewController: UIViewController {
 
     private var interstitialAd: InterstitialAd?
     private let initialMessage: String?
+    private var pendingAdAfterSave = false
 
     private lazy var imagePicker: UIImagePickerController = {
         let imagePicker = UIImagePickerController()
@@ -155,14 +156,19 @@ class ChatViewController: UIViewController {
             showCoachMark()
             UserDefaults.standard.set(true, forKey: "hasSeenCoachMark")
         }
-
-        if let ad = interstitialAd {
-            ad.present(from: self)
-            UserDefaults.standard.set(Date(), forKey: "chatInterstitialLastShownDate")
-            interstitialAd = nil
-        }
     }
-    
+
+    // 가계부 저장 완료 후, 저장 모달이 완전히 닫힌 뒤에 전면광고 노출 (하루 1회는 홈 preload 단계에서 이미 보장됨)
+    private func presentAdAfterSaveIfNeeded() {
+        guard pendingAdAfterSave else { return }
+        pendingAdAfterSave = false
+
+        guard let ad = interstitialAd else { return }
+        ad.present(from: self)
+        UserDefaults.standard.set(Date(), forKey: "chatInterstitialLastShownDate")
+        interstitialAd = nil
+    }
+
 
     func showCoachMark() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
@@ -352,8 +358,17 @@ class ChatViewController: UIViewController {
                     present(nav, animated: true)
                 } else {
                     self.becomeFirstResponder()
-                    dismiss(animated: true)
+                    dismiss(animated: true) { [weak self] in
+                        self?.presentAdAfterSaveIfNeeded()
+                    }
                 }
+            })
+            .disposed(by: disposeBag)
+
+        viewModel.didSaveTransaction
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] in
+                self?.pendingAdAfterSave = true
             })
             .disposed(by: disposeBag)
         
