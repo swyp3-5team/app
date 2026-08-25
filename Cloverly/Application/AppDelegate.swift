@@ -18,6 +18,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // 서버 이전: 구 서버가 발급한 토큰은 새 서버에서 유효하지 않으므로
+        // 최초 1회에 한해 Keychain 토큰을 정리하여 강제 재로그인 유도.
+        let migrationKey = "didClearTokensForServerMigration"
+        if !UserDefaults.standard.bool(forKey: migrationKey) {
+            KeychainManager.shared.delete(key: "accessToken")
+            KeychainManager.shared.delete(key: "refreshToken")
+            UserDefaults.standard.set(true, forKey: migrationKey)
+        }
+
         FirebaseApp.configure()
         SDImageCodersManager.shared.addCoder(SDImageWebPCoder.shared)
         
