@@ -210,7 +210,7 @@ class ChatViewController: UIViewController {
         }
         
         // 버튼들이 포함된 배열
-        let targetButtons = [self.inputBar.galleryButton, self.inputBar.cameraButton, self.inputBar.pasteButton]
+        let targetButtons = [self.inputBar.receiptButton, self.inputBar.pasteButton]
         var combinedFrame: CGRect = .null
         
         for button in targetButtons {
@@ -344,15 +344,9 @@ class ChatViewController: UIViewController {
             })
             .disposed(by: disposeBag)
         
-        inputBar.rx.cameraButtonTap
+        inputBar.rx.receiptButtonTap
             .subscribe(onNext: { [weak self] in
-                self?.openCamera()
-            })
-            .disposed(by: disposeBag)
-        
-        inputBar.rx.gallaryButtonTap
-            .subscribe(onNext: { [weak self] in
-                self?.openPicker()
+                self?.presentReceiptPicker()
             })
             .disposed(by: disposeBag)
         
@@ -532,6 +526,17 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
 }
 
 extension ChatViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate, PHPickerViewControllerDelegate {
+    // 영수증 버튼 → 홈과 동일한 커스텀 갤러리 시트(카메라 셀 + 사진 그리드)
+    func presentReceiptPicker() {
+        dismissKeyboard()
+        let picker = ReceiptPickerViewController()
+        picker.onPickImage = { [weak self] image in
+            self?.viewModel.sendChat(image: image)
+        }
+        picker.modalPresentationStyle = .fullScreen
+        present(picker, animated: true)
+    }
+
     func openCamera() {
         imagePicker.sourceType = .camera
         present(imagePicker, animated: false, completion: nil)

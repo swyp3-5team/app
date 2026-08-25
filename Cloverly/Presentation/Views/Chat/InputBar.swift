@@ -38,50 +38,25 @@ class InputBar: UIView {
         return label
     }()
     
-    lazy var galleryButton: UIButton = {
+    lazy var receiptButton: UIButton = {
         var config = UIButton.Configuration.plain()
-        
-        config.title = "사진"
+
+        config.title = "영수증"
         config.baseForegroundColor = .gray3
-        
+
         config.image = UIImage(named: "image icon")
         config.imagePlacement = .leading
         config.imagePadding = 4
-        
-//        config.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
-        
+
         config.background.strokeColor = .gray8
         config.background.strokeWidth = 1
         config.cornerStyle = .capsule
-        
-        var titleAttr = AttributedString.init("사진")
+
+        var titleAttr = AttributedString.init("영수증")
         titleAttr.font = Typography.b6.uiFont
         config.attributedTitle = titleAttr
 
         let button = UIButton(configuration: config)
-        return button
-    }()
-
-    lazy var cameraButton: UIButton = {
-        var config = UIButton.Configuration.plain()
-        
-        config.title = "카메라"
-        config.baseForegroundColor = .gray3
-        
-        config.image = UIImage(named: "camera icon")
-        config.imagePlacement = .leading
-        config.imagePadding = 4
-        
-        config.background.strokeColor = .gray8
-        config.background.strokeWidth = 1
-        config.cornerStyle = .capsule
-        
-        var titleAttr = AttributedString.init("카메라")
-        titleAttr.font = Typography.b6.uiFont
-        config.attributedTitle = titleAttr
-        
-        let button = UIButton(configuration: config)
-        
         return button
     }()
     
@@ -145,8 +120,7 @@ class InputBar: UIView {
     private func configureUI() {
         textView.addSubview(placeholderLabel)
         addSubview(textView)
-        addSubview(galleryButton)
-        addSubview(cameraButton)
+        addSubview(receiptButton)
         addSubview(pasteButton)
         addSubview(sendButton)
         
@@ -162,28 +136,22 @@ class InputBar: UIView {
             $0.top.equalTo(textView.snp.top).offset(textView.textContainerInset.top)
         }
         
-        galleryButton.snp.makeConstraints {
+        receiptButton.snp.makeConstraints {
             $0.leading.equalTo(textView.snp.leading)
             $0.top.equalTo(textView.snp.bottom).offset(15)
             $0.height.equalTo(30)
             $0.bottom.equalTo(safeAreaLayoutGuide.snp.bottom).offset(-14).priority(999)
         }
-        
-        cameraButton.snp.makeConstraints {
-            $0.leading.equalTo(galleryButton.snp.trailing).offset(8)
-            $0.centerY.equalTo(galleryButton.snp.centerY)
-            $0.height.equalTo(30)
-        }
-        
+
         pasteButton.snp.makeConstraints {
-            $0.leading.equalTo(cameraButton.snp.trailing).offset(8)
-            $0.centerY.equalTo(galleryButton.snp.centerY)
+            $0.leading.equalTo(receiptButton.snp.trailing).offset(8)
+            $0.centerY.equalTo(receiptButton.snp.centerY)
             $0.height.equalTo(30)
         }
         
         sendButton.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-20)
-            $0.centerY.equalTo(galleryButton.snp.centerY)
+            $0.centerY.equalTo(receiptButton.snp.centerY)
             $0.width.equalTo(48)
         }
         
@@ -279,11 +247,7 @@ extension InputBar: UITextPasteDelegate {
 }
 
 extension Reactive where Base: InputBar {
-    var cameraButtonTap: ControlEvent<Void> {
-        return base.cameraButton.rx.tap
-    }
-    
-    var gallaryButtonTap: ControlEvent<Void> {
-        return base.galleryButton.rx.tap
+    var receiptButtonTap: ControlEvent<Void> {
+        return base.receiptButton.rx.tap
     }
 }
