@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 import Alamofire
 
-class AuthInterceptor: RequestInterceptor {
+final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
     let api = LoginAPI()
     
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, any Error>) -> Void) {
