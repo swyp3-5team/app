@@ -41,12 +41,7 @@ class TransactionContainerViewController: UIViewController {
     }()
 
     private lazy var expenseButton: UIButton = {
-        let btn = UIButton()
-        btn.setTitle("지출", for: .normal)
-        btn.titleLabel?.font = Typography.b5.uiFont
-        btn.layer.cornerRadius = 18
-        btn.clipsToBounds = true
-        btn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        let btn = UIButton(configuration: makeTypeButtonConfiguration(title: "지출"))
         btn.addAction(UIAction { [weak self] _ in
             self?.isIncomeMode.accept(false)
         }, for: .touchUpInside)
@@ -54,17 +49,22 @@ class TransactionContainerViewController: UIViewController {
     }()
 
     private lazy var incomeButton: UIButton = {
-        let btn = UIButton()
-        btn.setTitle("수입", for: .normal)
-        btn.titleLabel?.font = Typography.b5.uiFont
-        btn.layer.cornerRadius = 18
-        btn.clipsToBounds = true
-        btn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        let btn = UIButton(configuration: makeTypeButtonConfiguration(title: "수입"))
         btn.addAction(UIAction { [weak self] _ in
             self?.isIncomeMode.accept(true)
         }, for: .touchUpInside)
         return btn
     }()
+
+    private func makeTypeButtonConfiguration(title: String) -> UIButton.Configuration {
+        var config = UIButton.Configuration.filled()
+        config.cornerStyle = .capsule
+        config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+        var titleAttr = AttributedString(title)
+        titleAttr.font = Typography.b5.uiFont
+        config.attributedTitle = titleAttr
+        return config
+    }
 
     private lazy var typeButtonStack: UIStackView = {
         let sv = UIStackView(arrangedSubviews: [incomeButton, expenseButton])
@@ -363,11 +363,11 @@ class TransactionContainerViewController: UIViewController {
         let selectedBtn = isIncome ? incomeButton : expenseButton
         let deselectedBtn = isIncome ? expenseButton : incomeButton
 
-        selectedBtn.backgroundColor = .gray1
-        selectedBtn.setTitleColor(.gray10, for: .normal)
+        selectedBtn.configuration?.baseBackgroundColor = .gray1
+        selectedBtn.configuration?.baseForegroundColor = .gray10
 
-        deselectedBtn.backgroundColor = .gray9
-        deselectedBtn.setTitleColor(.gray1, for: .normal)
+        deselectedBtn.configuration?.baseBackgroundColor = .gray9
+        deselectedBtn.configuration?.baseForegroundColor = .gray1
     }
 
     private func switchChildVC() {
