@@ -9,6 +9,7 @@ import UIKit
 import SnapKit
 import AVFoundation
 import GoogleMobileAds
+import PhotosUI
 import RxSwift
 import RxCocoa
 
@@ -146,6 +147,61 @@ class HomeViewController: UIViewController {
         button.setImage(UIImage(named: "Send Button disabled"), for: .disabled)
         button.isEnabled = false
         return button
+    }()
+
+    private func makeAccessoryButton(title: String, imageName: String) -> UIButton {
+        var config = UIButton.Configuration.plain()
+        config.image = UIImage(named: imageName)
+        config.imagePlacement = .leading
+        config.imagePadding = 2
+        config.baseForegroundColor = .gray2
+        config.contentInsets = NSDirectionalEdgeInsets(top: 9, leading: 0, bottom: 9, trailing: 0)
+
+        var titleAttr = AttributedString(title)
+        titleAttr.font = Typography.b5.uiFont
+        config.attributedTitle = titleAttr
+
+        return UIButton(configuration: config)
+    }
+
+    private lazy var receiptButton: UIButton = {
+        let button = makeAccessoryButton(title: "영수증", imageName: "image icon")
+        button.addAction(UIAction { [weak self] _ in
+            self?.presentReceiptPicker()
+        }, for: .touchUpInside)
+        return button
+    }()
+
+    private lazy var pasteButton: UIButton = {
+        let button = makeAccessoryButton(title: "붙여넣기", imageName: "paste icon")
+        button.addAction(UIAction { [weak self] _ in
+            self?.pasteFromClipboard()
+        }, for: .touchUpInside)
+        return button
+    }()
+
+    // 키보드 위에 붙는 액션바. inputAccessoryView로 달면 iOS가 키보드 바로 위에 배치하고
+    // 키보드 프레임 높이에 이 바가 합산되어 보고되므로, 기존 캡슐 위치 로직이 그대로
+    // 캡슐을 액션바 위로 띄워준다. 키보드가 내려가면 함께 사라져 도킹 상태에선 안 보인다.
+    private lazy var inputAccessoryBar: KeyboardAccessoryBar = {
+        let bar = KeyboardAccessoryBar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 48))
+        bar.autoresizingMask = .flexibleWidth
+        bar.fillColor = .gray10
+
+        bar.addSubview(receiptButton)
+        bar.addSubview(pasteButton)
+
+        receiptButton.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.centerY.equalToSuperview()
+        }
+
+        pasteButton.snp.makeConstraints {
+            $0.leading.equalTo(receiptButton.snp.trailing).offset(16)
+            $0.centerY.equalToSuperview()
+        }
+
+        return bar
     }()
     
     init(calendarViewModel: CalendarViewModel) {
@@ -288,6 +344,8 @@ class HomeViewController: UIViewController {
         inputCapsule.addSubview(inputTextField)
         inputCapsule.addSubview(sendButton)
 
+        inputTextField.inputAccessoryView = inputAccessoryBar
+
         backgroundVideoView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
@@ -372,6 +430,36 @@ class HomeViewController: UIViewController {
         navigationController?.pushViewController(vc, animated: true)
     }
 
+    private func pasteFromClipboard() {
+        guard let text = UIPasteboard.general.string, !text.isEmpty else { return }
+        // insertText로 넣으면 editingChanged가 발생해 전송 버튼 활성화 바인딩이 갱신됨
+        inputTextField.insertText(text)
+    }
+
+    private func presentReceiptPicker() {
+        let picker = ReceiptPickerViewController()
+        picker.onPickImage = { [weak self] image in
+            self?.pushChatWithImage(image)
+        }
+        picker.modalPresentationStyle = .fullScreen
+        present(picker, animated: true)
+    }
+
+    private func pushChatWithImage(_ image: UIImage) {
+        let vc = ChatViewController(
+            calendarViewModel: calendarViewModel,
+            interstitialAd: preloadedInterstitialAd,
+            initialImage: image
+        )
+        preloadedInterstitialAd = nil
+
+        inputTextField.text = ""
+        sendButton.isEnabled = false
+        inputTextField.resignFirstResponder()
+
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
     @objc private func keyboardWillChangeFrame(_ notification: Notification) {
         guard
             let userInfo = notification.userInfo,
@@ -413,5 +501,38 @@ extension HomeViewController: UIGestureRecognizerDelegate {
             return false
         }
         return true
+    }
+}
+
+
+// 키보드 액션바. iOS 26 liquid glass 키보드는 상단 좌우가 둥글게 깎여 있어, 흰 직사각형
+// 바가 그대로 붙으면 깎인 부분에 배경이 비쳐 이음새가 생긴다. 카카오톡처럼 흰색을 키보드
+// 뒤로 화면 바닥까지 채워, 깎인 둥근 영역에도 배경 대신 흰색이 비치도록 해 이음새를 없앤다.
+final class KeyboardAccessoryBar: UIView {
+    var fillColor: UIColor = .white {
+        didSet { backgroundView.backgroundColor = fillColor }
+    }
+
+    private let backgroundView = UIView()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        // bounds 아래(키보드 뒤)로 뻗은 흰색이 잘리지 않도록 클립 해제.
+        clipsToBounds = false
+        backgroundColor = .clear
+        backgroundView.backgroundColor = fillColor
+        insertSubview(backgroundView, at: 0)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        // 바 영역 + 아래로 화면 높이만큼 더 뻗어 키보드 전체 뒤를 흰색으로 덮는다.
+        backgroundView.frame = CGRect(x: 0, y: 0,
+                                      width: bounds.width,
+                                      height: bounds.height + UIScreen.main.bounds.height)
     }
 }
