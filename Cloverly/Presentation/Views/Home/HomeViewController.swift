@@ -416,18 +416,13 @@ class HomeViewController: UIViewController {
         let text = inputTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !text.isEmpty else { return }
 
-        let vc = ChatViewController(
-            calendarViewModel: calendarViewModel,
-            interstitialAd: preloadedInterstitialAd,
-            initialMessage: text
-        )
-        preloadedInterstitialAd = nil
-
         inputTextField.text = ""
         sendButton.isEnabled = false
         inputTextField.resignFirstResponder()
 
-        navigationController?.pushViewController(vc, animated: true)
+        (tabBarController as? CustomTabBarViewController)?
+            .routeToChatTab(message: text, interstitialAd: preloadedInterstitialAd)
+        preloadedInterstitialAd = nil
     }
 
     private func pasteFromClipboard() {
@@ -446,18 +441,13 @@ class HomeViewController: UIViewController {
     }
 
     private func pushChatWithImage(_ image: UIImage) {
-        let vc = ChatViewController(
-            calendarViewModel: calendarViewModel,
-            interstitialAd: preloadedInterstitialAd,
-            initialImage: image
-        )
-        preloadedInterstitialAd = nil
-
         inputTextField.text = ""
         sendButton.isEnabled = false
         inputTextField.resignFirstResponder()
 
-        navigationController?.pushViewController(vc, animated: true)
+        (tabBarController as? CustomTabBarViewController)?
+            .routeToChatTab(image: image, interstitialAd: preloadedInterstitialAd)
+        preloadedInterstitialAd = nil
     }
 
     @objc private func keyboardWillChangeFrame(_ notification: Notification) {

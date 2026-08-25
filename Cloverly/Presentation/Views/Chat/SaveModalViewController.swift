@@ -95,7 +95,7 @@ class SaveModalViewController: UIViewController {
                         NotificationCenter.default.post(
                             name: .changeTab,
                             object: nil,
-                            userInfo: ["index": 1]
+                            userInfo: ["index": 2]
                         )
                     }
                 } catch {

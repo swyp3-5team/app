@@ -25,8 +25,24 @@ class ChatViewController: UIViewController {
     private let viewModel = ChatViewModel()
     private let sizingCell = ChatCollectionViewCell()
     private lazy var inputBar = InputBar(viewModel: viewModel)
+    private var inputBarBottomConstraint: Constraint?
     
     lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["가계부", "대화"], cornerRadius: 17)
+
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "가계부 입력"
+        label.textColor = .gray1
+        label.typography = .t1
+        return label
+    }()
+
+    var statusBarHeight: CGFloat {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            return windowScene.statusBarManager?.statusBarFrame.height ?? 0
+        }
+        return 0
+    }
     
     var overlayWindow: UIWindow?
 
@@ -229,14 +245,6 @@ class ChatViewController: UIViewController {
         self.overlayWindow = newWindow
     }
     
-    override var inputAccessoryView: UIView? {
-        return inputBar
-    }
-    
-    override var canBecomeFirstResponder: Bool {
-        return true
-    }
-    
     @objc func dismissKeyboard() {
         //        view.window?.endEditing(true)
         inputBar.textView.resignFirstResponder()
@@ -245,30 +253,37 @@ class ChatViewController: UIViewController {
     func configure() {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
+        view.addSubview(inputBar)
+        view.addSubview(titleLabel)
         view.addSubview(loadingStackView)
         view.backgroundColor = .systemBackground
-        
+
+        titleLabel.snp.makeConstraints {
+            $0.top.equalTo(view.snp.top).offset(statusBarHeight + 15.5)
+            $0.centerX.equalToSuperview()
+        }
+
+        // 입력바를 탭바 위(safeArea 하단)에 고정. 키보드가 올라오면 keyboardWillChangeFrame에서 위로 이동.
+        inputBar.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview()
+            inputBarBottomConstraint = $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).constraint
+        }
+
         collectionView.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
-            $0.leading.trailing.bottom.equalToSuperview()
+            $0.top.equalTo(titleLabel.snp.bottom).offset(12)
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(inputBar.snp.top)
         }
-        
-        segmented.snp.makeConstraints {
-            $0.width.equalTo(120)
-            $0.height.equalTo(34)
-        }
-        
+
         loadingStackView.snp.makeConstraints {
             $0.center.equalToSuperview()
         }
-        
+
         collectionView.register(
             DateHeaderView.self,
             forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
             withReuseIdentifier: DateHeaderView.id
         )
-        
-        navigationItem.titleView = segmented
     }
     
     func textBind() {
@@ -362,7 +377,6 @@ class ChatViewController: UIViewController {
                     }
                     present(nav, animated: true)
                 } else {
-                    self.becomeFirstResponder()
                     dismiss(animated: true) { [weak self] in
                         self?.presentAdAfterSaveIfNeeded()
                     }
@@ -413,20 +427,15 @@ class ChatViewController: UIViewController {
             let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
         else { return }
         
-        let keyboardHeight = frame.height
-        
-        let bottomInset: CGFloat
-        
-        if keyboardHeight > 0 {
-            bottomInset = keyboardHeight /*- 간격 없이 딱 view.safeAreaInsets.bottom*/
-        } else {
-            bottomInset = inputBar.frame.height
-        }
-        
+        let keyboardFrameInView = view.convert(frame, from: nil)
+        let overlap = max(view.bounds.maxY - keyboardFrameInView.origin.y, 0)
+        // 키보드가 없으면 탭바 위(offset 0)에 도킹, 있으면 키보드 위로 올림.
+        let offset = overlap > 0 ? -(overlap - view.safeAreaInsets.bottom) : 0
+        inputBarBottomConstraint?.update(offset: offset)
+
         UIView.animate(withDuration: duration) {
-            self.collectionView.contentInset.bottom = bottomInset
-            self.collectionView.verticalScrollIndicatorInsets.bottom = bottomInset
-            
+            self.view.layoutIfNeeded()
+
             if self.isAtBottom {
                 self.scrollToBottom(animated: false)
             }
@@ -447,28 +456,15 @@ class ChatViewController: UIViewController {
     }
     
     func updateInputBarHeight() {
-        let oldHeight = inputBar.frame.height
-        
-        // 높이 갱신 요청
+        // 입력바 높이가 바뀌면 collectionView(입력바 top에 붙어있음)가 자동으로 축소/확장된다.
         inputBar.invalidateIntrinsicContentSize()
-        inputBar.layoutIfNeeded() // 즉시 반영
-        
-        let newHeight = inputBar.frame.height
-        
-        // 변화량 계산 (예: 50 -> 70이면 +20)
-        let diff = newHeight - oldHeight
-        
-        guard diff != 0 else { return }
-        
+
         UIView.animate(withDuration: 0.2) {
-            self.collectionView.contentInset.bottom += diff
-            self.collectionView.verticalScrollIndicatorInsets.bottom += diff
-            
+            self.view.layoutIfNeeded()
+
             if self.isAtBottom {
                 self.scrollToBottom(animated: false)
             }
-            
-            self.view.layoutIfNeeded()
         }
     }
 }
