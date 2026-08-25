@@ -32,6 +32,7 @@ class ChatViewController: UIViewController {
 
     private var interstitialAd: InterstitialAd?
     private let initialMessage: String?
+    private let initialImage: UIImage?
     private var pendingAdAfterSave = false
 
     private lazy var imagePicker: UIImagePickerController = {
@@ -96,10 +97,11 @@ class ChatViewController: UIViewController {
         return stack
     }()
     
-    init(calendarViewModel: CalendarViewModel, interstitialAd: InterstitialAd? = nil, initialMessage: String? = nil) {
+    init(calendarViewModel: CalendarViewModel, interstitialAd: InterstitialAd? = nil, initialMessage: String? = nil, initialImage: UIImage? = nil) {
         self.calendarViewModel = calendarViewModel
         self.interstitialAd = interstitialAd
         self.initialMessage = initialMessage
+        self.initialImage = initialImage
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -120,6 +122,9 @@ class ChatViewController: UIViewController {
                !message.isEmpty {
                 viewModel.selectedIndex.accept(0)
                 viewModel.sendChat(message: message)
+            } else if let initialImage {
+                viewModel.selectedIndex.accept(0)
+                viewModel.sendChat(image: initialImage)
             }
         }
 
