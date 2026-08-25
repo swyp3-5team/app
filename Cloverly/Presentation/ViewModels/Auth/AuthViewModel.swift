@@ -177,15 +177,12 @@ final class AuthViewModel: ObservableObject {
                 return
             }
             
-            guard let user = user, let userId = user.id else { return }
-            
-            let kakaoId = String(userId)
-            let email = user.kakaoAccount?.email
+            guard let user = user, user.id != nil else { return }
         }
     }
     
     func checkLoginStatus() {
-        guard let accessToken = KeychainManager.shared.read(key: "accessToken") else {
+        guard KeychainManager.shared.read(key: "accessToken") != nil else {
             self.authStatus.accept(.unauthenticated)
             return
         }
