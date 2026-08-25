@@ -127,7 +127,7 @@ class InputBar: UIView {
         textView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(20)
             $0.trailing.equalTo(sendButton.snp.leading).offset(-8).priority(999)
-            $0.top.equalToSuperview().offset(22)
+            $0.top.equalToSuperview().offset(14)
             textViewHeightConstraint = $0.height.equalTo(minTextViewHeight).constraint
         }
         
@@ -138,7 +138,7 @@ class InputBar: UIView {
         
         receiptButton.snp.makeConstraints {
             $0.leading.equalTo(textView.snp.leading)
-            $0.top.equalTo(textView.snp.bottom).offset(15)
+            $0.top.equalTo(textView.snp.bottom).offset(10)
             $0.height.equalTo(30)
             $0.bottom.equalTo(safeAreaLayoutGuide.snp.bottom).offset(-14).priority(999)
         }
