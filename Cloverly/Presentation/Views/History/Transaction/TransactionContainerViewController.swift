@@ -139,7 +139,7 @@ class TransactionContainerViewController: UIViewController {
 
     private lazy var analyzeStatusLabel: AppLabel = {
         let label = AppLabel()
-        label.text = "영수증 인식중"
+        label.text = "내용 인식중"
         label.textColor = .gray10
         label.typography = .b5
         label.textAlignment = .center
