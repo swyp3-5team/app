@@ -16,8 +16,8 @@ class CustomTabBar: UIView {
     private var hasShadow: Bool = true
 
     var buttons: [UIButton] = []
-    let selectedIcons = ["home icon enabled", "chatting icon", "list icon enabled", "mypage icon enabled"]
-    let unselectedIcons = ["home icon disabled", "chatting icon", "list icon disabled", "mypage icon disabled"]
+    let selectedIcons = ["home icon enabled", "chat icon enabled", "list icon enabled", "mypage icon enabled"]
+    let unselectedIcons = ["home icon disabled", "chat icon disabled", "list icon disabled", "mypage icon disabled"]
     let names = ["홈", "채팅", "내역", "마이"]
     
     private let stackView: UIStackView = {
