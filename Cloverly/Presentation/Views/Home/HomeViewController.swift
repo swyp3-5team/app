@@ -165,7 +165,7 @@ class HomeViewController: UIViewController {
     }
 
     private lazy var receiptButton: UIButton = {
-        let button = makeAccessoryButton(title: "영수증", imageName: "image icon")
+        let button = makeAccessoryButton(title: "영수증", imageName: "receipt icon")
         button.addAction(UIAction { [weak self] _ in
             self?.presentReceiptPicker()
         }, for: .touchUpInside)

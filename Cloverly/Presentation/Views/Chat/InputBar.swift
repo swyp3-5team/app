@@ -44,7 +44,7 @@ class InputBar: UIView {
         config.title = "영수증"
         config.baseForegroundColor = .gray3
 
-        config.image = UIImage(named: "image icon")
+        config.image = UIImage(named: "receipt icon")
         config.imagePlacement = .leading
         config.imagePadding = 4
 
