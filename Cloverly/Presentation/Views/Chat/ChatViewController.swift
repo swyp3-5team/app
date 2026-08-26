@@ -43,6 +43,34 @@ class ChatViewController: UIViewController {
         }
         return 0
     }
+
+    private lazy var questionButton: UIButton = {
+        var config = UIButton.Configuration.plain()
+        config.image = UIImage(named: "questionmark icon")
+        let button = UIButton(configuration: config)
+        button.addAction(UIAction { [weak self] _ in
+            self?.setGuide(visible: true)
+        }, for: .touchUpInside)
+        return button
+    }()
+
+    // 가이드 바깥 영역 탭 시 닫기용 전체 화면 backdrop
+    private lazy var guideBackdrop: UIView = {
+        let v = UIView()
+        v.backgroundColor = .clear
+        v.isHidden = true
+        v.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(hideGuide)))
+        return v
+    }()
+
+    private lazy var guideView: ChatGuideView = {
+        let view = ChatGuideView()
+        view.isHidden = true
+        view.onClose = { [weak self] in
+            self?.setGuide(visible: false)
+        }
+        return view
+    }()
     
     var overlayWindow: UIWindow?
 
@@ -245,6 +273,15 @@ class ChatViewController: UIViewController {
         self.overlayWindow = newWindow
     }
     
+    private func setGuide(visible: Bool) {
+        guideBackdrop.isHidden = !visible
+        guideView.isHidden = !visible
+    }
+
+    @objc private func hideGuide() {
+        setGuide(visible: false)
+    }
+
     @objc func dismissKeyboard() {
         //        view.window?.endEditing(true)
         inputBar.textView.resignFirstResponder()
@@ -255,12 +292,30 @@ class ChatViewController: UIViewController {
         view.addSubview(collectionView)
         view.addSubview(inputBar)
         view.addSubview(titleLabel)
+        view.addSubview(questionButton)
         view.addSubview(loadingStackView)
+        view.addSubview(guideBackdrop)
+        view.addSubview(guideView)
         view.backgroundColor = .systemBackground
 
         titleLabel.snp.makeConstraints {
             $0.top.equalTo(view.snp.top).offset(statusBarHeight + 15.5)
             $0.centerX.equalToSuperview()
+        }
+
+        questionButton.snp.makeConstraints {
+            $0.centerY.equalTo(titleLabel.snp.centerY)
+            $0.trailing.equalToSuperview().offset(-16)
+        }
+
+        guideBackdrop.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+
+        guideView.snp.makeConstraints {
+            $0.top.equalTo(titleLabel.snp.bottom).offset(10)
+            $0.trailing.equalToSuperview().offset(-20)
+            $0.leading.greaterThanOrEqualToSuperview().offset(20)
         }
 
         // 입력바를 탭바 위(safeArea 하단)에 고정. 키보드가 올라오면 keyboardWillChangeFrame에서 위로 이동.
