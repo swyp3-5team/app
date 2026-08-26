@@ -42,7 +42,7 @@ class InputBar: UIView {
         var config = UIButton.Configuration.plain()
 
         config.title = "영수증"
-        config.baseForegroundColor = .gray3
+        config.baseForegroundColor = .gray2
 
         config.image = UIImage(named: "receipt icon")
         config.imagePlacement = .leading
@@ -53,7 +53,7 @@ class InputBar: UIView {
         config.cornerStyle = .capsule
 
         var titleAttr = AttributedString.init("영수증")
-        titleAttr.font = Typography.b6.uiFont
+        titleAttr.font = Typography.b5.uiFont
         config.attributedTitle = titleAttr
 
         let button = UIButton(configuration: config)
@@ -64,7 +64,7 @@ class InputBar: UIView {
         var config = UIButton.Configuration.plain()
         
         config.title = "붙여넣기"
-        config.baseForegroundColor = .gray3
+        config.baseForegroundColor = .gray2
         
         config.image = UIImage(named: "paste icon")
         config.imagePlacement = .leading
@@ -75,7 +75,7 @@ class InputBar: UIView {
         config.cornerStyle = .capsule
         
         var titleAttr = AttributedString.init("붙여넣기")
-        titleAttr.font = Typography.b6.uiFont
+        titleAttr.font = Typography.b5.uiFont
         config.attributedTitle = titleAttr
         
         let button = UIButton(configuration: config)
@@ -125,7 +125,7 @@ class InputBar: UIView {
         addSubview(sendButton)
         
         textView.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(20)
+            $0.leading.equalToSuperview().offset(16)
             $0.trailing.equalTo(sendButton.snp.leading).offset(-8).priority(999)
             $0.top.equalToSuperview().offset(14)
             textViewHeightConstraint = $0.height.equalTo(minTextViewHeight).constraint
@@ -150,9 +150,9 @@ class InputBar: UIView {
         }
         
         sendButton.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-20)
+            $0.trailing.equalToSuperview().offset(-16)
             $0.centerY.equalTo(receiptButton.snp.centerY)
-            $0.width.equalTo(48)
+            $0.width.height.equalTo(38)
         }
         
         updateTextViewHeight()
