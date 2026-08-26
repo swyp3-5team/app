@@ -16,7 +16,7 @@ enum Typography {
     case t1
 
     // MARK: - Body
-    case b1, b2, b3, b4, b5, b6, b7, b8
+    case b1, b2, b3, b4, b5, b6, b7, b8, b9
 
     // MARK: - Label
     case l1, l2, l3
@@ -33,11 +33,12 @@ enum Typography {
         case .b1: return .customFont(.pretendardSemiBold, size: 16)
         case .b2: return .customFont(.pretendardMedium, size: 16)
         case .b3: return .customFont(.pretendardRegular, size: 16)
-        case .b4: return .customFont(.pretendardRegular, size: 15)
-        case .b5: return .customFont(.pretendardSemiBold, size: 14)
-        case .b6: return .customFont(.pretendardMedium, size: 14)
-        case .b7: return .customFont(.pretendardRegular, size: 14)
-        case .b8: return .customFont(.pretendardMedium, size: 13)
+        case .b4: return .customFont(.pretendardSemiBold, size: 15)
+        case .b5: return .customFont(.pretendardMedium, size: 15)
+        case .b6: return .customFont(.pretendardSemiBold, size: 14)
+        case .b7: return .customFont(.pretendardMedium, size: 14)
+        case .b8: return .customFont(.pretendardRegular, size: 14)
+        case .b9: return .customFont(.pretendardMedium, size: 13)
 
         case .l1: return .customFont(.pretendardRegular, size: 13)
         case .l2: return .customFont(.pretendardSemiBold, size: 12)
@@ -52,9 +53,9 @@ enum Typography {
         case .h2, .h3: return 8.8
         case .t1: return 7.2
         case .b1, .b2, .b3: return 6.4
-        case .b4: return 6.0
-        case .b5, .b6, .b7: return 5.6
-        case .b8, .l1: return 5.2
+        case .b4, .b5: return 6.0
+        case .b6, .b7, .b8: return 5.6
+        case .b9, .l1: return 5.2
         case .l2, .l3: return 4.8
         }
     }

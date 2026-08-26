@@ -22,7 +22,7 @@ class TermCheckControl: UIControl {
     private let titleLabel: AppLabel = {
         let label = AppLabel()
         label.textColor = .gray3
-        label.typography = .b7
+        label.typography = .b8
         return label
     }()
     

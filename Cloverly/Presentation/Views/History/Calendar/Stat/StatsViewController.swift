@@ -29,7 +29,7 @@ class StatsViewController: UIViewController {
     private let dateLabel: AppLabel = {
         let label = AppLabel()
         label.textColor = .gray3
-        label.typography = .b6
+        label.typography = .b7
         return label
     }()
     

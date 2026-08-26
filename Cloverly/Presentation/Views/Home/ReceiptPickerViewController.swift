@@ -65,7 +65,7 @@ final class ReceiptPickerViewController: UIViewController {
         let label = AppLabel()
         label.text = "선택한 사진만 볼 수 있어요"
         label.textColor = .gray2
-        label.typography = .b6
+        label.typography = .b7
         return label
     }()
 
@@ -75,7 +75,7 @@ final class ReceiptPickerViewController: UIViewController {
         config.baseBackgroundColor = .green5
         config.baseForegroundColor = .white
         var titleAttr = AttributedString("권한 설정")
-        titleAttr.font = Typography.b6.uiFont
+        titleAttr.font = Typography.b7.uiFont
         config.attributedTitle = titleAttr
         config.cornerStyle = .capsule
         config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 14, bottom: 6, trailing: 14)
@@ -148,7 +148,7 @@ final class ReceiptPickerViewController: UIViewController {
         config.baseBackgroundColor = .gray9
         config.baseForegroundColor = .gray2
         var titleAttr = AttributedString("설정 열기")
-        titleAttr.font = Typography.b5.uiFont
+        titleAttr.font = Typography.b6.uiFont
         config.attributedTitle = titleAttr
         config.cornerStyle = .capsule
         config.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20)
@@ -373,7 +373,7 @@ final class ReceiptCameraCell: UICollectionViewCell {
         let label = AppLabel()
         label.text = "카메라"
         label.textColor = .gray2
-        label.typography = .b6
+        label.typography = .b7
         label.textAlignment = .center
 
         let stack = UIStackView(arrangedSubviews: [iconView, label])

@@ -22,7 +22,7 @@ class CategoryExpenseViewController: UIViewController {
         let icon = ExpenseCategory(rawValue: categoryId)?.icon ?? "💸"
         label.text = "\(icon) \(categoryName)"
         label.textColor = .gray3
-        label.typography = .b6
+        label.typography = .b7
         return label
     }()
 
@@ -41,19 +41,19 @@ class CategoryExpenseViewController: UIViewController {
 
     private let countLabel: AppLabel = {
         let label = AppLabel()
-        label.typography = .b5
+        label.typography = .b6
         return label
     }()
 
     private let cardLabel: AppLabel = {
         let label = AppLabel()
-        label.typography = .b5
+        label.typography = .b6
         return label
     }()
 
     private let cashLabel: AppLabel = {
         let label = AppLabel()
-        label.typography = .b5
+        label.typography = .b6
         return label
     }()
 
@@ -170,8 +170,8 @@ class CategoryExpenseViewController: UIViewController {
     }
 
     private static func makeSummaryText(prefix: String, value: String) -> NSAttributedString {
-        let attributed = NSMutableAttributedString(string: prefix, attributes: [.foregroundColor: UIColor.gray5, .font: Typography.b7.uiFont])
-        attributed.append(NSAttributedString(string: value, attributes: [.foregroundColor: UIColor.gray1, .font: Typography.b5.uiFont]))
+        let attributed = NSMutableAttributedString(string: prefix, attributes: [.foregroundColor: UIColor.gray5, .font: Typography.b8.uiFont])
+        attributed.append(NSAttributedString(string: value, attributes: [.foregroundColor: UIColor.gray1, .font: Typography.b6.uiFont]))
         return attributed
     }
 
@@ -209,7 +209,7 @@ extension CategoryExpenseViewController: UITableViewDataSource, UITableViewDeleg
         headerView.backgroundColor = .systemBackground
 
         let label = UILabel()
-        label.font = Typography.b7.uiFont
+        label.font = Typography.b8.uiFont
         label.textColor = .gray5
         label.text = formatDateForHeader(groupedTransactions[section].date)
 

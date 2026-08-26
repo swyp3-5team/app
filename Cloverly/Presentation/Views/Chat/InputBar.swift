@@ -75,7 +75,7 @@ class InputBar: UIView {
         config.cornerStyle = .capsule
         
         var titleAttr = AttributedString.init("붙여넣기")
-        titleAttr.font = Typography.b5.uiFont
+        titleAttr.font = Typography.b6.uiFont
         config.attributedTitle = titleAttr
         
         let button = UIButton(configuration: config)

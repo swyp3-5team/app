@@ -72,7 +72,7 @@ class ExpandableListView: UIView {
     private let actionButton: UIButton = {
         let btn = UIButton(type: .custom)
         let attrs: [NSAttributedString.Key: Any] = [
-            .font: Typography.b5.uiFont,
+            .font: Typography.b6.uiFont,
             .foregroundColor: UIColor.blueConfirm,
             .underlineStyle: NSUnderlineStyle.single.rawValue
         ]
@@ -230,12 +230,12 @@ class ExpandableListView: UIView {
         let nameLabel = AppLabel()
         nameLabel.text = name
         nameLabel.textColor = .gray2
-        nameLabel.typography = isSingleItem ? .b1 : .b4
+        nameLabel.typography = isSingleItem ? .b1 : .b5
 
         let amountLabel = AppLabel()
         amountLabel.text = "\(amount.withComma)원"
         amountLabel.textColor = .gray5
-        amountLabel.typography = .b4
+        amountLabel.typography = .b5
         amountLabel.isHidden = isSingleItem
 
         let labelStack = UIStackView(arrangedSubviews: [nameLabel, amountLabel])

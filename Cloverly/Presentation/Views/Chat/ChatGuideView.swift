@@ -44,7 +44,7 @@ final class ChatGuideView: UIView {
         let label = UILabel()
         label.text = "ex) 오늘 백화점에서 옷 사는데\n5만 원 썼어 충동구매해버렸네 ㅠ_ㅠ"
         label.textColor = .gray5
-        label.font = Typography.b8.uiFont
+        label.font = Typography.l1.uiFont
         label.textAlignment = .left
         label.numberOfLines = 0
         return label
@@ -136,7 +136,7 @@ final class ChatGuideView: UIView {
         let attr = NSMutableAttributedString(
             string: full,
             attributes: [
-                .font: Typography.b8.uiFont,
+                .font: Typography.b9.uiFont,
                 .foregroundColor: UIColor.gray3,
                 .paragraphStyle: paragraph
             ]

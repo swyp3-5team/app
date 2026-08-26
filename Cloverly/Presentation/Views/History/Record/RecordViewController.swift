@@ -71,7 +71,7 @@ class RecordViewController: UIViewController {
         
         config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
             var attrs = attrs
-            attrs.font = Typography.b5.uiFont
+            attrs.font = Typography.b6.uiFont
             return attrs
         }
         
@@ -90,7 +90,7 @@ class RecordViewController: UIViewController {
         let label = AppLabel()
         label.text = "지출"
         label.textColor = .gray4
-        label.typography = .b6
+        label.typography = .b7
         return label
     }()
     
@@ -113,7 +113,7 @@ class RecordViewController: UIViewController {
         let label = AppLabel()
         label.text = "수입"
         label.textColor = .gray4
-        label.typography = .b6
+        label.typography = .b7
         return label
     }()
     
@@ -136,7 +136,7 @@ class RecordViewController: UIViewController {
         let label = AppLabel()
         label.text = "잔액"
         label.textColor = .gray4
-        label.typography = .b6
+        label.typography = .b7
         return label
     }()
 
@@ -166,7 +166,7 @@ class RecordViewController: UIViewController {
         
         let attributes: AttributeContainer = {
             var container = AttributeContainer()
-            container.font = Typography.b5.uiFont
+            container.font = Typography.b6.uiFont
             return container
         }()
 
@@ -193,7 +193,7 @@ class RecordViewController: UIViewController {
         let button = UIButton()
         button.setTitle("내역 추가", for: .normal)
         button.setTitleColor(.blueConfirm, for: .normal)
-        button.titleLabel?.font = Typography.b5.uiFont
+        button.titleLabel?.font = Typography.b6.uiFont
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             transactionViewModel.configure()
@@ -452,7 +452,7 @@ class RecordViewController: UIViewController {
         guard var config = filterButton.configuration else { return }
         
         var container = AttributeContainer()
-        container.font = Typography.b5.uiFont
+        container.font = Typography.b6.uiFont
         container.foregroundColor = isFilterActive ? .green5 : .gray2
         
         config.attributedTitle = AttributedString(titleText, attributes: container)
@@ -597,7 +597,7 @@ extension RecordViewController: UITableViewDataSource, UITableViewDelegate {
         headerView.backgroundColor = .white
         
         let label = UILabel()
-        label.font = Typography.b7.uiFont
+        label.font = Typography.b8.uiFont
         label.textColor = .gray5
         
         // ① 정렬된 키 목록에서 현재 섹션의 날짜 가져오기

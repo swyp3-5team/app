@@ -93,7 +93,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         let label = AppLabel()
         label.text = "지출"
         label.textColor = .gray4
-        label.typography = .b6
+        label.typography = .b7
         return label
     }()
 
@@ -116,7 +116,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         let label = AppLabel()
         label.text = "수입"
         label.textColor = .gray4
-        label.typography = .b6
+        label.typography = .b7
         return label
     }()
 
@@ -139,7 +139,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         let label = AppLabel()
         label.text = "잔액"
         label.textColor = .gray4
-        label.typography = .b6
+        label.typography = .b7
         return label
     }()
 

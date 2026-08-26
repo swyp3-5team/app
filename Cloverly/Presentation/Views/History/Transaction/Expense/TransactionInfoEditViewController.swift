@@ -49,7 +49,7 @@ class TransactionInfoEditViewController: UIViewController {
         let label = AppLabel()
         label.text = "내용"
         label.textColor = .gray2
-        label.typography = .b5
+        label.typography = .b6
         return label
     }()
     
@@ -57,7 +57,7 @@ class TransactionInfoEditViewController: UIViewController {
         let tf = UITextField()
         tf.placeholder = "내용 입력"
         tf.text = initialName
-        tf.font = Typography.b7.uiFont
+        tf.font = Typography.b8.uiFont
         tf.layer.borderColor = UIColor.gray8.cgColor
         tf.layer.borderWidth = 1
         tf.layer.cornerRadius = 8
@@ -73,7 +73,7 @@ class TransactionInfoEditViewController: UIViewController {
         let label = AppLabel()
         label.text = "금액"
         label.textColor = .gray2
-        label.typography = .b5
+        label.typography = .b6
         return label
     }()
     
@@ -84,7 +84,7 @@ class TransactionInfoEditViewController: UIViewController {
         if let amount = initialAmount, amount > 0 {
             tf.text = "\(amount.withComma)원"
         }
-        tf.font = Typography.b7.uiFont
+        tf.font = Typography.b8.uiFont
         tf.keyboardType = .numberPad
         tf.layer.borderColor = UIColor.gray8.cgColor
         tf.layer.borderWidth = 1
@@ -101,7 +101,7 @@ class TransactionInfoEditViewController: UIViewController {
         let label = AppLabel()
         label.text = "카테고리"
         label.textColor = .gray2
-        label.typography = .b5
+        label.typography = .b6
         return label
     }()
     

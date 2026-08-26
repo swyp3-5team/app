@@ -61,7 +61,7 @@ class TransactionContainerViewController: UIViewController {
         config.cornerStyle = .capsule
         config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
         var titleAttr = AttributedString(title)
-        titleAttr.font = Typography.b5.uiFont
+        titleAttr.font = Typography.b6.uiFont
         config.attributedTitle = titleAttr
         return config
     }
@@ -141,7 +141,7 @@ class TransactionContainerViewController: UIViewController {
         let label = AppLabel()
         label.text = "내용 인식중"
         label.textColor = .gray10
-        label.typography = .b5
+        label.typography = .b6
         label.textAlignment = .center
         return label
     }()

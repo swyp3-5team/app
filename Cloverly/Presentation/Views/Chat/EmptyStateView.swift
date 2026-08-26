@@ -80,8 +80,8 @@ class EmptyStateView: UIView {
         stackView.setCustomSpacing(4, after: messageLabel)
         stackView.setCustomSpacing(16, after: descriptionLabel)
 
-        stackView.snp.makeConstraints {
-            $0.top.equalTo(safeAreaLayoutGuide.snp.top).offset(47)
+        stackView.snp.makeConstraints {   
+            $0.top.equalTo(safeAreaLayoutGuide.snp.top).offset(24)
             $0.centerX.equalToSuperview()
             $0.leading.greaterThanOrEqualToSuperview().offset(20)
             $0.trailing.lessThanOrEqualToSuperview().offset(-20)

@@ -64,7 +64,7 @@ final class MenuCardView: UIView {
 
         let subtitleLabel = UILabel()
         subtitleLabel.text = item.subtitle
-        subtitleLabel.font = Typography.b4.uiFont
+        subtitleLabel.font = Typography.b5.uiFont
         subtitleLabel.textColor = .gray1
         subtitleLabel.isUserInteractionEnabled = false
 

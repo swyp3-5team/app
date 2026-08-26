@@ -30,7 +30,7 @@ class ExpenseListViewCell: UITableViewCell {
     private let subtitleLabel: AppLabel = {
         let label = AppLabel()
         label.textColor = .gray4
-        label.typography = .b7
+        label.typography = .b8
         label.textAlignment = .center
         return label
     }()
