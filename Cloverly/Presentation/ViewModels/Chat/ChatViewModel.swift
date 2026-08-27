@@ -16,23 +16,17 @@ struct MessageSection {
 }
 
 final class ChatViewModel {
-    let ledgerMessages = BehaviorRelay<[Message]>(value: [])
-    let chatMessages = BehaviorRelay<[Message]>(value: [])
-    let historyMessages = BehaviorRelay<[Message]>(value: [])
+    // 통합 채팅: 영수증/대화 구분 없이 단일 타임라인
+    let messages = BehaviorRelay<[Message]>(value: [])
 
     var currentSections: [MessageSection] {
-        let mode = ChatMode(index: selectedIndex.value)
-        let messages = mode == .receipt ? ledgerMessages.value : historyMessages.value + chatMessages.value
-        return groupByDate(messages)
+        return groupByDate(messages.value)
     }
 
     var currentSectionsStream: Observable<[MessageSection]> {
-        return Observable.combineLatest(selectedIndex, ledgerMessages, chatMessages, historyMessages)
-            .map { [weak self] index, ledger, chat, history -> [MessageSection] in
-                guard let self = self else { return [] }
-                let mode = ChatMode(index: index)
-                let messages = mode == .receipt ? ledger : history + chat
-                return self.groupByDate(messages)
+        return messages
+            .map { [weak self] messages -> [MessageSection] in
+                self?.groupByDate(messages) ?? []
             }
     }
 
@@ -62,65 +56,46 @@ final class ChatViewModel {
     let didSaveTransaction = PublishRelay<Void>()
     
     func sendChat(message: String? = nil, image: UIImage? = nil) {
-        let mode = ChatMode(index: selectedIndex.value)
-        
         if let msg = message {
-            let textMessage = Message(kind: .text(msg), chatType: .send)
-            appendMessage(textMessage, mode: mode)
+            append(Message(kind: .text(msg), chatType: .send))
         }
-        
+
         if let img = image {
-            let photoMessage = Message(kind: .photo(img), chatType: .send)
-            appendMessage(photoMessage, mode: mode)
+            append(Message(kind: .photo(img), chatType: .send))
         }
-        
+
+        // 응답 전까지 어시스턴트 버블에 로딩 인디케이터 표시
+        let loadingId = UUID()
+        append(Message(id: loadingId, kind: .loading, chatType: .receive))
+
         Task {
-            if mode == .receipt {
-                isLoading.accept(true)
+            do {
+                let response = try await api.sendChat(message: message, image: image)
+                remove(id: loadingId)
 
-                defer {
-                    isLoading.accept(false)
-                }
-
-                do {
-                    let response = try await api.sendChat(message: message, mode: mode, image: image)
-
-                    guard let info = response.transactionInfo, info.totalAmount > 0 else {
-                        errorRelay.accept(.notReceipt)
-                        return
-                    }
-
+                if response.transactionInfo != nil {
+                    // 영수증으로 분류 → 저장 시트
                     self.chatResponse.accept(response)
                     self.isSheetPresent.accept(true)
-                } catch {
-                    errorRelay.accept(AppError.from(error))
+                } else {
+                    // 대화로 분류 → 메시지 버블
+                    append(Message(kind: .text(response.message), chatType: .receive))
                 }
-            } else {
-                do {
-                    let response = try await api.sendChat(message: message, mode: mode, image: image)
-
-                    let message = Message(kind: .text("\(response.message)"), chatType: .receive)
-                    var currentMessages = chatMessages.value
-                    currentMessages.append(message)
-                    chatMessages.accept(currentMessages)
-
-                } catch {
-                    errorRelay.accept(AppError.from(error))
-                }
+            } catch {
+                remove(id: loadingId)
+                errorRelay.accept(AppError.from(error))
             }
         }
     }
-    
-    private func appendMessage(_ message: Message, mode: ChatMode) {
-        if mode == .receipt {
-            var list = ledgerMessages.value
-            list.append(message)
-            ledgerMessages.accept(list)
-        } else {
-            var list = chatMessages.value
-            list.append(message)
-            chatMessages.accept(list)
-        }
+
+    private func append(_ message: Message) {
+        var list = messages.value
+        list.append(message)
+        messages.accept(list)
+    }
+
+    private func remove(id: UUID) {
+        messages.accept(messages.value.filter { $0.id != id })
     }
     
     func saveTransaction() async throws {
@@ -148,10 +123,7 @@ final class ChatViewModel {
             "source": "chat"
         ])
         
-        let message = Message(kind: .text("\(chatResponse.value?.message ?? "저장 완료")"), chatType: .receive)
-        var currentMessages = ledgerMessages.value
-        currentMessages.append(message)
-        ledgerMessages.accept(currentMessages)
+        append(Message(kind: .text(chatResponse.value?.message ?? "저장 완료"), chatType: .receive))
 
         didSaveTransaction.accept(())
     }
@@ -164,14 +136,13 @@ final class ChatViewModel {
         dateFormatter.locale = Locale(identifier: "en_US_POSIX")
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
 
-        var messages = filtered.map { item -> Message in
+        let mapped = filtered.map { item -> Message in
             let chatType: ChatType = item.chatType == .assistant ? .receive : .send
             let date = dateFormatter.date(from: item.createdAt) ?? Date()
             return Message(kind: .text(item.chatContent), chatType: chatType, date: date)
         }
-        
-        messages = messages.sorted { $0.date < $1.date }
-        
-        historyMessages.accept(messages)
+        .sorted { $0.date < $1.date }
+
+        messages.accept(mapped)
     }
 }

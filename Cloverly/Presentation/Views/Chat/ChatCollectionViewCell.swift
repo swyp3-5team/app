@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import SnapKit
+import Lottie
 
 class ChatCollectionViewCell: UICollectionViewCell {
     static let identifier = "ChatCollectionViewCell"
@@ -18,13 +20,48 @@ class ChatCollectionViewCell: UICollectionViewCell {
     private var sendWidthConstraint: NSLayoutConstraint!
     
     lazy var stackView: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [messageImageView, messageTextView])
+        let stackView = UIStackView(arrangedSubviews: [messageImageView, messageTextView, loadingRow])
         stackView.axis = .vertical
         stackView.alignment = .fill
         stackView.distribution = .fill
         stackView.spacing = 0
         stackView.backgroundColor = .clear
         return stackView
+    }()
+
+    private let loadingAnimationView: LottieAnimationView = {
+        let view = LottieAnimationView(name: "loadingSpinner")
+        view.loopMode = .loop
+        view.contentMode = .scaleAspectFit
+        return view
+    }()
+
+    // .loading 메시지용 어시스턴트 버블 (Lottie 인디케이터)
+    private lazy var loadingBubbleView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .green10
+        view.layer.cornerRadius = 16
+        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
+        view.addSubview(loadingAnimationView)
+        // 숨김 시 UIStackView가 0으로 접을 수 있도록 required(1000) 미만으로 둠 (셀 높이 오염 방지)
+        loadingAnimationView.snp.makeConstraints {
+            $0.top.bottom.equalToSuperview().inset(14).priority(999)
+            $0.leading.trailing.equalToSuperview().inset(16).priority(999)
+            $0.width.equalTo(44).priority(999)
+            $0.height.equalTo(16).priority(999)
+        }
+        return view
+    }()
+
+    // .fill 스택에서 로딩 버블이 말풍선(스택) 폭을 강제하지 않도록 감싸는 좌측 정렬 컨테이너
+    private lazy var loadingRow: UIView = {
+        let row = UIView()
+        row.addSubview(loadingBubbleView)
+        loadingBubbleView.snp.makeConstraints {
+            $0.top.bottom.leading.equalToSuperview()
+            $0.trailing.lessThanOrEqualToSuperview()
+        }
+        return row
     }()
     
     let messageImageView: UIImageView = {
@@ -85,10 +122,13 @@ class ChatCollectionViewCell: UICollectionViewCell {
         
         messageTextView.text = nil
         messageImageView.image = nil
-        
+
         messageTextView.isHidden = true
         messageImageView.isHidden = true
-        
+        loadingRow.isHidden = true
+        loadingAnimationView.stop()
+        timeLabel.isHidden = false
+
         messageTextView.backgroundColor = .clear
     }
     
@@ -150,10 +190,20 @@ class ChatCollectionViewCell: UICollectionViewCell {
             messageTextView.text = text
             messageTextView.isHidden = false
             messageImageView.isHidden = true
+            loadingRow.isHidden = true
+            timeLabel.isHidden = false
         case .photo(let image):
             messageImageView.image = image
             messageTextView.isHidden = true
             messageImageView.isHidden = false
+            loadingRow.isHidden = true
+            timeLabel.isHidden = false
+        case .loading:
+            messageTextView.isHidden = true
+            messageImageView.isHidden = true
+            loadingRow.isHidden = false
+            timeLabel.isHidden = true
+            loadingAnimationView.play()
         }
         
         if message.chatType == .receive {

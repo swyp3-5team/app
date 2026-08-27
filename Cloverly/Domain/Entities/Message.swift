@@ -10,6 +10,7 @@ import UIKit
 enum MessageKind {
     case text(String)
     case photo(UIImage)
+    case loading
 }
 
 enum ChatType: CaseIterable {
@@ -18,11 +19,13 @@ enum ChatType: CaseIterable {
 }
 
 struct Message {
+    let id: UUID
     let kind: MessageKind
     let chatType: ChatType
     let date: Date
 
-    init(kind: MessageKind, chatType: ChatType, date: Date = Date()) {
+    init(id: UUID = UUID(), kind: MessageKind, chatType: ChatType, date: Date = Date()) {
+        self.id = id
         self.kind = kind
         self.chatType = chatType
         self.date = date

@@ -15,15 +15,12 @@ final class ChatAPI {
         self.baseURL = Bundle.main.infoDictionary?["BASE_URL"] as? String ?? ""
     }
     
-    func sendChat(message: String?, mode: ChatMode, image: UIImage?) async throws -> ChatResponse {
-        let url = "\(baseURL)/api/chat/send"
+    func sendChat(message: String?, image: UIImage?) async throws -> ChatResponse {
+        // v2: mode 없이 전송하면 서버가 RECEIPT/CHAT을 자동 분류해 응답
+        let url = "\(baseURL)/api/chat/v2/send"
 
         let response = await NetworkManager.shared.session.upload(
             multipartFormData: { multipart in
-                if let modeData = mode.rawValue.data(using: .utf8) {
-                    multipart.append(modeData, withName: "mode", mimeType: "text/plain")
-                }
-
                 if let message = message, let messageData = message.data(using: .utf8) {
                     multipart.append(messageData, withName: "message", mimeType: "text/plain")
                 }
