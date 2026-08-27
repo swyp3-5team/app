@@ -25,7 +25,8 @@ final class ChatAPI {
                     multipart.append(messageData, withName: "message", mimeType: "text/plain")
                 }
 
-                if let image = image, let imageData = image.jpegData(compressionQuality: 0.5) {
+                if let image = image,
+                   let imageData = image.resized(maxDimension: 1024).jpegData(compressionQuality: 0.8) {
                     multipart.append(imageData, withName: "image", fileName: "upload.jpg", mimeType: "image/jpeg")
                 }
             },
