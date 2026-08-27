@@ -174,6 +174,7 @@ class ChatViewController: UIViewController {
 
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tap.cancelsTouchesInView = false
+        tap.delegate = self
         view.addGestureRecognizer(tap)
         
         let backImage = UIImage(named: "Chevron left")
@@ -329,6 +330,9 @@ class ChatViewController: UIViewController {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(inputBar.snp.top)
         }
+        // 마지막 메시지가 입력바에 붙지 않도록 하단 여백
+        collectionView.contentInset.bottom = 12
+        collectionView.verticalScrollIndicatorInsets.bottom = 12
 
         loadingStackView.snp.makeConstraints {
             $0.center.equalToSuperview()
@@ -478,6 +482,9 @@ class ChatViewController: UIViewController {
             let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
         else { return }
         
+        // 레이아웃이 줄어들기 전에 바닥 여부를 캡처 (줄어든 뒤엔 항상 false로 판정됨)
+        let wasAtBottom = isAtBottom
+
         let keyboardFrameInView = view.convert(frame, from: nil)
         let overlap = max(view.bounds.maxY - keyboardFrameInView.origin.y, 0)
         // 키보드가 없으면 탭바 위(offset 0)에 도킹, 있으면 키보드 위로 올림.
@@ -487,7 +494,7 @@ class ChatViewController: UIViewController {
         UIView.animate(withDuration: duration) {
             self.view.layoutIfNeeded()
 
-            if self.isAtBottom {
+            if wasAtBottom {
                 self.scrollToBottom(animated: false)
             }
         }
@@ -639,5 +646,15 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
                 }
             }
         }
+    }
+}
+
+extension ChatViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        // 입력바(전송 버튼 등) 위 탭은 dismiss 제스처가 가로채지 않도록 → 버튼이 한 번에 동작
+        if let touched = touch.view, touched.isDescendant(of: inputBar) {
+            return false
+        }
+        return true
     }
 }
