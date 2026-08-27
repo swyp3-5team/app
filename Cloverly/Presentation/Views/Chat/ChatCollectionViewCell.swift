@@ -18,6 +18,10 @@ class ChatCollectionViewCell: UICollectionViewCell {
     private var timeTrailingConstraint: NSLayoutConstraint!
     private var receiveWidthConstraint: NSLayoutConstraint!
     private var sendWidthConstraint: NSLayoutConstraint!
+    private var imageWidthConstraint: NSLayoutConstraint!
+    private var imageHeightConstraint: NSLayoutConstraint!
+    private let imageWidth: CGFloat = 225
+    private let maxImageHeight: CGFloat = 300
     
     lazy var stackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [messageImageView, messageTextView, loadingRow])
@@ -161,10 +165,15 @@ class ChatCollectionViewCell: UICollectionViewCell {
             stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
             stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             
-            timeLabel.bottomAnchor.constraint(equalTo: stackView.bottomAnchor),
-            
-            messageImageView.heightAnchor.constraint(lessThanOrEqualToConstant: 300)
+            timeLabel.bottomAnchor.constraint(equalTo: stackView.bottomAnchor)
         ])
+
+        // 이미지 버블: width 208 고정, height는 bind에서 이미지 비율로 설정 (최대 maxImageHeight).
+        // .photo일 때만 활성화한다. (텍스트일 때 활성화돼 있으면 .fill 스택이 텍스트 말풍선까지 208로 묶음)
+        imageWidthConstraint = messageImageView.widthAnchor.constraint(equalToConstant: imageWidth)
+        imageWidthConstraint.priority = UILayoutPriority(999)
+        imageHeightConstraint = messageImageView.heightAnchor.constraint(equalToConstant: imageWidth)
+        imageHeightConstraint.priority = UILayoutPriority(999)
         
         leadingConstraint = stackView.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8)
         trailingConstraint = stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
@@ -192,18 +201,35 @@ class ChatCollectionViewCell: UICollectionViewCell {
             messageImageView.isHidden = true
             loadingRow.isHidden = true
             timeLabel.isHidden = false
+            imageWidthConstraint.isActive = false
+            imageHeightConstraint.isActive = false
+            // 짧은 텍스트는 콘텐츠 폭만큼만 잡히도록 (텍스트일 때만)
+            messageTextView.setContentHuggingPriority(.required, for: .horizontal)
+            messageTextView.setContentCompressionResistancePriority(.required, for: .horizontal)
         case .photo(let image):
             messageImageView.image = image
+            // width는 208 고정, height는 원본 비율대로 (최대 maxImageHeight로 clamp)
+            let ratio = image.size.height / max(image.size.width, 1)
+            imageHeightConstraint.constant = min(imageWidth * ratio, maxImageHeight)
+            imageWidthConstraint.isActive = true
+            imageHeightConstraint.isActive = true
             messageTextView.isHidden = true
             messageImageView.isHidden = false
             loadingRow.isHidden = true
             timeLabel.isHidden = false
+            // 텍스트 전용 우선순위가 이미지에 새지 않도록 기본값 복원
+            messageTextView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            messageTextView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         case .loading:
             messageTextView.isHidden = true
             messageImageView.isHidden = true
             loadingRow.isHidden = false
             timeLabel.isHidden = true
             loadingAnimationView.play()
+            imageWidthConstraint.isActive = false
+            imageHeightConstraint.isActive = false
+            messageTextView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            messageTextView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         }
         
         if message.chatType == .receive {
