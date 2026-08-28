@@ -54,6 +54,13 @@ final class ChatViewModel {
     let isLoading = BehaviorRelay<Bool>(value: false)
     let errorRelay = PublishRelay<AppError>()
     let didSaveTransaction = PublishRelay<Void>()
+
+    // 히스토리 페이징 (page 0 = 최신 페이지, 각 페이지는 오름차순)
+    private let pageSize = 30
+    private var currentPage = 0
+    private var isLoadingHistory = false
+    private var hasMoreHistory = true
+    var canLoadMoreHistory: Bool { hasMoreHistory && !isLoadingHistory }
     
     func sendChat(message: String? = nil, image: UIImage? = nil) {
         if let msg = message {
@@ -128,21 +135,64 @@ final class ChatViewModel {
         didSaveTransaction.accept(())
     }
     
-    func getChatHistory(size: Int) async throws {
-        let history = try await api.getChatHistory(page: 0, size: size)
-        let filtered = history.filter { !($0.chatContent.contains("결제함") && $0.chatContent.contains("소비")) }
+    // 최초 진입: 최신 페이지(page 0) 로드 후 하단 고정
+    func loadInitialHistory() async {
+        isLoadingHistory = true
+        defer { isLoadingHistory = false }
 
+        currentPage = 0
+        hasMoreHistory = true
+        do {
+            let history = try await api.getChatHistory(page: 0, size: pageSize)
+            hasMoreHistory = history.count == pageSize
+            messages.accept(mapHistory(history))
+        } catch {
+            errorRelay.accept(AppError.from(error))
+        }
+    }
+
+    // 위로 스크롤 시: 다음(더 오래된) 페이지를 앞에 prepend
+    func loadMoreHistory() {
+        guard canLoadMoreHistory else { return }
+        isLoadingHistory = true
+
+        let nextPage = currentPage + 1
+        Task {
+            defer { isLoadingHistory = false }
+            do {
+                let history = try await api.getChatHistory(page: nextPage, size: pageSize)
+                hasMoreHistory = history.count == pageSize
+
+                let older = mapHistory(history)
+                guard !older.isEmpty else { return }
+                currentPage = nextPage
+                // 각 페이지는 오름차순, 이전 페이지 전체가 더 오래됐으므로 앞에 붙이면 전체 오름차순 유지
+                messages.accept(older + messages.value)
+            } catch {
+                errorRelay.accept(AppError.from(error))
+            }
+        }
+    }
+
+    private func mapHistory(_ history: [ChatHistoryResponse]) -> [Message] {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = Locale(identifier: "en_US_POSIX")
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
 
-        let mapped = filtered.map { item -> Message in
+        return history.map { item -> Message in
             let chatType: ChatType = item.chatType == .assistant ? .receive : .send
             let date = dateFormatter.date(from: item.createdAt) ?? Date()
-            return Message(kind: .text(item.chatContent), chatType: chatType, date: date)
+
+            let kind: MessageKind
+            if let imageUrl = item.imageUrl, !imageUrl.isEmpty {
+                // 서버가 상대경로(/api/chat/images/...)로 주므로 baseURL을 붙여 절대 URL로
+                let absoluteUrl = imageUrl.hasPrefix("http") ? imageUrl : api.baseURL + imageUrl
+                kind = .imageURL(absoluteUrl)
+            } else {
+                kind = .text(item.chatContent)
+            }
+            return Message(kind: kind, chatType: chatType, date: date)
         }
         .sorted { $0.date < $1.date }
-
-        messages.accept(mapped)
     }
 }

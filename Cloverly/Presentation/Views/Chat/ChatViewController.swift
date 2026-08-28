@@ -26,6 +26,13 @@ class ChatViewController: UIViewController {
     private let sizingCell = ChatCollectionViewCell()
     private lazy var inputBar = InputBar(viewModel: viewModel)
     private var inputBarBottomConstraint: Constraint?
+
+    // 이전 페이지 prepend 시 스크롤 위치 보정용
+    private var isPrependingHistory = false
+    private var contentHeightBeforePrepend: CGFloat = 0
+
+    // 최초 진입 시 프레임 확정 후 1회 하단 고정용
+    private var didInitialScrollToBottom = false
     
     lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["가계부", "대화"], cornerRadius: 17)
 
@@ -94,7 +101,8 @@ class ChatViewController: UIViewController {
 
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+        // sizeForItemAt에서 정확한 크기를 주므로 셀프사이징을 끔.
+        // (셀프사이징이면 초기 로드 시 추정 크기로 스크롤돼 하단 고정이 어긋남)
         layout.minimumLineSpacing = 24
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.register(ChatCollectionViewCell.self, forCellWithReuseIdentifier: ChatCollectionViewCell.identifier)
@@ -160,7 +168,7 @@ class ChatViewController: UIViewController {
         textBind()
 
         Task {
-            try? await viewModel.getChatHistory(size: 1000)
+            await viewModel.loadInitialHistory()
 
             if let message = initialMessage?.trimmingCharacters(in: .whitespacesAndNewlines),
                !message.isEmpty {
@@ -205,6 +213,20 @@ class ChatViewController: UIViewController {
         if !UserDefaults.standard.bool(forKey: "hasSeenCoachMark") {
             showCoachMark()
             UserDefaults.standard.set(true, forKey: "hasSeenCoachMark")
+        }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        // 최초 진입 시엔 히스토리 로딩(async)으로 reloadData가 늦게 오므로
+        // bind의 scrollToBottom이 프레임 확정 전에 실행돼 하단 고정이 어긋난다.
+        // 콘텐츠가 실제로 채워진 뒤 프레임이 확정되는 이 시점에 1회만 하단 고정.
+        if !didInitialScrollToBottom,
+           collectionView.numberOfSections > 0,
+           collectionView.contentSize.height > 0 {
+            didInitialScrollToBottom = true
+            scrollToBottom(animated: false)
         }
     }
 
@@ -398,8 +420,17 @@ class ChatViewController: UIViewController {
                     self.collectionView.reloadData()
                     self.collectionView.layoutIfNeeded()
 
-                    if newTotal > 0 {
+                    if self.isPrependingHistory {
+                        // 이전 페이지가 앞에 붙어 콘텐츠가 위로 늘어난 만큼 오프셋을 더해 보던 위치 유지
+                        self.isPrependingHistory = false
+                        let diff = self.collectionView.contentSize.height - self.contentHeightBeforePrepend
+                        self.collectionView.contentOffset.y += diff
+                    } else if newTotal > 0 {
                         self.scrollToBottom(animated: false)
+                        // 셀프사이징으로 셀 크기가 나중에 확정되며 오프셋이 어긋나는 것 보정
+                        DispatchQueue.main.async {
+                            self.scrollToBottom(animated: false)
+                        }
                     }
                 }
             })
@@ -528,6 +559,17 @@ class ChatViewController: UIViewController {
 }
 
 extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    // 상단에서 3번째 이내(가장 오래된 섹션의 앞쪽) 아이템이 화면에 나타나면
+    // 이전(더 오래된) 페이지를 이어서 로드한다.
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        guard viewModel.canLoadMoreHistory else { return }
+        // 전체 타임라인의 맨 앞(가장 오래된) 3개 안에 드는 셀인지 확인
+        guard indexPath.section == 0, indexPath.item <= 2 else { return }
+        isPrependingHistory = true
+        contentHeightBeforePrepend = collectionView.contentSize.height
+        viewModel.loadMoreHistory()
+    }
+
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return viewModel.currentSections.count
     }
