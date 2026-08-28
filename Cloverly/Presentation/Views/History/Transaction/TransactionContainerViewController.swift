@@ -255,8 +255,10 @@ class TransactionContainerViewController: UIViewController {
         if current.trGroupId != -1 {
             titleLabel.text = "내역 수정"
             deleteButton.isHidden = false
-            incomeButton.isEnabled = false
-            expenseButton.isEnabled = false
+            // 수정 모드에선 수입/지출 종류 변경만 막고(상호작용 차단), 선택 상태 표시는 유지.
+            // isEnabled=false는 Configuration 버튼을 흐리게 만들어 선택 하이라이트가 사라지므로 쓰지 않는다.
+            incomeButton.isUserInteractionEnabled = false
+            expenseButton.isUserInteractionEnabled = false
             let isIncome = current.transactionInfoList.first?.type == "INCOME"
             isIncomeMode.accept(isIncome)
             if !isIncome {
