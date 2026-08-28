@@ -175,11 +175,14 @@ class ChatViewController: UIViewController {
 
         let trimmed = initialMessage?.trimmingCharacters(in: .whitespacesAndNewlines)
         let hasInitialSend = (trimmed?.isEmpty == false) || initialImage != nil
+        var seededFromPrefetch = false
 
         if hasInitialSend {
             // 홈에서 넘어온 전송: 스켈레톤 없이 내 메시지를 즉시 노출.
-            // bind() 전에 보내 두면 BehaviorRelay 최신값이 비어있지 않아 빈 화면/스켈레톤 깜빡임이 없다.
+            // 프리페치된 히스토리가 있으면 bind() 전에 먼저 깔아, [히스토리 + 보낸 메시지 + 로딩]을
+            // 한 번에 렌더하고 하단으로 한 번만 스크롤한다. (async prepend로 인한 스크롤 튐 제거)
             isInitialLoading = false
+            seededFromPrefetch = viewModel.seedPrefetchedHistory()
             viewModel.selectedIndex.accept(0)
             if let message = trimmed, !message.isEmpty {
                 viewModel.sendChat(message: message)
@@ -196,8 +199,10 @@ class ChatViewController: UIViewController {
 
         Task {
             if hasInitialSend {
-                // 이미 보낸 메시지는 하단에 유지하고, 이전 히스토리를 백그라운드로 불러와 위에 붙인다
-                await viewModel.loadInitialHistory(keepingCurrent: true)
+                // 프리페치로 못 깐 경우에만 히스토리를 백그라운드로 불러와 위에 붙인다
+                if !seededFromPrefetch {
+                    await viewModel.loadInitialHistory(keepingCurrent: true)
+                }
             } else {
                 await viewModel.loadInitialHistory()
                 isInitialLoading = false

@@ -152,6 +152,15 @@ final class ChatViewModel {
 
         currentPage = 0
         hasMoreHistory = true
+
+        // 홈에서 프리페치해둔 캐시가 있으면 네트워크 없이 즉시 사용
+        if let cached = ChatHistoryStore.shared.consume() {
+            hasMoreHistory = cached.count == pageSize
+            let mapped = mapHistory(cached)
+            messages.accept(keepingCurrent ? mapped + messages.value : mapped)
+            return
+        }
+
         do {
             let history = try await api.getChatHistory(page: 0, size: pageSize)
             hasMoreHistory = history.count == pageSize
@@ -164,6 +173,17 @@ final class ChatViewModel {
         } catch {
             errorRelay.accept(AppError.from(error))
         }
+    }
+
+    /// 프리페치된 히스토리가 있으면 동기적으로 즉시 messages에 깔고 페이징 상태를 맞춘다. 성공 시 true.
+    /// (홈→전송 흐름에서 bind 전에 히스토리를 먼저 깔아, async prepend로 인한 스크롤 튐을 없앤다)
+    @discardableResult
+    func seedPrefetchedHistory() -> Bool {
+        guard let cached = ChatHistoryStore.shared.consume() else { return false }
+        currentPage = 0
+        hasMoreHistory = cached.count == pageSize
+        messages.accept(mapHistory(cached))
+        return true
     }
 
     // 위로 스크롤 시: 다음(더 오래된) 페이지를 앞에 prepend
