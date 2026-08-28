@@ -67,6 +67,9 @@ class SaveModalViewController: UIViewController {
     // 수입 등으로 값이 없을 때 행 자체를 숨기기 위한 참조
     private var emotionRow: UIStackView?
     private var paymentRow: UIStackView?
+
+    // 저장 요청 진행 중 중복 탭 방지
+    private var isSaving = false
     
     private lazy var saveButton: UIButton = {
         let button = UIButton()
@@ -78,8 +81,12 @@ class SaveModalViewController: UIViewController {
         button.backgroundColor = .green5
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
+            // 중복 탭 방지: 저장 요청이 진행 중이면 무시 (중복 저장/배치 업데이트 크래시 예방)
+            guard !self.isSaving else { return }
+            self.isSaving = true
+
             let parentVC = self.presentingViewController
-            
+
             Task {
                 do {
                     try await self.viewModel.saveTransaction()
@@ -103,6 +110,7 @@ class SaveModalViewController: UIViewController {
                         )
                     }
                 } catch {
+                    self.isSaving = false
                     self.showErrorToast(error)
                 }
             }

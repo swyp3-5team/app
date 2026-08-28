@@ -78,15 +78,15 @@ final class ChatViewModel {
         Task {
             do {
                 let response = try await api.sendChat(message: message, image: image)
-                remove(id: loadingId)
 
                 if response.transactionInfo != nil {
                     // 영수증으로 분류 → 저장 시트
+                    remove(id: loadingId)
                     self.chatResponse.accept(response)
                     self.isSheetPresent.accept(true)
                 } else {
-                    // 대화로 분류 → 메시지 버블
-                    append(Message(kind: .text(response.message), chatType: .receive))
+                    // 대화로 분류 → 로딩 버블을 같은 자리에서 텍스트로 교체 (삭제+추가 대신 in-place)
+                    replace(id: loadingId, with: Message(id: loadingId, kind: .text(response.message), chatType: .receive))
                 }
             } catch {
                 remove(id: loadingId)
@@ -103,6 +103,14 @@ final class ChatViewModel {
 
     private func remove(id: UUID) {
         messages.accept(messages.value.filter { $0.id != id })
+    }
+
+    // 같은 id의 메시지를 같은 위치에서 교체 (로딩 → 응답)
+    private func replace(id: UUID, with message: Message) {
+        var list = messages.value
+        guard let idx = list.firstIndex(where: { $0.id == id }) else { return }
+        list[idx] = message
+        messages.accept(list)
     }
     
     func saveTransaction() async throws {

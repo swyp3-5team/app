@@ -23,6 +23,8 @@ class ChatCollectionViewCell: UICollectionViewCell {
     private var imageHeightConstraint: NSLayoutConstraint!
     private let imageWidth: CGFloat = 225
     private let imageHeight: CGFloat = 300
+    // 로딩(...) 버블에서 텍스트로 교체될 때 크로스페이드하기 위한 상태
+    private var isShowingLoading = false
     
     lazy var stackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [messageImageView, messageTextView, loadingRow])
@@ -136,6 +138,10 @@ class ChatCollectionViewCell: UICollectionViewCell {
         timeLabel.isHidden = false
 
         messageTextView.backgroundColor = .clear
+
+        isShowingLoading = false
+        messageTextView.alpha = 1
+        loadingRow.alpha = 1
     }
     
     func configure() {
@@ -199,15 +205,31 @@ class ChatCollectionViewCell: UICollectionViewCell {
         switch message.kind {
         case .text(let text):
             messageTextView.text = text
-            messageTextView.isHidden = false
             messageImageView.isHidden = true
-            loadingRow.isHidden = true
             timeLabel.isHidden = false
             imageWidthConstraint.isActive = false
             imageHeightConstraint.isActive = false
             // 짧은 텍스트는 콘텐츠 폭만큼만 잡히도록 (텍스트일 때만)
             messageTextView.setContentHuggingPriority(.required, for: .horizontal)
             messageTextView.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+            if isShowingLoading, window != nil {
+                // 로딩(...) → 응답 텍스트로 교체되는 순간: 로딩은 감추고 텍스트를 페이드 인
+                // (버블 높이 변화는 컬렉션뷰의 performBatchUpdates가 함께 애니메이션한다)
+                isShowingLoading = false
+                loadingRow.isHidden = true
+                loadingAnimationView.stop()
+                messageTextView.isHidden = false
+                messageTextView.alpha = 0
+                UIView.animate(withDuration: 0.25) {
+                    self.messageTextView.alpha = 1
+                }
+            } else {
+                isShowingLoading = false
+                messageTextView.isHidden = false
+                messageTextView.alpha = 1
+                loadingRow.isHidden = true
+            }
         case .photo(let image):
             messageImageView.image = image
             // 히스토리(.imageURL)와 동일하게 고정 프레임(225×300)으로 표시
@@ -250,9 +272,11 @@ class ChatCollectionViewCell: UICollectionViewCell {
             messageTextView.setContentHuggingPriority(.defaultLow, for: .horizontal)
             messageTextView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         case .loading:
+            isShowingLoading = true
             messageTextView.isHidden = true
             messageImageView.isHidden = true
             loadingRow.isHidden = false
+            loadingRow.alpha = 1
             timeLabel.isHidden = true
             loadingAnimationView.play()
             imageWidthConstraint.isActive = false

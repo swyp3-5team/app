@@ -37,6 +37,10 @@ class ChatViewController: UIViewController {
     // 히스토리 최초 조회 동안 스켈레톤 표시
     private var isInitialLoading = false
     private let skeletonView = ChatSkeletonView()
+
+    // 컬렉션뷰 데이터 소스가 읽는 표시용 스냅샷. bind에서 컬렉션뷰 업데이트와 lockstep으로만 갱신한다.
+    // (live 모델을 직접 읽으면 배치 업데이트 도중 개수가 어긋나 크래시가 남)
+    private var displayedSections: [MessageSection] = []
     
     lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["가계부", "대화"], cornerRadius: 17)
 
@@ -403,16 +407,21 @@ class ChatViewController: UIViewController {
             .subscribe(onNext: { [weak self] sections in
                 guard let self = self else { return }
 
-                let allMessages = sections.flatMap { $0.messages }
+                let newSections = sections
+                let allMessages = newSections.flatMap { $0.messages }
                 self.updateBackground(isEmpty: allMessages.isEmpty)
 
-                let currentTotal = (0..<self.collectionView.numberOfSections).reduce(0) { $0 + self.collectionView.numberOfItems(inSection: $1) }
+                // 데이터 소스는 displayedSections만 읽는다. 아래에서 컬렉션뷰 업데이트와 lockstep으로 교체해
+                // "컬렉션뷰가 아는 개수 ≠ 데이터 소스 개수" 불일치 크래시를 원천 차단한다.
+                let oldSections = self.displayedSections
+                let oldTotal = oldSections.reduce(0) { $0 + $1.messages.count }
                 let newTotal = allMessages.count
 
-                if newTotal == currentTotal + 1 && viewModel.currentSections.count == self.collectionView.numberOfSections {
-                    // 동일 섹션에 메시지 1개 추가
-                    let lastSection = viewModel.currentSections.count - 1
-                    let lastItem = viewModel.currentSections[lastSection].messages.count - 1
+                if newTotal == oldTotal + 1 && newSections.count == oldSections.count {
+                    // 마지막 섹션에 메시지 1개 추가
+                    self.displayedSections = newSections
+                    let lastSection = newSections.count - 1
+                    let lastItem = newSections[lastSection].messages.count - 1
                     let indexPath = IndexPath(item: lastItem, section: lastSection)
 
                     self.collectionView.performBatchUpdates({
@@ -420,8 +429,22 @@ class ChatViewController: UIViewController {
                     }) { _ in
                         self.scrollToBottom(animated: true)
                     }
+                } else if newTotal > 0 && newTotal == oldTotal && newSections.count == oldSections.count {
+                    // 개수 동일(로딩 → 응답 in-place 교체): 마지막 셀만 재구성해 버블 높이 변화를 부드럽게
+                    // 애니메이션하고 완료 후 하단으로 스크롤. (reconfigure는 prepareForReuse를 호출하지 않아 크로스페이드 상태 유지)
+                    self.displayedSections = newSections
+                    let lastSection = newSections.count - 1
+                    let lastItem = newSections[lastSection].messages.count - 1
+                    let indexPath = IndexPath(item: lastItem, section: lastSection)
+
+                    self.collectionView.performBatchUpdates({
+                        self.collectionView.reconfigureItems(at: [indexPath])
+                    }, completion: { _ in
+                        self.scrollToBottom(animated: true)
+                    })
                 } else {
-                    // 모드 변경, 대량 로딩, 섹션 추가 등 -> 전체 갱신
+                    // 그 외(초기 로드, 히스토리 prepend, 섹션 추가/삭제 등) -> 안전하게 전체 갱신
+                    self.displayedSections = newSections
                     self.collectionView.reloadData()
                     self.collectionView.layoutIfNeeded()
 
@@ -609,11 +632,11 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
     }
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return viewModel.currentSections.count
+        return displayedSections.count
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.currentSections[section].messages.count
+        return displayedSections[section].messages.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -621,7 +644,7 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
             return UICollectionViewCell()
         }
 
-        let message = viewModel.currentSections[indexPath.section].messages[indexPath.row]
+        let message = displayedSections[indexPath.section].messages[indexPath.row]
         UIView.performWithoutAnimation {
             cell.bind(with: message)
             cell.layoutIfNeeded()
@@ -631,7 +654,7 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let message = viewModel.currentSections[indexPath.section].messages[indexPath.item]
+        let message = displayedSections[indexPath.section].messages[indexPath.item]
 
         sizingCell.bind(with: message)
 
@@ -654,7 +677,7 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
                 for: indexPath
             ) as! DateHeaderView
 
-            header.dateLabel.text = viewModel.currentSections[indexPath.section].dateString
+            header.dateLabel.text = displayedSections[indexPath.section].dateString
 
             return header
         }
@@ -662,7 +685,7 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        if viewModel.currentSections.isEmpty {
+        if displayedSections.isEmpty {
             return .zero
         }
         return CGSize(width: collectionView.frame.width, height: 50)
