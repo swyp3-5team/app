@@ -10,6 +10,7 @@ import UIKit
 enum MessageKind {
     case text(String)
     case photo(UIImage)
+    case imageURL(String)
     case loading
 }
 

@@ -8,6 +8,7 @@
 import UIKit
 import SnapKit
 import Lottie
+import SDWebImage
 
 class ChatCollectionViewCell: UICollectionViewCell {
     static let identifier = "ChatCollectionViewCell"
@@ -21,7 +22,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
     private var imageWidthConstraint: NSLayoutConstraint!
     private var imageHeightConstraint: NSLayoutConstraint!
     private let imageWidth: CGFloat = 225
-    private let maxImageHeight: CGFloat = 300
+    private let imageHeight: CGFloat = 300
     
     lazy var stackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [messageImageView, messageTextView, loadingRow])
@@ -126,6 +127,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
         
         messageTextView.text = nil
         messageImageView.image = nil
+        messageImageView.sd_cancelCurrentImageLoad()
 
         messageTextView.isHidden = true
         messageImageView.isHidden = true
@@ -208,9 +210,8 @@ class ChatCollectionViewCell: UICollectionViewCell {
             messageTextView.setContentCompressionResistancePriority(.required, for: .horizontal)
         case .photo(let image):
             messageImageView.image = image
-            // width는 208 고정, height는 원본 비율대로 (최대 maxImageHeight로 clamp)
-            let ratio = image.size.height / max(image.size.width, 1)
-            imageHeightConstraint.constant = min(imageWidth * ratio, maxImageHeight)
+            // 히스토리(.imageURL)와 동일하게 고정 프레임(225×300)으로 표시
+            imageHeightConstraint.constant = imageHeight
             imageWidthConstraint.isActive = true
             imageHeightConstraint.isActive = true
             messageTextView.isHidden = true
@@ -218,6 +219,34 @@ class ChatCollectionViewCell: UICollectionViewCell {
             loadingRow.isHidden = true
             timeLabel.isHidden = false
             // 텍스트 전용 우선순위가 이미지에 새지 않도록 기본값 복원
+            messageTextView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            messageTextView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        case .imageURL(let urlString):
+            if let url = URL(string: urlString) {
+                // 이미지 엔드포인트가 인증을 요구하므로 Bearer 토큰을 요청에 실어줌
+                let modifier = SDWebImageDownloaderRequestModifier { request in
+                    var request = request
+                    if let token = KeychainManager.shared.accessToken {
+                        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                    }
+                    return request
+                }
+                messageImageView.sd_setImage(
+                    with: url,
+                    placeholderImage: nil,
+                    options: [],
+                    context: [.downloadRequestModifier: modifier],
+                    progress: nil
+                )
+            }
+            // .photo와 동일한 고정 프레임(225×300)
+            imageHeightConstraint.constant = imageHeight
+            imageWidthConstraint.isActive = true
+            imageHeightConstraint.isActive = true
+            messageTextView.isHidden = true
+            messageImageView.isHidden = false
+            loadingRow.isHidden = true
+            timeLabel.isHidden = false
             messageTextView.setContentHuggingPriority(.defaultLow, for: .horizontal)
             messageTextView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         case .loading:

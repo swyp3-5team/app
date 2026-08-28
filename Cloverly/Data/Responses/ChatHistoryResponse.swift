@@ -17,5 +17,7 @@ struct ChatHistoryResponse: nonisolated Codable {
     let chatType: ChatHistoryType
     let chatContent: String
     let emotion: Emotion?
+    let imageKey: String?
+    let imageUrl: String?
     let createdAt: String
 }
