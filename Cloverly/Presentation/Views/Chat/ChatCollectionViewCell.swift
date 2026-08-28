@@ -78,6 +78,13 @@ class ChatCollectionViewCell: UICollectionViewCell {
         imageView.clipsToBounds = true
         return imageView
     }()
+
+    // 이미지 로딩 중 messageImageView 위에 덮는 shimmer placeholder (스켈레톤과 동일한 SkeletonBubble 재사용)
+    private let imageShimmerView: SkeletonBubble = {
+        let view = SkeletonBubble()
+        view.isHidden = true
+        return view
+    }()
     
     let messageTextView: AppTextView = {
         let textView = AppTextView()
@@ -130,6 +137,9 @@ class ChatCollectionViewCell: UICollectionViewCell {
         messageTextView.text = nil
         messageImageView.image = nil
         messageImageView.sd_cancelCurrentImageLoad()
+        messageImageView.backgroundColor = .clear
+        imageShimmerView.stopShimmer()
+        imageShimmerView.isHidden = true
 
         messageTextView.isHidden = true
         messageImageView.isHidden = true
@@ -148,6 +158,10 @@ class ChatCollectionViewCell: UICollectionViewCell {
         contentView.addSubview(profileImageView)
         contentView.addSubview(stackView)
         contentView.addSubview(timeLabel)
+
+        // 이미지 로딩 shimmer는 이미지뷰를 덮도록 얹는다
+        messageImageView.addSubview(imageShimmerView)
+        imageShimmerView.snp.makeConstraints { $0.edges.equalToSuperview() }
         
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -202,6 +216,10 @@ class ChatCollectionViewCell: UICollectionViewCell {
         formatter.dateFormat = "a h:mm"
         timeLabel.text = formatter.string(from: message.date)
 
+        // 이미지 shimmer는 .imageURL에서만 켠다 (reconfigure로 다른 종류로 바뀔 때 잔상/불필요 애니메이션 방지)
+        imageShimmerView.stopShimmer()
+        imageShimmerView.isHidden = true
+
         switch message.kind {
         case .text(let text):
             messageTextView.text = text
@@ -253,13 +271,21 @@ class ChatCollectionViewCell: UICollectionViewCell {
                     }
                     return request
                 }
+                // 로딩 중 placeholder: shimmer 오버레이, 완료 시 페이드 인
+                imageShimmerView.isHidden = false
+                imageShimmerView.startShimmer()
+                messageImageView.sd_imageTransition = .fade
                 messageImageView.sd_setImage(
                     with: url,
                     placeholderImage: nil,
                     options: [],
                     context: [.downloadRequestModifier: modifier],
                     progress: nil
-                )
+                ) { [weak self] _, _, _, _ in
+                    // 성공/실패 관계없이 shimmer 종료
+                    self?.imageShimmerView.stopShimmer()
+                    self?.imageShimmerView.isHidden = true
+                }
             }
             // .photo와 동일한 고정 프레임(225×300)
             imageHeightConstraint.constant = imageHeight
