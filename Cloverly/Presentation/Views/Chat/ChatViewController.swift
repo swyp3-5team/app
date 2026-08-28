@@ -33,6 +33,10 @@ class ChatViewController: UIViewController {
 
     // 최초 진입 시 프레임 확정 후 1회 하단 고정용
     private var didInitialScrollToBottom = false
+
+    // 히스토리 최초 조회 동안 스켈레톤 표시
+    private var isInitialLoading = false
+    private let skeletonView = ChatSkeletonView()
     
     lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["가계부", "대화"], cornerRadius: 17)
 
@@ -163,12 +167,16 @@ class ChatViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        // bind()의 첫 방출(빈 배열)에서 빈 화면 대신 스켈레톤이 뜨도록 먼저 켠다
+        isInitialLoading = true
         configure()
         bind()
         textBind()
 
         Task {
             await viewModel.loadInitialHistory()
+            isInitialLoading = false
+            updateBackground(isEmpty: viewModel.messages.value.isEmpty)
 
             if let message = initialMessage?.trimmingCharacters(in: .whitespacesAndNewlines),
                !message.isEmpty {
@@ -383,23 +391,7 @@ class ChatViewController: UIViewController {
                 guard let self = self else { return }
 
                 let allMessages = sections.flatMap { $0.messages }
-                if allMessages.isEmpty {
-                    let mode = ChatMode(index: viewModel.selectedIndex.value)
-                    let emptyStateView = EmptyStateView()
-
-                    if mode == .receipt {
-                        emptyStateView.messageLabel.text = "가계부를 입력해 주세요!"
-                        emptyStateView.descriptionLabel.isHidden = false
-                        emptyStateView.exampleBox.isHidden = false
-                    } else {
-                        emptyStateView.messageLabel.text = "오늘 하루 어땠어요?"
-                        emptyStateView.descriptionLabel.isHidden = true
-                        emptyStateView.exampleBox.isHidden = true
-                    }
-                    self.collectionView.backgroundView = emptyStateView
-                } else {
-                    self.collectionView.backgroundView = nil
-                }
+                self.updateBackground(isEmpty: allMessages.isEmpty)
 
                 let currentTotal = (0..<self.collectionView.numberOfSections).reduce(0) { $0 + self.collectionView.numberOfItems(inSection: $1) }
                 let newTotal = allMessages.count
@@ -505,7 +497,37 @@ class ChatViewController: UIViewController {
             })
             .disposed(by: disposeBag)
     }
-    
+
+    // 배경 상태 결정: 메시지 있음 → 없음, 최초 로딩 중 → 스켈레톤, 그 외 빈 상태 → 안내 뷰
+    private func updateBackground(isEmpty: Bool) {
+        if !isEmpty {
+            skeletonView.stopShimmer()
+            collectionView.backgroundView = nil
+            return
+        }
+
+        if isInitialLoading {
+            collectionView.backgroundView = skeletonView
+            skeletonView.startShimmer()
+            return
+        }
+
+        skeletonView.stopShimmer()
+
+        let mode = ChatMode(index: viewModel.selectedIndex.value)
+        let emptyStateView = EmptyStateView()
+        if mode == .receipt {
+            emptyStateView.messageLabel.text = "가계부를 입력해 주세요!"
+            emptyStateView.descriptionLabel.isHidden = false
+            emptyStateView.exampleBox.isHidden = false
+        } else {
+            emptyStateView.messageLabel.text = "오늘 하루 어땠어요?"
+            emptyStateView.descriptionLabel.isHidden = true
+            emptyStateView.exampleBox.isHidden = true
+        }
+        collectionView.backgroundView = emptyStateView
+    }
+
     @objc func keyboardWillChangeFrame(_ notification: Notification) {
         guard
             let userInfo = notification.userInfo,
