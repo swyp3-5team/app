@@ -135,8 +135,10 @@ final class ChatViewModel {
         didSaveTransaction.accept(())
     }
     
-    // 최초 진입: 최신 페이지(page 0) 로드 후 하단 고정
-    func loadInitialHistory() async {
+    // 최초 진입: 최신 페이지(page 0) 로드 후 하단 고정.
+    // keepingCurrent=true면 이미 표시 중인 메시지(홈에서 방금 보낸 것)를 유지한 채
+    // 히스토리를 앞에 붙인다.
+    func loadInitialHistory(keepingCurrent: Bool = false) async {
         isLoadingHistory = true
         defer { isLoadingHistory = false }
 
@@ -145,7 +147,12 @@ final class ChatViewModel {
         do {
             let history = try await api.getChatHistory(page: 0, size: pageSize)
             hasMoreHistory = history.count == pageSize
-            messages.accept(mapHistory(history))
+            let mapped = mapHistory(history)
+            if keepingCurrent {
+                messages.accept(mapped + messages.value)
+            } else {
+                messages.accept(mapped)
+            }
         } catch {
             errorRelay.accept(AppError.from(error))
         }

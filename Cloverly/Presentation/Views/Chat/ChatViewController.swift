@@ -167,24 +167,37 @@ class ChatViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // bind()의 첫 방출(빈 배열)에서 빈 화면 대신 스켈레톤이 뜨도록 먼저 켠다
-        isInitialLoading = true
         configure()
+
+        let trimmed = initialMessage?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let hasInitialSend = (trimmed?.isEmpty == false) || initialImage != nil
+
+        if hasInitialSend {
+            // 홈에서 넘어온 전송: 스켈레톤 없이 내 메시지를 즉시 노출.
+            // bind() 전에 보내 두면 BehaviorRelay 최신값이 비어있지 않아 빈 화면/스켈레톤 깜빡임이 없다.
+            isInitialLoading = false
+            viewModel.selectedIndex.accept(0)
+            if let message = trimmed, !message.isEmpty {
+                viewModel.sendChat(message: message)
+            } else if let initialImage {
+                viewModel.sendChat(image: initialImage)
+            }
+        } else {
+            // 일반 진입: 히스토리 로딩 동안 스켈레톤 표시
+            isInitialLoading = true
+        }
+
         bind()
         textBind()
 
         Task {
-            await viewModel.loadInitialHistory()
-            isInitialLoading = false
-            updateBackground(isEmpty: viewModel.messages.value.isEmpty)
-
-            if let message = initialMessage?.trimmingCharacters(in: .whitespacesAndNewlines),
-               !message.isEmpty {
-                viewModel.selectedIndex.accept(0)
-                viewModel.sendChat(message: message)
-            } else if let initialImage {
-                viewModel.selectedIndex.accept(0)
-                viewModel.sendChat(image: initialImage)
+            if hasInitialSend {
+                // 이미 보낸 메시지는 하단에 유지하고, 이전 히스토리를 백그라운드로 불러와 위에 붙인다
+                await viewModel.loadInitialHistory(keepingCurrent: true)
+            } else {
+                await viewModel.loadInitialHistory()
+                isInitialLoading = false
+                updateBackground(isEmpty: viewModel.messages.value.isEmpty)
             }
         }
 
@@ -500,6 +513,9 @@ class ChatViewController: UIViewController {
 
     // 배경 상태 결정: 메시지 있음 → 없음, 최초 로딩 중 → 스켈레톤, 그 외 빈 상태 → 안내 뷰
     private func updateBackground(isEmpty: Bool) {
+        // 스켈레톤이 떠 있는 최초 로딩 중에는 입력/상호작용 차단
+        inputBar.isUserInteractionEnabled = !isInitialLoading
+
         if !isEmpty {
             skeletonView.stopShimmer()
             collectionView.backgroundView = nil
