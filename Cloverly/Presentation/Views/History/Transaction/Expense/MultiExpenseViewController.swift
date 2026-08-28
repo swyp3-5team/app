@@ -434,10 +434,14 @@ class MultiExpenseViewController: UIViewController {
             viewModel.editDate(date)
         }
 
-        viewModel.editEmotion(info.emotion)
+        if let emotion = info.emotion {
+            viewModel.editEmotion(emotion)
+        }
         updateEmotionLabel(with: info.emotion)
 
-        viewModel.editPaymentMethod(info.payment)
+        if let payment = info.payment {
+            viewModel.editPaymentMethod(payment)
+        }
         updatePaymentLabel(with: info.payment)
 
         let memo = info.paymentMemo ?? ""

@@ -9,10 +9,11 @@ import Foundation
 
 struct TransactionInfoDTO: nonisolated Codable {
     let transactionDate: String
-    let payment: Payment
+    // 수입으로 인식되면 결제수단/감정이 null로 내려온다 (서버가 값을 안 채움).
+    let payment: Payment?
     let paymentMemo: String?
     let totalAmount: Int
-    let emotion: Emotion
+    let emotion: Emotion?
     let transactions: [TransactionDTO]
 }
 

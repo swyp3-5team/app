@@ -9,8 +9,9 @@ import Foundation
 
 struct TransactionRequest: nonisolated Codable {
     let transactionDate: String
-    let payment: Payment
+    // 수입은 결제수단/감정이 없어 null로 전송될 수 있다.
+    let payment: Payment?
     let paymentMemo: String?
-    let emotion: Emotion
+    let emotion: Emotion?
     let transactions: [TransactionDTO]
 }
