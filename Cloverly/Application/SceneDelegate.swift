@@ -13,6 +13,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
+    // 업데이트 알림 중복 표시 방지
+    private var isShowingUpdateAlert = false
+
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
@@ -84,6 +87,73 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             ATTrackingManager.requestTrackingAuthorization { _ in }
         }
+
+        checkAppUpdate()
+    }
+
+    // MARK: - 앱 업데이트 체크
+
+    private func checkAppUpdate() {
+        guard !isShowingUpdateAlert else { return }
+
+        Task { @MainActor in
+            let result = await AppUpdateManager.shared.check()
+            switch result.status {
+            case .forced:
+                presentForcedUpdateAlert(storeURL: result.storeURL)
+            case .optional:
+                presentOptionalUpdateAlert(storeVersion: result.storeVersion, storeURL: result.storeURL)
+            case .none:
+                break
+            }
+        }
+    }
+
+    private func presentForcedUpdateAlert(storeURL: URL?) {
+        guard !isShowingUpdateAlert, let top = topViewController() else { return }
+
+        let alert = UIAlertController(
+            title: "업데이트 안내",
+            message: "원활한 앱 사용을 위해 최신 버전으로 업데이트가 필요합니다.",
+            preferredStyle: .alert
+        )
+        // 강제: 취소 없이 업데이트만. 스토어에서 돌아와도 sceneDidBecomeActive가 다시 검사해 재노출한다.
+        alert.addAction(UIAlertAction(title: "업데이트", style: .default) { [weak self] _ in
+            self?.isShowingUpdateAlert = false
+            if let storeURL { UIApplication.shared.open(storeURL) }
+        })
+
+        isShowingUpdateAlert = true
+        top.present(alert, animated: true)
+    }
+
+    private func presentOptionalUpdateAlert(storeVersion: String?, storeURL: URL?) {
+        guard !isShowingUpdateAlert, let top = topViewController() else { return }
+
+        let alert = UIAlertController(
+            title: "업데이트 안내",
+            message: "새로운 버전이 출시되었어요. 지금 바로 업데이트 해보세요!",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "다음", style: .cancel) { [weak self] _ in
+            self?.isShowingUpdateAlert = false
+            if let storeVersion { AppUpdateManager.shared.skipOptional(storeVersion: storeVersion) }
+        })
+        alert.addAction(UIAlertAction(title: "업데이트", style: .default) { [weak self] _ in
+            self?.isShowingUpdateAlert = false
+            if let storeURL { UIApplication.shared.open(storeURL) }
+        })
+
+        isShowingUpdateAlert = true
+        top.present(alert, animated: true)
+    }
+
+    private func topViewController() -> UIViewController? {
+        var top = window?.rootViewController
+        while let presented = top?.presentedViewController {
+            top = presented
+        }
+        return top
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
