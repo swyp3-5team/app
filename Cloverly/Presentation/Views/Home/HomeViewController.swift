@@ -9,10 +9,19 @@ import UIKit
 import SnapKit
 import AVFoundation
 import GoogleMobileAds
+import RxSwift
+import RxCocoa
 
 class HomeViewController: UIViewController {
     private let calendarViewModel: CalendarViewModel
+    private let disposeBag = DisposeBag()
     private var preloadedInterstitialAd: InterstitialAd?
+    private var inputContainerBottomConstraint: Constraint?
+    private var inputCapsuleBottomConstraint: Constraint?
+    private let inputContainerBaseOffset: CGFloat = 20
+    private let capsuleDockedBottomInset: CGFloat = -30
+    private let capsuleKeyboardBottomInset: CGFloat = -10
+    private var isInputDocked = true
     
     var statusBarHeight: CGFloat {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
@@ -106,33 +115,36 @@ class HomeViewController: UIViewController {
         return imageView
     }()
     
-    private lazy var chatButton: UIButton = {
+    private lazy var inputContainer: UIView = {
+        let view = UIView()
+        view.backgroundColor = .gray10
+        view.layer.cornerRadius = 20
+        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        return view
+    }()
+
+    private lazy var inputCapsule: UIView = {
+        let view = UIView()
+        view.backgroundColor = .gray9
+        view.layer.cornerRadius = 24
+        view.clipsToBounds = true
+        return view
+    }()
+
+    private lazy var inputTextField: UITextField = {
+        let tf = UITextField()
+        tf.placeholder = "오늘의 소비 내역을 알려주세요!"
+        tf.font = Typography.b2.uiFont
+        tf.textColor = .gray1
+        tf.returnKeyType = .send
+        return tf
+    }()
+
+    private lazy var sendButton: UIButton = {
         let button = UIButton()
-        var config = UIButton.Configuration.filled()
-
-        config.title = "가계부 입력하기"
-        config.image = UIImage(named: "chatting icon")
-
-        config.imagePlacement = .leading
-        config.imagePadding = 4
-
-        config.baseForegroundColor = .gray1
-        config.baseBackgroundColor = .gray10
-        
-        var titleAttr = AttributedString.init("가계부 입력하기")
-        titleAttr.font = Typography.b1.uiFont
-        config.attributedTitle = titleAttr
-        
-        config.cornerStyle = .capsule
-        
-        button.configuration = config
-        
-        button.addAction(UIAction { [weak self] _ in
-            guard let self else { return }
-            let vc = ChatViewController(calendarViewModel: calendarViewModel, interstitialAd: preloadedInterstitialAd)
-            preloadedInterstitialAd = nil
-            self.navigationController?.pushViewController(vc, animated: true)
-        }, for: .touchUpInside)
+        button.setImage(UIImage(named: "send button enabled"), for: .normal)
+        button.setImage(UIImage(named: "Send Button disabled"), for: .disabled)
+        button.isEnabled = false
         return button
     }()
     
@@ -148,13 +160,35 @@ class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
+        bind()
         setupVideoBackground()
         AuthViewModel.shared.getProfile()
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        tap.delegate = self
+        view.addGestureRecognizer(tap)
+    }
+
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         preloadChatInterstitialAd()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillChangeFrame),
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil
+        )
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
     }
 
     private func preloadChatInterstitialAd() {
@@ -174,13 +208,19 @@ class HomeViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        
+
         playerLayer?.frame = CGRect(
             x: 0,
             y: 0,
             width: backgroundVideoView.bounds.width,
             height: backgroundVideoView.bounds.height + timeBasedVideoShift
         )
+
+        if isInputDocked {
+            inputContainer.applyTopShadow(color: .shadow2, yOffset: -6)
+        } else {
+            inputContainer.layer.shadowOpacity = 0
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -236,44 +276,142 @@ class HomeViewController: UIViewController {
     
     func configureUI() {
         view.backgroundColor = .clear
-        
+
         view.addSubview(backgroundVideoView)
         view.sendSubviewToBack(backgroundVideoView)
         view.addSubview(typeLogoImageView)
         view.addSubview(bubbleImageView)
         view.addSubview(greetingLabel)
 //        view.addSubview(characterImageView) // 미사용
-        view.addSubview(chatButton)
-        
+        view.addSubview(inputContainer)
+        inputContainer.addSubview(inputCapsule)
+        inputCapsule.addSubview(inputTextField)
+        inputCapsule.addSubview(sendButton)
+
         backgroundVideoView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
-        
+
         typeLogoImageView.snp.makeConstraints {
             $0.top.equalTo(view.snp.top).offset(statusBarHeight + 15)
             $0.leading.equalToSuperview().offset(20)
         }
-        
+
         bubbleImageView.snp.makeConstraints {
             $0.centerX.equalToSuperview()
             $0.top.equalTo(typeLogoImageView.snp.bottom).offset(42)
         }
-        
+
         greetingLabel.snp.makeConstraints {
             $0.centerX.equalToSuperview()
             $0.top.equalTo(bubbleImageView.snp.top).offset(22)
         }
-        
+
 //        characterImageView.snp.makeConstraints {
 //            $0.leading.equalToSuperview().offset(105)
 //            $0.trailing.equalToSuperview().offset(-104)
 //            $0.bottom.equalTo(chatButton.snp.top).offset(-60)
 //        }
-        
-        chatButton.snp.makeConstraints {
-            $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
-            $0.centerX.equalToSuperview()
-            $0.height.equalTo(40)
+
+        inputContainer.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview()
+            inputContainerBottomConstraint = $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(inputContainerBaseOffset).constraint
         }
+
+        inputCapsule.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.top.equalToSuperview().offset(10)
+            inputCapsuleBottomConstraint = $0.bottom.equalToSuperview().offset(capsuleDockedBottomInset).constraint
+            $0.height.equalTo(48)
+        }
+
+        sendButton.snp.makeConstraints {
+            $0.trailing.equalToSuperview().offset(-8)
+            $0.centerY.equalToSuperview()
+            $0.width.height.equalTo(32)
+        }
+
+        inputTextField.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(20)
+            $0.trailing.equalTo(sendButton.snp.leading).offset(-8)
+            $0.centerY.equalToSuperview()
+        }
+    }
+
+    private func bind() {
+        inputTextField.rx.text.orEmpty
+            .map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .distinctUntilChanged()
+            .bind(to: sendButton.rx.isEnabled)
+            .disposed(by: disposeBag)
+
+        sendButton.rx.tap
+            .subscribe(onNext: { [weak self] in
+                self?.sendAndPushChat()
+            })
+            .disposed(by: disposeBag)
+
+        inputTextField.delegate = self
+    }
+
+    private func sendAndPushChat() {
+        let text = inputTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !text.isEmpty else { return }
+
+        let vc = ChatViewController(
+            calendarViewModel: calendarViewModel,
+            interstitialAd: preloadedInterstitialAd,
+            initialMessage: text
+        )
+        preloadedInterstitialAd = nil
+
+        inputTextField.text = ""
+        sendButton.isEnabled = false
+        inputTextField.resignFirstResponder()
+
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
+    @objc private func keyboardWillChangeFrame(_ notification: Notification) {
+        guard
+            let userInfo = notification.userInfo,
+            let frame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
+            let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        else { return }
+
+        let screenHeight = UIScreen.main.bounds.height
+        let overlap = max(screenHeight - frame.origin.y - view.safeAreaInsets.bottom, 0)
+        let isKeyboardUp = overlap > 0
+
+        let bottomOffset: CGFloat = isKeyboardUp ? -overlap : inputContainerBaseOffset
+        let capsuleInset: CGFloat = isKeyboardUp ? capsuleKeyboardBottomInset : capsuleDockedBottomInset
+
+        isInputDocked = !isKeyboardUp
+        inputContainer.layer.shadowOpacity = isKeyboardUp ? 0 : 0.05
+
+        inputContainerBottomConstraint?.update(offset: bottomOffset)
+        inputCapsuleBottomConstraint?.update(offset: capsuleInset)
+
+        UIView.animate(withDuration: duration) {
+            self.inputContainer.backgroundColor = isKeyboardUp ? .clear : .gray10
+            self.view.layoutIfNeeded()
+        }
+    }
+}
+
+extension HomeViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        sendAndPushChat()
+        return false
+    }
+}
+
+extension HomeViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        // 인풋 캡슐(전송 버튼 포함) 터치는 dismiss 제스처가 가로채지 않도록
+        if let touched = touch.view, touched.isDescendant(of: inputCapsule) {
+            return false
+        }
+        return true
     }
 }
