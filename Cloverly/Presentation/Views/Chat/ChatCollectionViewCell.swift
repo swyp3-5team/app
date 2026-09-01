@@ -50,13 +50,8 @@ class ChatCollectionViewCell: UICollectionViewCell {
         view.layer.cornerRadius = 16
         view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
         view.addSubview(loadingAnimationView)
-        // 숨김 시 UIStackView가 0으로 접을 수 있도록 required(1000) 미만으로 둠 (셀 높이 오염 방지)
-        loadingAnimationView.snp.makeConstraints {
-            $0.top.bottom.equalToSuperview().inset(14).priority(999)
-            $0.leading.trailing.equalToSuperview().inset(16).priority(999)
-            $0.width.equalTo(44).priority(999)
-            $0.height.equalTo(16).priority(999)
-        }
+        // 버블 크기는 유지하면서 애니메이션(...)만 확대
+        loadingAnimationView.transform = CGAffineTransform(scaleX: 1.8, y: 1.8)
         return view
     }()
 
@@ -162,6 +157,14 @@ class ChatCollectionViewCell: UICollectionViewCell {
         // 이미지 로딩 shimmer는 이미지뷰를 덮도록 얹는다
         messageImageView.addSubview(imageShimmerView)
         imageShimmerView.snp.makeConstraints { $0.edges.equalToSuperview() }
+
+        // 숨김 시 스택뷰가 0으로 접을 수 있도록 priority는 required(1000) 미만으로 둔다 (셀 높이 오염 방지)
+        loadingAnimationView.snp.makeConstraints {
+            $0.top.bottom.equalToSuperview().inset(8).priority(999)
+            $0.leading.trailing.equalToSuperview().inset(12).priority(999)
+            $0.width.equalTo(44).priority(999)
+            $0.height.equalTo(16).priority(999)
+        }
         
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
         stackView.translatesAutoresizingMaskIntoConstraints = false
