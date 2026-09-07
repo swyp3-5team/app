@@ -129,7 +129,9 @@ final class ChatViewModel {
                     amount: item.amount,
                     categoryName: item.categoryName
                 )
-            }
+            },
+            // send 응답으로 받은 pendingId를 함께 보내 서버가 임시 저장 건을 확정하도록 함
+            pendingId: chatResponse.value?.pendingId
         )
         
         try await api.saveTransaction(requestBody: requestBody)

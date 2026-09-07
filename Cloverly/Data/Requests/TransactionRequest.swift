@@ -14,4 +14,7 @@ struct TransactionRequest: nonisolated Codable {
     let paymentMemo: String?
     let emotion: Emotion?
     let transactions: [TransactionDTO]
+    // send 응답으로 받은 임시 저장 식별자. 서버가 이 건을 확정 처리한다.
+    // 내역 수정 등 pending과 무관한 경로에서는 생략 가능하도록 기본값 nil. (memberwise init 포함 위해 var)
+    var pendingId: String? = nil
 }
