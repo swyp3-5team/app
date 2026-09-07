@@ -152,13 +152,19 @@ class SaveModalViewController: UIViewController {
 
     private var appliedDetentHeight: CGFloat = 0
 
-    // 콘텐츠(저장 버튼 하단 + 여백)에 맞춰 시트 높이를 재조정. 수입처럼 행이 숨겨지면 그만큼 짧아진다.
+    // 마지막 행 ↔ 저장 버튼 간격 (작게 유지). 실기기에서 미세조정 시 이 값만 변경.
+    private let contentToButtonGap: CGFloat = 12
+
+    // 콘텐츠(마지막 행) 하단 기준으로 시트 높이를 재조정. 수입처럼 행이 숨겨지면 그만큼 짧아진다.
+    // 저장 버튼은 bottom-anchored이므로 버튼 위치로 역산하면 순환 의존이 생긴다 → 콘텐츠 기준으로 계산.
     private func updateSheetDetent() {
         guard let nav = navigationController,
               let sheet = nav.sheetPresentationController else { return }
 
-        let buttonMaxY = saveButton.convert(saveButton.bounds, to: nav.view).maxY
-        let height = buttonMaxY + 34
+        let contentMaxY = contentStackView.convert(contentStackView.bounds, to: view).maxY
+        let buttonHeight: CGFloat = 56
+        let bottomInset = view.safeAreaInsets.bottom + 16  // configureUI의 저장 버튼 하단 여백(-16)과 일치
+        let height = contentMaxY + contentToButtonGap + buttonHeight + bottomInset
         guard height > 0, abs(height - appliedDetentHeight) > 0.5 else { return }
         appliedDetentHeight = height
 
@@ -199,7 +205,7 @@ class SaveModalViewController: UIViewController {
 
         saveButton.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview().inset(20)
-            $0.top.equalTo(contentStackView.snp.bottom).offset(30)
+            $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
             $0.height.equalTo(56)
         }
     }
