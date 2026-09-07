@@ -56,7 +56,7 @@ class FilterViewController: UIViewController {
         let label = AppLabel()
         label.text = "지출"
         label.textColor = .gray2
-        label.typography = .b5
+        label.typography = .b6
         return label
     }()
 
@@ -79,7 +79,7 @@ class FilterViewController: UIViewController {
         let label = AppLabel()
         label.text = "수입"
         label.textColor = .gray2
-        label.typography = .b5
+        label.typography = .b6
         return label
     }()
 

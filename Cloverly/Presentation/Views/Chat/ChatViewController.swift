@@ -25,13 +25,73 @@ class ChatViewController: UIViewController {
     private let viewModel = ChatViewModel()
     private let sizingCell = ChatCollectionViewCell()
     private lazy var inputBar = InputBar(viewModel: viewModel)
+    private var inputBarBottomConstraint: Constraint?
+
+    // 이전 페이지 prepend 시 스크롤 위치 보정용
+    private var isPrependingHistory = false
+    private var contentHeightBeforePrepend: CGFloat = 0
+
+    // 최초 진입 시 프레임 확정 후 1회 하단 고정용
+    private var didInitialScrollToBottom = false
+
+    // 히스토리 최초 조회 동안 스켈레톤 표시
+    private var isInitialLoading = false
+    private let skeletonView = ChatSkeletonView()
+
+    // 컬렉션뷰 데이터 소스가 읽는 표시용 스냅샷. bind에서 컬렉션뷰 업데이트와 lockstep으로만 갱신한다.
+    // (live 모델을 직접 읽으면 배치 업데이트 도중 개수가 어긋나 크래시가 남)
+    private var displayedSections: [MessageSection] = []
     
     lazy var segmented = CustomSegmentedControl(selectedIndex: viewModel.selectedIndex, items: ["가계부", "대화"], cornerRadius: 17)
+
+    private let titleLabel: AppLabel = {
+        let label = AppLabel()
+        label.text = "가계부 입력"
+        label.textColor = .gray1
+        label.typography = .t1
+        return label
+    }()
+
+    var statusBarHeight: CGFloat {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            return windowScene.statusBarManager?.statusBarFrame.height ?? 0
+        }
+        return 0
+    }
+
+    private lazy var questionButton: UIButton = {
+        var config = UIButton.Configuration.plain()
+        config.image = UIImage(named: "questionmark icon")
+        let button = UIButton(configuration: config)
+        button.addAction(UIAction { [weak self] _ in
+            self?.setGuide(visible: true)
+        }, for: .touchUpInside)
+        return button
+    }()
+
+    // 가이드 바깥 영역 탭 시 닫기용 전체 화면 backdrop
+    private lazy var guideBackdrop: UIView = {
+        let v = UIView()
+        v.backgroundColor = .clear
+        v.isHidden = true
+        v.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(hideGuide)))
+        return v
+    }()
+
+    private lazy var guideView: ChatGuideView = {
+        let view = ChatGuideView()
+        view.isHidden = true
+        view.onClose = { [weak self] in
+            self?.setGuide(visible: false)
+        }
+        return view
+    }()
     
     var overlayWindow: UIWindow?
 
     private var interstitialAd: InterstitialAd?
     private let initialMessage: String?
+    private let initialImage: UIImage?
     private var pendingAdAfterSave = false
 
     private lazy var imagePicker: UIImagePickerController = {
@@ -49,7 +109,8 @@ class ChatViewController: UIViewController {
 
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+        // sizeForItemAt에서 정확한 크기를 주므로 셀프사이징을 끔.
+        // (셀프사이징이면 초기 로드 시 추정 크기로 스크롤돼 하단 고정이 어긋남)
         layout.minimumLineSpacing = 24
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.register(ChatCollectionViewCell.self, forCellWithReuseIdentifier: ChatCollectionViewCell.identifier)
@@ -72,9 +133,9 @@ class ChatViewController: UIViewController {
     
     private let statusLabel: AppLabel = {
         let label = AppLabel()
-        label.text = "영수증 인식중"
+        label.text = "내용 인식중"
         label.textColor = .gray10
-        label.typography = .b5
+        label.typography = .b6
         label.textAlignment = .center
         return label
     }()
@@ -96,10 +157,11 @@ class ChatViewController: UIViewController {
         return stack
     }()
     
-    init(calendarViewModel: CalendarViewModel, interstitialAd: InterstitialAd? = nil, initialMessage: String? = nil) {
+    init(calendarViewModel: CalendarViewModel, interstitialAd: InterstitialAd? = nil, initialMessage: String? = nil, initialImage: UIImage? = nil) {
         self.calendarViewModel = calendarViewModel
         self.interstitialAd = interstitialAd
         self.initialMessage = initialMessage
+        self.initialImage = initialImage
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -110,21 +172,47 @@ class ChatViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configure()
+
+        let trimmed = initialMessage?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let hasInitialSend = (trimmed?.isEmpty == false) || initialImage != nil
+        var seededFromPrefetch = false
+
+        if hasInitialSend {
+            // 홈에서 넘어온 전송: 스켈레톤 없이 내 메시지를 즉시 노출.
+            // 프리페치된 히스토리가 있으면 bind() 전에 먼저 깔아, [히스토리 + 보낸 메시지 + 로딩]을
+            // 한 번에 렌더하고 하단으로 한 번만 스크롤한다. (async prepend로 인한 스크롤 튐 제거)
+            isInitialLoading = false
+            seededFromPrefetch = viewModel.seedPrefetchedHistory()
+            viewModel.selectedIndex.accept(0)
+            if let message = trimmed, !message.isEmpty {
+                viewModel.sendChat(message: message)
+            } else if let initialImage {
+                viewModel.sendChat(image: initialImage)
+            }
+        } else {
+            // 일반 진입: 히스토리 로딩 동안 스켈레톤 표시
+            isInitialLoading = true
+        }
+
         bind()
         textBind()
 
         Task {
-            try? await viewModel.getChatHistory(size: 1000)
-
-            if let message = initialMessage?.trimmingCharacters(in: .whitespacesAndNewlines),
-               !message.isEmpty {
-                viewModel.selectedIndex.accept(0)
-                viewModel.sendChat(message: message)
+            if hasInitialSend {
+                // 프리페치로 못 깐 경우에만 히스토리를 백그라운드로 불러와 위에 붙인다
+                if !seededFromPrefetch {
+                    await viewModel.loadInitialHistory(keepingCurrent: true)
+                }
+            } else {
+                await viewModel.loadInitialHistory()
+                isInitialLoading = false
+                updateBackground(isEmpty: viewModel.messages.value.isEmpty)
             }
         }
 
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tap.cancelsTouchesInView = false
+        tap.delegate = self
         view.addGestureRecognizer(tap)
         
         let backImage = UIImage(named: "Chevron left")
@@ -155,6 +243,20 @@ class ChatViewController: UIViewController {
         if !UserDefaults.standard.bool(forKey: "hasSeenCoachMark") {
             showCoachMark()
             UserDefaults.standard.set(true, forKey: "hasSeenCoachMark")
+        }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        // 최초 진입 시엔 히스토리 로딩(async)으로 reloadData가 늦게 오므로
+        // bind의 scrollToBottom이 프레임 확정 전에 실행돼 하단 고정이 어긋난다.
+        // 콘텐츠가 실제로 채워진 뒤 프레임이 확정되는 이 시점에 1회만 하단 고정.
+        if !didInitialScrollToBottom,
+           collectionView.numberOfSections > 0,
+           collectionView.contentSize.height > 0 {
+            didInitialScrollToBottom = true
+            scrollToBottom(animated: false)
         }
     }
 
@@ -189,7 +291,7 @@ class ChatViewController: UIViewController {
         }
         
         // 버튼들이 포함된 배열
-        let targetButtons = [self.inputBar.galleryButton, self.inputBar.cameraButton, self.inputBar.pasteButton]
+        let targetButtons = [self.inputBar.receiptButton, self.inputBar.pasteButton]
         var combinedFrame: CGRect = .null
         
         for button in targetButtons {
@@ -224,14 +326,15 @@ class ChatViewController: UIViewController {
         self.overlayWindow = newWindow
     }
     
-    override var inputAccessoryView: UIView? {
-        return inputBar
+    private func setGuide(visible: Bool) {
+        guideBackdrop.isHidden = !visible
+        guideView.isHidden = !visible
     }
-    
-    override var canBecomeFirstResponder: Bool {
-        return true
+
+    @objc private func hideGuide() {
+        setGuide(visible: false)
     }
-    
+
     @objc func dismissKeyboard() {
         //        view.window?.endEditing(true)
         inputBar.textView.resignFirstResponder()
@@ -240,30 +343,58 @@ class ChatViewController: UIViewController {
     func configure() {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
+        view.addSubview(inputBar)
+        view.addSubview(titleLabel)
+        view.addSubview(questionButton)
         view.addSubview(loadingStackView)
+        view.addSubview(guideBackdrop)
+        view.addSubview(guideView)
         view.backgroundColor = .systemBackground
-        
+
+        titleLabel.snp.makeConstraints {
+            $0.top.equalTo(view.snp.top).offset(statusBarHeight + 15.5)
+            $0.centerX.equalToSuperview()
+        }
+
+        questionButton.snp.makeConstraints {
+            $0.centerY.equalTo(titleLabel.snp.centerY)
+            $0.trailing.equalToSuperview().offset(-16)
+        }
+
+        guideBackdrop.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+
+        guideView.snp.makeConstraints {
+            $0.top.equalTo(titleLabel.snp.bottom).offset(10)
+            $0.trailing.equalToSuperview().offset(-20)
+            $0.leading.greaterThanOrEqualToSuperview().offset(20)
+        }
+
+        // 입력바를 탭바 위(safeArea 하단)에 고정. 키보드가 올라오면 keyboardWillChangeFrame에서 위로 이동.
+        inputBar.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview()
+            inputBarBottomConstraint = $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).constraint
+        }
+
         collectionView.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
-            $0.leading.trailing.bottom.equalToSuperview()
+            $0.top.equalTo(titleLabel.snp.bottom).offset(12)
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(inputBar.snp.top)
         }
-        
-        segmented.snp.makeConstraints {
-            $0.width.equalTo(120)
-            $0.height.equalTo(34)
-        }
-        
+        // 마지막 메시지가 입력바에 붙지 않도록 하단 여백
+        collectionView.contentInset.bottom = 12
+        collectionView.verticalScrollIndicatorInsets.bottom = 12
+
         loadingStackView.snp.makeConstraints {
             $0.center.equalToSuperview()
         }
-        
+
         collectionView.register(
             DateHeaderView.self,
             forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
             withReuseIdentifier: DateHeaderView.id
         )
-        
-        navigationItem.titleView = segmented
     }
     
     func textBind() {
@@ -281,30 +412,21 @@ class ChatViewController: UIViewController {
             .subscribe(onNext: { [weak self] sections in
                 guard let self = self else { return }
 
-                let allMessages = sections.flatMap { $0.messages }
-                if allMessages.isEmpty {
-                    let mode = ChatMode(index: viewModel.selectedIndex.value)
-                    let emptyStateView = EmptyStateView()
+                let newSections = sections
+                let allMessages = newSections.flatMap { $0.messages }
+                self.updateBackground(isEmpty: allMessages.isEmpty)
 
-                    if mode == .receipt {
-                        emptyStateView.messageLabel.text = "가계부를 입력해주세요!"
-                        emptyStateView.exampleLabel.isHidden = false
-                    } else {
-                        emptyStateView.messageLabel.text = "오늘 하루 어땠어요?"
-                        emptyStateView.exampleLabel.isHidden = true
-                    }
-                    self.collectionView.backgroundView = emptyStateView
-                } else {
-                    self.collectionView.backgroundView = nil
-                }
-
-                let currentTotal = (0..<self.collectionView.numberOfSections).reduce(0) { $0 + self.collectionView.numberOfItems(inSection: $1) }
+                // 데이터 소스는 displayedSections만 읽는다. 아래에서 컬렉션뷰 업데이트와 lockstep으로 교체해
+                // "컬렉션뷰가 아는 개수 ≠ 데이터 소스 개수" 불일치 크래시를 원천 차단한다.
+                let oldSections = self.displayedSections
+                let oldTotal = oldSections.reduce(0) { $0 + $1.messages.count }
                 let newTotal = allMessages.count
 
-                if newTotal == currentTotal + 1 && viewModel.currentSections.count == self.collectionView.numberOfSections {
-                    // 동일 섹션에 메시지 1개 추가
-                    let lastSection = viewModel.currentSections.count - 1
-                    let lastItem = viewModel.currentSections[lastSection].messages.count - 1
+                if newTotal == oldTotal + 1 && newSections.count == oldSections.count {
+                    // 마지막 섹션에 메시지 1개 추가
+                    self.displayedSections = newSections
+                    let lastSection = newSections.count - 1
+                    let lastItem = newSections[lastSection].messages.count - 1
                     let indexPath = IndexPath(item: lastItem, section: lastSection)
 
                     self.collectionView.performBatchUpdates({
@@ -312,27 +434,44 @@ class ChatViewController: UIViewController {
                     }) { _ in
                         self.scrollToBottom(animated: true)
                     }
+                } else if newTotal > 0 && newTotal == oldTotal && newSections.count == oldSections.count {
+                    // 개수 동일(로딩 → 응답 in-place 교체): 마지막 셀만 재구성해 버블 높이 변화를 부드럽게
+                    // 애니메이션하고 완료 후 하단으로 스크롤. (reconfigure는 prepareForReuse를 호출하지 않아 크로스페이드 상태 유지)
+                    self.displayedSections = newSections
+                    let lastSection = newSections.count - 1
+                    let lastItem = newSections[lastSection].messages.count - 1
+                    let indexPath = IndexPath(item: lastItem, section: lastSection)
+
+                    self.collectionView.performBatchUpdates({
+                        self.collectionView.reconfigureItems(at: [indexPath])
+                    }, completion: { _ in
+                        self.scrollToBottom(animated: true)
+                    })
                 } else {
-                    // 모드 변경, 대량 로딩, 섹션 추가 등 -> 전체 갱신
+                    // 그 외(초기 로드, 히스토리 prepend, 섹션 추가/삭제 등) -> 안전하게 전체 갱신
+                    self.displayedSections = newSections
                     self.collectionView.reloadData()
                     self.collectionView.layoutIfNeeded()
 
-                    if newTotal > 0 {
+                    if self.isPrependingHistory {
+                        // 이전 페이지가 앞에 붙어 콘텐츠가 위로 늘어난 만큼 오프셋을 더해 보던 위치 유지
+                        self.isPrependingHistory = false
+                        let diff = self.collectionView.contentSize.height - self.contentHeightBeforePrepend
+                        self.collectionView.contentOffset.y += diff
+                    } else if newTotal > 0 {
                         self.scrollToBottom(animated: false)
+                        // 셀프사이징으로 셀 크기가 나중에 확정되며 오프셋이 어긋나는 것 보정
+                        DispatchQueue.main.async {
+                            self.scrollToBottom(animated: false)
+                        }
                     }
                 }
             })
             .disposed(by: disposeBag)
         
-        inputBar.rx.cameraButtonTap
+        inputBar.rx.receiptButtonTap
             .subscribe(onNext: { [weak self] in
-                self?.openCamera()
-            })
-            .disposed(by: disposeBag)
-        
-        inputBar.rx.gallaryButtonTap
-            .subscribe(onNext: { [weak self] in
-                self?.openPicker()
+                self?.presentReceiptPicker()
             })
             .disposed(by: disposeBag)
         
@@ -357,7 +496,6 @@ class ChatViewController: UIViewController {
                     }
                     present(nav, animated: true)
                 } else {
-                    self.becomeFirstResponder()
                     dismiss(animated: true) { [weak self] in
                         self?.presentAdAfterSaveIfNeeded()
                     }
@@ -400,7 +538,40 @@ class ChatViewController: UIViewController {
             })
             .disposed(by: disposeBag)
     }
-    
+
+    // 배경 상태 결정: 메시지 있음 → 없음, 최초 로딩 중 → 스켈레톤, 그 외 빈 상태 → 안내 뷰
+    private func updateBackground(isEmpty: Bool) {
+        // 스켈레톤이 떠 있는 최초 로딩 중에는 입력/상호작용 차단
+        inputBar.isUserInteractionEnabled = !isInitialLoading
+
+        if !isEmpty {
+            skeletonView.stopShimmer()
+            collectionView.backgroundView = nil
+            return
+        }
+
+        if isInitialLoading {
+            collectionView.backgroundView = skeletonView
+            skeletonView.startShimmer()
+            return
+        }
+
+        skeletonView.stopShimmer()
+
+        let mode = ChatMode(index: viewModel.selectedIndex.value)
+        let emptyStateView = EmptyStateView()
+        if mode == .receipt {
+            emptyStateView.messageLabel.text = "가계부를 입력해 주세요!"
+            emptyStateView.descriptionLabel.isHidden = false
+            emptyStateView.exampleBox.isHidden = false
+        } else {
+            emptyStateView.messageLabel.text = "오늘 하루 어땠어요?"
+            emptyStateView.descriptionLabel.isHidden = true
+            emptyStateView.exampleBox.isHidden = true
+        }
+        collectionView.backgroundView = emptyStateView
+    }
+
     @objc func keyboardWillChangeFrame(_ notification: Notification) {
         guard
             let userInfo = notification.userInfo,
@@ -408,21 +579,19 @@ class ChatViewController: UIViewController {
             let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
         else { return }
         
-        let keyboardHeight = frame.height
-        
-        let bottomInset: CGFloat
-        
-        if keyboardHeight > 0 {
-            bottomInset = keyboardHeight /*- 간격 없이 딱 view.safeAreaInsets.bottom*/
-        } else {
-            bottomInset = inputBar.frame.height
-        }
-        
+        // 레이아웃이 줄어들기 전에 바닥 여부를 캡처 (줄어든 뒤엔 항상 false로 판정됨)
+        let wasAtBottom = isAtBottom
+
+        let keyboardFrameInView = view.convert(frame, from: nil)
+        let overlap = max(view.bounds.maxY - keyboardFrameInView.origin.y, 0)
+        // 키보드가 없으면 탭바 위(offset 0)에 도킹, 있으면 키보드 위로 올림.
+        let offset = overlap > 0 ? -(overlap - view.safeAreaInsets.bottom) : 0
+        inputBarBottomConstraint?.update(offset: offset)
+
         UIView.animate(withDuration: duration) {
-            self.collectionView.contentInset.bottom = bottomInset
-            self.collectionView.verticalScrollIndicatorInsets.bottom = bottomInset
-            
-            if self.isAtBottom {
+            self.view.layoutIfNeeded()
+
+            if wasAtBottom {
                 self.scrollToBottom(animated: false)
             }
         }
@@ -442,39 +611,37 @@ class ChatViewController: UIViewController {
     }
     
     func updateInputBarHeight() {
-        let oldHeight = inputBar.frame.height
-        
-        // 높이 갱신 요청
+        // 입력바 높이가 바뀌면 collectionView(입력바 top에 붙어있음)가 자동으로 축소/확장된다.
         inputBar.invalidateIntrinsicContentSize()
-        inputBar.layoutIfNeeded() // 즉시 반영
-        
-        let newHeight = inputBar.frame.height
-        
-        // 변화량 계산 (예: 50 -> 70이면 +20)
-        let diff = newHeight - oldHeight
-        
-        guard diff != 0 else { return }
-        
+
         UIView.animate(withDuration: 0.2) {
-            self.collectionView.contentInset.bottom += diff
-            self.collectionView.verticalScrollIndicatorInsets.bottom += diff
-            
+            self.view.layoutIfNeeded()
+
             if self.isAtBottom {
                 self.scrollToBottom(animated: false)
             }
-            
-            self.view.layoutIfNeeded()
         }
     }
 }
 
 extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    // 상단에서 3번째 이내(가장 오래된 섹션의 앞쪽) 아이템이 화면에 나타나면
+    // 이전(더 오래된) 페이지를 이어서 로드한다.
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        guard viewModel.canLoadMoreHistory else { return }
+        // 전체 타임라인의 맨 앞(가장 오래된) 3개 안에 드는 셀인지 확인
+        guard indexPath.section == 0, indexPath.item <= 2 else { return }
+        isPrependingHistory = true
+        contentHeightBeforePrepend = collectionView.contentSize.height
+        viewModel.loadMoreHistory()
+    }
+
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return viewModel.currentSections.count
+        return displayedSections.count
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.currentSections[section].messages.count
+        return displayedSections[section].messages.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -482,7 +649,7 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
             return UICollectionViewCell()
         }
 
-        let message = viewModel.currentSections[indexPath.section].messages[indexPath.row]
+        let message = displayedSections[indexPath.section].messages[indexPath.row]
         UIView.performWithoutAnimation {
             cell.bind(with: message)
             cell.layoutIfNeeded()
@@ -492,7 +659,7 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let message = viewModel.currentSections[indexPath.section].messages[indexPath.item]
+        let message = displayedSections[indexPath.section].messages[indexPath.item]
 
         sizingCell.bind(with: message)
 
@@ -515,7 +682,7 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
                 for: indexPath
             ) as! DateHeaderView
 
-            header.dateLabel.text = viewModel.currentSections[indexPath.section].dateString
+            header.dateLabel.text = displayedSections[indexPath.section].dateString
 
             return header
         }
@@ -523,7 +690,7 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        if viewModel.currentSections.isEmpty {
+        if displayedSections.isEmpty {
             return .zero
         }
         return CGSize(width: collectionView.frame.width, height: 50)
@@ -531,6 +698,17 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
 }
 
 extension ChatViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate, PHPickerViewControllerDelegate {
+    // 영수증 버튼 → 홈과 동일한 커스텀 갤러리 시트(카메라 셀 + 사진 그리드)
+    func presentReceiptPicker() {
+        dismissKeyboard()
+        let picker = ReceiptPickerViewController()
+        picker.onPickImage = { [weak self] image in
+            self?.viewModel.sendChat(image: image)
+        }
+        picker.modalPresentationStyle = .fullScreen
+        present(picker, animated: true)
+    }
+
     func openCamera() {
         imagePicker.sourceType = .camera
         present(imagePicker, animated: false, completion: nil)
@@ -576,5 +754,15 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
                 }
             }
         }
+    }
+}
+
+extension ChatViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        // 입력바(전송 버튼 등) 위 탭은 dismiss 제스처가 가로채지 않도록 → 버튼이 한 번에 동작
+        if let touched = touch.view, touched.isDescendant(of: inputBar) {
+            return false
+        }
+        return true
     }
 }

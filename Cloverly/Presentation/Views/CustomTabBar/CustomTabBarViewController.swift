@@ -8,6 +8,7 @@
 import UIKit
 import SnapKit
 import RxSwift
+import GoogleMobileAds
 
 class CustomTabBarViewController: UITabBarController {
     
@@ -49,10 +50,11 @@ class CustomTabBarViewController: UITabBarController {
     
     func setupViewControllers() {
         let homeVC = HomeViewController(calendarViewModel: calendarViewModel)
+        let chatVC = ChatViewController(calendarViewModel: calendarViewModel)
         let historyVC = HistoryTabViewController(viewModel: calendarViewModel)
         let myVC = MyPageViewController()
 
-        viewControllers = [homeVC, historyVC, myVC]
+        viewControllers = [homeVC, chatVC, historyVC, myVC]
 
         customTabBar.itemTapped
             .subscribe(onNext: { [weak self] index in
@@ -63,8 +65,28 @@ class CustomTabBarViewController: UITabBarController {
     }
 
     private func applyTabBarStyle(for index: Int) {
-        // 홈(0)에서는 인풋바가 탭바 코너를 채우므로 shadow 제거
-        customTabBar.setShadowHidden(index == 0)
+        // 홈(0)·채팅(1)에서는 입력바가 탭바와 자연스럽게 이어지도록 상단 shadow 제거
+        customTabBar.setShadowHidden(index == 0 || index == 1)
+    }
+
+    // 홈에서 입력한 내용을 채팅 탭으로 전달하며 이동. 채팅 VC를 새로 만들어 교체해
+    // 기존 initialMessage/initialImage 전송 흐름을 그대로 재사용한다.
+    func routeToChatTab(message: String? = nil, image: UIImage? = nil, interstitialAd: InterstitialAd? = nil) {
+        let chatVC = ChatViewController(
+            calendarViewModel: calendarViewModel,
+            interstitialAd: interstitialAd,
+            initialMessage: message,
+            initialImage: image
+        )
+
+        if var vcs = viewControllers, vcs.count > 1 {
+            vcs[1] = chatVC
+            viewControllers = vcs
+        }
+
+        selectedIndex = 1
+        customTabBar.updateButtonState(selectedIndex: 1)
+        applyTabBarStyle(for: 1)
     }
     
     func configureUI() {

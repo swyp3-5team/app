@@ -25,7 +25,7 @@ class NoticeDetailViewController: UIViewController {
     private let dateLabel: AppLabel = {
         let label = AppLabel()
         label.textColor = .gray3
-        label.typography = .b7
+        label.typography = .b8
         return label
     }()
     
@@ -40,7 +40,7 @@ class NoticeDetailViewController: UIViewController {
     private let contentTextView: AppTextView = {
         let view = AppTextView()
         view.textColor = .gray1
-        view.typography = .b4
+        view.typography = .b5
         view.isEditable = false // 읽기 전용
         view.showsVerticalScrollIndicator = false
         return view

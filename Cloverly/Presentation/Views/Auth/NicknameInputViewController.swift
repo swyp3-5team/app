@@ -87,7 +87,7 @@ class NicknameInputViewController: UIViewController {
         let textField = UITextField()
         textField.placeholder = "10글자 이하의 닉네임"
         textField.textColor = .gray1
-        textField.font = Typography.b7.uiFont
+        textField.font = Typography.b8.uiFont
         textField.layer.borderColor = UIColor.gray8.cgColor
         textField.layer.borderWidth = 1
         textField.layer.cornerRadius = 8

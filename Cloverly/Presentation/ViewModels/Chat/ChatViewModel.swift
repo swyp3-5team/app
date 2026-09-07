@@ -16,23 +16,17 @@ struct MessageSection {
 }
 
 final class ChatViewModel {
-    let ledgerMessages = BehaviorRelay<[Message]>(value: [])
-    let chatMessages = BehaviorRelay<[Message]>(value: [])
-    let historyMessages = BehaviorRelay<[Message]>(value: [])
+    // 통합 채팅: 영수증/대화 구분 없이 단일 타임라인
+    let messages = BehaviorRelay<[Message]>(value: [])
 
     var currentSections: [MessageSection] {
-        let mode = ChatMode(index: selectedIndex.value)
-        let messages = mode == .receipt ? ledgerMessages.value : historyMessages.value + chatMessages.value
-        return groupByDate(messages)
+        return groupByDate(messages.value)
     }
 
     var currentSectionsStream: Observable<[MessageSection]> {
-        return Observable.combineLatest(selectedIndex, ledgerMessages, chatMessages, historyMessages)
-            .map { [weak self] index, ledger, chat, history -> [MessageSection] in
-                guard let self = self else { return [] }
-                let mode = ChatMode(index: index)
-                let messages = mode == .receipt ? ledger : history + chat
-                return self.groupByDate(messages)
+        return messages
+            .map { [weak self] messages -> [MessageSection] in
+                self?.groupByDate(messages) ?? []
             }
     }
 
@@ -60,67 +54,63 @@ final class ChatViewModel {
     let isLoading = BehaviorRelay<Bool>(value: false)
     let errorRelay = PublishRelay<AppError>()
     let didSaveTransaction = PublishRelay<Void>()
+
+    // 히스토리 페이징 (page 0 = 최신 페이지, 각 페이지는 오름차순)
+    private let pageSize = 30
+    private var currentPage = 0
+    private var isLoadingHistory = false
+    private var hasMoreHistory = true
+    var canLoadMoreHistory: Bool { hasMoreHistory && !isLoadingHistory }
     
     func sendChat(message: String? = nil, image: UIImage? = nil) {
-        let mode = ChatMode(index: selectedIndex.value)
-        
         if let msg = message {
-            let textMessage = Message(kind: .text(msg), chatType: .send)
-            appendMessage(textMessage, mode: mode)
+            append(Message(kind: .text(msg), chatType: .send))
         }
-        
+
         if let img = image {
-            let photoMessage = Message(kind: .photo(img), chatType: .send)
-            appendMessage(photoMessage, mode: mode)
+            append(Message(kind: .photo(img), chatType: .send))
         }
-        
+
+        // 응답 전까지 어시스턴트 버블에 로딩 인디케이터 표시
+        let loadingId = UUID()
+        append(Message(id: loadingId, kind: .loading, chatType: .receive))
+
         Task {
-            if mode == .receipt {
-                isLoading.accept(true)
+            do {
+                let response = try await api.sendChat(message: message, image: image)
 
-                defer {
-                    isLoading.accept(false)
-                }
-
-                do {
-                    let response = try await api.sendChat(message: message, mode: mode, image: image)
-
-                    guard let info = response.transactionInfo, info.totalAmount > 0 else {
-                        errorRelay.accept(.notReceipt)
-                        return
-                    }
-
+                if response.transactionInfo != nil {
+                    // 영수증으로 분류 → 저장 시트
+                    remove(id: loadingId)
                     self.chatResponse.accept(response)
                     self.isSheetPresent.accept(true)
-                } catch {
-                    errorRelay.accept(AppError.from(error))
+                } else {
+                    // 대화로 분류 → 로딩 버블을 같은 자리에서 텍스트로 교체 (삭제+추가 대신 in-place)
+                    replace(id: loadingId, with: Message(id: loadingId, kind: .text(response.message), chatType: .receive))
                 }
-            } else {
-                do {
-                    let response = try await api.sendChat(message: message, mode: mode, image: image)
-
-                    let message = Message(kind: .text("\(response.message)"), chatType: .receive)
-                    var currentMessages = chatMessages.value
-                    currentMessages.append(message)
-                    chatMessages.accept(currentMessages)
-
-                } catch {
-                    errorRelay.accept(AppError.from(error))
-                }
+            } catch {
+                remove(id: loadingId)
+                errorRelay.accept(AppError.from(error))
             }
         }
     }
-    
-    private func appendMessage(_ message: Message, mode: ChatMode) {
-        if mode == .receipt {
-            var list = ledgerMessages.value
-            list.append(message)
-            ledgerMessages.accept(list)
-        } else {
-            var list = chatMessages.value
-            list.append(message)
-            chatMessages.accept(list)
-        }
+
+    private func append(_ message: Message) {
+        var list = messages.value
+        list.append(message)
+        messages.accept(list)
+    }
+
+    private func remove(id: UUID) {
+        messages.accept(messages.value.filter { $0.id != id })
+    }
+
+    // 같은 id의 메시지를 같은 위치에서 교체 (로딩 → 응답)
+    private func replace(id: UUID, with message: Message) {
+        var list = messages.value
+        guard let idx = list.firstIndex(where: { $0.id == id }) else { return }
+        list[idx] = message
+        messages.accept(list)
     }
     
     func saveTransaction() async throws {
@@ -139,7 +129,9 @@ final class ChatViewModel {
                     amount: item.amount,
                     categoryName: item.categoryName
                 )
-            }
+            },
+            // send 응답으로 받은 pendingId를 함께 보내 서버가 임시 저장 건을 확정하도록 함
+            pendingId: chatResponse.value?.pendingId
         )
         
         try await api.saveTransaction(requestBody: requestBody)
@@ -148,30 +140,96 @@ final class ChatViewModel {
             "source": "chat"
         ])
         
-        let message = Message(kind: .text("\(chatResponse.value?.message ?? "저장 완료")"), chatType: .receive)
-        var currentMessages = ledgerMessages.value
-        currentMessages.append(message)
-        ledgerMessages.accept(currentMessages)
+        append(Message(kind: .text(chatResponse.value?.message ?? "저장 완료"), chatType: .receive))
 
         didSaveTransaction.accept(())
     }
     
-    func getChatHistory(size: Int) async throws {
-        let history = try await api.getChatHistory(page: 0, size: size)
-        let filtered = history.filter { !($0.chatContent.contains("결제함") && $0.chatContent.contains("소비")) }
+    // 최초 진입: 최신 페이지(page 0) 로드 후 하단 고정.
+    // keepingCurrent=true면 이미 표시 중인 메시지(홈에서 방금 보낸 것)를 유지한 채
+    // 히스토리를 앞에 붙인다.
+    func loadInitialHistory(keepingCurrent: Bool = false) async {
+        isLoadingHistory = true
+        defer { isLoadingHistory = false }
 
+        currentPage = 0
+        hasMoreHistory = true
+
+        // 홈에서 프리페치해둔 캐시가 있으면 네트워크 없이 즉시 사용
+        if let cached = ChatHistoryStore.shared.consume() {
+            hasMoreHistory = cached.count == pageSize
+            let mapped = mapHistory(cached)
+            messages.accept(keepingCurrent ? mapped + messages.value : mapped)
+            return
+        }
+
+        do {
+            let history = try await api.getChatHistory(page: 0, size: pageSize)
+            hasMoreHistory = history.count == pageSize
+            let mapped = mapHistory(history)
+            if keepingCurrent {
+                messages.accept(mapped + messages.value)
+            } else {
+                messages.accept(mapped)
+            }
+        } catch {
+            errorRelay.accept(AppError.from(error))
+        }
+    }
+
+    /// 프리페치된 히스토리가 있으면 동기적으로 즉시 messages에 깔고 페이징 상태를 맞춘다. 성공 시 true.
+    /// (홈→전송 흐름에서 bind 전에 히스토리를 먼저 깔아, async prepend로 인한 스크롤 튐을 없앤다)
+    @discardableResult
+    func seedPrefetchedHistory() -> Bool {
+        guard let cached = ChatHistoryStore.shared.consume() else { return false }
+        currentPage = 0
+        hasMoreHistory = cached.count == pageSize
+        messages.accept(mapHistory(cached))
+        return true
+    }
+
+    // 위로 스크롤 시: 다음(더 오래된) 페이지를 앞에 prepend
+    func loadMoreHistory() {
+        guard canLoadMoreHistory else { return }
+        isLoadingHistory = true
+
+        let nextPage = currentPage + 1
+        Task {
+            defer { isLoadingHistory = false }
+            do {
+                let history = try await api.getChatHistory(page: nextPage, size: pageSize)
+                hasMoreHistory = history.count == pageSize
+
+                let older = mapHistory(history)
+                guard !older.isEmpty else { return }
+                currentPage = nextPage
+                // 각 페이지는 오름차순, 이전 페이지 전체가 더 오래됐으므로 앞에 붙이면 전체 오름차순 유지
+                messages.accept(older + messages.value)
+            } catch {
+                errorRelay.accept(AppError.from(error))
+            }
+        }
+    }
+
+    private func mapHistory(_ history: [ChatHistoryResponse]) -> [Message] {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = Locale(identifier: "en_US_POSIX")
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
 
-        var messages = filtered.map { item -> Message in
+        return history.map { item -> Message in
             let chatType: ChatType = item.chatType == .assistant ? .receive : .send
             let date = dateFormatter.date(from: item.createdAt) ?? Date()
-            return Message(kind: .text(item.chatContent), chatType: chatType, date: date)
+
+            let kind: MessageKind
+            if let imageUrl = item.imageUrl, !imageUrl.isEmpty {
+                // 서버가 상대경로(/api/chat/images/...)로 주므로 baseURL을 붙여 절대 URL로
+                let absoluteUrl = imageUrl.hasPrefix("http") ? imageUrl : api.baseURL + imageUrl
+                kind = .imageURL(absoluteUrl)
+            } else {
+                kind = .text(item.chatContent)
+            }
+            return Message(kind: kind, chatType: chatType, date: date)
         }
-        
-        messages = messages.sorted { $0.date < $1.date }
-        
-        historyMessages.accept(messages)
+        .sorted { $0.date < $1.date }
     }
 }

@@ -6,6 +6,9 @@
 //
 
 import UIKit
+import SnapKit
+import Lottie
+import SDWebImage
 
 class ChatCollectionViewCell: UICollectionViewCell {
     static let identifier = "ChatCollectionViewCell"
@@ -16,15 +19,51 @@ class ChatCollectionViewCell: UICollectionViewCell {
     private var timeTrailingConstraint: NSLayoutConstraint!
     private var receiveWidthConstraint: NSLayoutConstraint!
     private var sendWidthConstraint: NSLayoutConstraint!
+    private var imageWidthConstraint: NSLayoutConstraint!
+    private var imageHeightConstraint: NSLayoutConstraint!
+    private let imageWidth: CGFloat = 225
+    private let imageHeight: CGFloat = 300
+    // 로딩(...) 버블에서 텍스트로 교체될 때 크로스페이드하기 위한 상태
+    private var isShowingLoading = false
     
     lazy var stackView: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [messageImageView, messageTextView])
+        let stackView = UIStackView(arrangedSubviews: [messageImageView, messageTextView, loadingRow])
         stackView.axis = .vertical
         stackView.alignment = .fill
         stackView.distribution = .fill
         stackView.spacing = 0
         stackView.backgroundColor = .clear
         return stackView
+    }()
+
+    private let loadingAnimationView: LottieAnimationView = {
+        let view = LottieAnimationView(name: "loadingSpinner")
+        view.loopMode = .loop
+        view.contentMode = .scaleAspectFit
+        return view
+    }()
+
+    // .loading 메시지용 어시스턴트 버블 (Lottie 인디케이터)
+    private lazy var loadingBubbleView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .green10
+        view.layer.cornerRadius = 16
+        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
+        view.addSubview(loadingAnimationView)
+        // 버블 크기는 유지하면서 애니메이션(...)만 확대
+        loadingAnimationView.transform = CGAffineTransform(scaleX: 1.8, y: 1.8)
+        return view
+    }()
+
+    // .fill 스택에서 로딩 버블이 말풍선(스택) 폭을 강제하지 않도록 감싸는 좌측 정렬 컨테이너
+    private lazy var loadingRow: UIView = {
+        let row = UIView()
+        row.addSubview(loadingBubbleView)
+        loadingBubbleView.snp.makeConstraints {
+            $0.top.bottom.leading.equalToSuperview()
+            $0.trailing.lessThanOrEqualToSuperview()
+        }
+        return row
     }()
     
     let messageImageView: UIImageView = {
@@ -33,6 +72,13 @@ class ChatCollectionViewCell: UICollectionViewCell {
         imageView.layer.cornerRadius = 16
         imageView.clipsToBounds = true
         return imageView
+    }()
+
+    // 이미지 로딩 중 messageImageView 위에 덮는 shimmer placeholder (스켈레톤과 동일한 SkeletonBubble 재사용)
+    private let imageShimmerView: SkeletonBubble = {
+        let view = SkeletonBubble()
+        view.isHidden = true
+        return view
     }()
     
     let messageTextView: AppTextView = {
@@ -85,17 +131,40 @@ class ChatCollectionViewCell: UICollectionViewCell {
         
         messageTextView.text = nil
         messageImageView.image = nil
-        
+        messageImageView.sd_cancelCurrentImageLoad()
+        messageImageView.backgroundColor = .clear
+        imageShimmerView.stopShimmer()
+        imageShimmerView.isHidden = true
+
         messageTextView.isHidden = true
         messageImageView.isHidden = true
-        
+        loadingRow.isHidden = true
+        loadingAnimationView.stop()
+        timeLabel.isHidden = false
+
         messageTextView.backgroundColor = .clear
+
+        isShowingLoading = false
+        messageTextView.alpha = 1
+        loadingRow.alpha = 1
     }
     
     func configure() {
         contentView.addSubview(profileImageView)
         contentView.addSubview(stackView)
         contentView.addSubview(timeLabel)
+
+        // 이미지 로딩 shimmer는 이미지뷰를 덮도록 얹는다
+        messageImageView.addSubview(imageShimmerView)
+        imageShimmerView.snp.makeConstraints { $0.edges.equalToSuperview() }
+
+        // 숨김 시 스택뷰가 0으로 접을 수 있도록 priority는 required(1000) 미만으로 둔다 (셀 높이 오염 방지)
+        loadingAnimationView.snp.makeConstraints {
+            $0.top.bottom.equalToSuperview().inset(8).priority(999)
+            $0.leading.trailing.equalToSuperview().inset(12).priority(999)
+            $0.width.equalTo(44).priority(999)
+            $0.height.equalTo(16).priority(999)
+        }
         
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -121,10 +190,15 @@ class ChatCollectionViewCell: UICollectionViewCell {
             stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
             stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             
-            timeLabel.bottomAnchor.constraint(equalTo: stackView.bottomAnchor),
-            
-            messageImageView.heightAnchor.constraint(lessThanOrEqualToConstant: 300)
+            timeLabel.bottomAnchor.constraint(equalTo: stackView.bottomAnchor)
         ])
+
+        // 이미지 버블: width 208 고정, height는 bind에서 이미지 비율로 설정 (최대 maxImageHeight).
+        // .photo일 때만 활성화한다. (텍스트일 때 활성화돼 있으면 .fill 스택이 텍스트 말풍선까지 208로 묶음)
+        imageWidthConstraint = messageImageView.widthAnchor.constraint(equalToConstant: imageWidth)
+        imageWidthConstraint.priority = UILayoutPriority(999)
+        imageHeightConstraint = messageImageView.heightAnchor.constraint(equalToConstant: imageWidth)
+        imageHeightConstraint.priority = UILayoutPriority(999)
         
         leadingConstraint = stackView.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8)
         trailingConstraint = stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
@@ -145,15 +219,99 @@ class ChatCollectionViewCell: UICollectionViewCell {
         formatter.dateFormat = "a h:mm"
         timeLabel.text = formatter.string(from: message.date)
 
+        // 이미지 shimmer는 .imageURL에서만 켠다 (reconfigure로 다른 종류로 바뀔 때 잔상/불필요 애니메이션 방지)
+        imageShimmerView.stopShimmer()
+        imageShimmerView.isHidden = true
+
         switch message.kind {
         case .text(let text):
             messageTextView.text = text
-            messageTextView.isHidden = false
             messageImageView.isHidden = true
+            timeLabel.isHidden = false
+            imageWidthConstraint.isActive = false
+            imageHeightConstraint.isActive = false
+            // 짧은 텍스트는 콘텐츠 폭만큼만 잡히도록 (텍스트일 때만)
+            messageTextView.setContentHuggingPriority(.required, for: .horizontal)
+            messageTextView.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+            if isShowingLoading, window != nil {
+                // 로딩(...) → 응답 텍스트로 교체되는 순간: 로딩은 감추고 텍스트를 페이드 인
+                // (버블 높이 변화는 컬렉션뷰의 performBatchUpdates가 함께 애니메이션한다)
+                isShowingLoading = false
+                loadingRow.isHidden = true
+                loadingAnimationView.stop()
+                messageTextView.isHidden = false
+                messageTextView.alpha = 0
+                UIView.animate(withDuration: 0.25) {
+                    self.messageTextView.alpha = 1
+                }
+            } else {
+                isShowingLoading = false
+                messageTextView.isHidden = false
+                messageTextView.alpha = 1
+                loadingRow.isHidden = true
+            }
         case .photo(let image):
             messageImageView.image = image
+            // 히스토리(.imageURL)와 동일하게 고정 프레임(225×300)으로 표시
+            imageHeightConstraint.constant = imageHeight
+            imageWidthConstraint.isActive = true
+            imageHeightConstraint.isActive = true
             messageTextView.isHidden = true
             messageImageView.isHidden = false
+            loadingRow.isHidden = true
+            timeLabel.isHidden = false
+            // 텍스트 전용 우선순위가 이미지에 새지 않도록 기본값 복원
+            messageTextView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            messageTextView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        case .imageURL(let urlString):
+            if let url = URL(string: urlString) {
+                // 이미지 엔드포인트가 인증을 요구하므로 Bearer 토큰을 요청에 실어줌
+                let modifier = SDWebImageDownloaderRequestModifier { request in
+                    var request = request
+                    if let token = KeychainManager.shared.accessToken {
+                        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                    }
+                    return request
+                }
+                // 로딩 중 placeholder: shimmer 오버레이, 완료 시 페이드 인
+                imageShimmerView.isHidden = false
+                imageShimmerView.startShimmer()
+                messageImageView.sd_imageTransition = .fade
+                messageImageView.sd_setImage(
+                    with: url,
+                    placeholderImage: nil,
+                    options: [],
+                    context: [.downloadRequestModifier: modifier],
+                    progress: nil
+                ) { [weak self] _, _, _, _ in
+                    // 성공/실패 관계없이 shimmer 종료
+                    self?.imageShimmerView.stopShimmer()
+                    self?.imageShimmerView.isHidden = true
+                }
+            }
+            // .photo와 동일한 고정 프레임(225×300)
+            imageHeightConstraint.constant = imageHeight
+            imageWidthConstraint.isActive = true
+            imageHeightConstraint.isActive = true
+            messageTextView.isHidden = true
+            messageImageView.isHidden = false
+            loadingRow.isHidden = true
+            timeLabel.isHidden = false
+            messageTextView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            messageTextView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        case .loading:
+            isShowingLoading = true
+            messageTextView.isHidden = true
+            messageImageView.isHidden = true
+            loadingRow.isHidden = false
+            loadingRow.alpha = 1
+            timeLabel.isHidden = true
+            loadingAnimationView.play()
+            imageWidthConstraint.isActive = false
+            imageHeightConstraint.isActive = false
+            messageTextView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            messageTextView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         }
         
         if message.chatType == .receive {

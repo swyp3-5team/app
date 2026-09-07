@@ -153,7 +153,7 @@ extension MyPageViewController: UITableViewDelegate, UITableViewDataSource {
                     composeVC.mailComposeDelegate = self
                     
                     // 받는 사람, 제목, 본문 설정
-                    composeVC.setToRecipients(["dlrgks0909@gmail.com"])
+                    composeVC.setToRecipients(["cloverly.app@gmail.com"])
                     composeVC.setSubject("[Cloverly] 문의 및 의견")
                     let bodyString = """
                                      

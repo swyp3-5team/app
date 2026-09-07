@@ -23,7 +23,7 @@ class ToastView: UIView {
     private lazy var actionButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitleColor(.gray10, for: .normal) // 버튼 색상 (원하는 색으로 변경)
-        button.titleLabel?.font = Typography.b5.uiFont
+        button.titleLabel?.font = Typography.b6.uiFont
         
         button.setContentHuggingPriority(.required, for: .horizontal)
         button.setContentCompressionResistancePriority(.required, for: .horizontal)

@@ -148,7 +148,7 @@ final class TransactionViewModel {
     func analyzeReceipt(image: UIImage) async throws -> TransactionInfoDTO {
         isAnalyzing.accept(true)
         defer { isAnalyzing.accept(false) }
-        let response = try await chatAPI.sendChat(message: nil, mode: .receipt, image: image)
+        let response = try await chatAPI.sendChat(message: nil, image: image)
         guard let info = response.transactionInfo, info.totalAmount > 0 else {
             throw AppError.notReceipt
         }

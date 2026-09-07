@@ -41,12 +41,7 @@ class TransactionContainerViewController: UIViewController {
     }()
 
     private lazy var expenseButton: UIButton = {
-        let btn = UIButton()
-        btn.setTitle("지출", for: .normal)
-        btn.titleLabel?.font = Typography.b5.uiFont
-        btn.layer.cornerRadius = 18
-        btn.clipsToBounds = true
-        btn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        let btn = UIButton(configuration: makeTypeButtonConfiguration(title: "지출"))
         btn.addAction(UIAction { [weak self] _ in
             self?.isIncomeMode.accept(false)
         }, for: .touchUpInside)
@@ -54,17 +49,22 @@ class TransactionContainerViewController: UIViewController {
     }()
 
     private lazy var incomeButton: UIButton = {
-        let btn = UIButton()
-        btn.setTitle("수입", for: .normal)
-        btn.titleLabel?.font = Typography.b5.uiFont
-        btn.layer.cornerRadius = 18
-        btn.clipsToBounds = true
-        btn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        let btn = UIButton(configuration: makeTypeButtonConfiguration(title: "수입"))
         btn.addAction(UIAction { [weak self] _ in
             self?.isIncomeMode.accept(true)
         }, for: .touchUpInside)
         return btn
     }()
+
+    private func makeTypeButtonConfiguration(title: String) -> UIButton.Configuration {
+        var config = UIButton.Configuration.filled()
+        config.cornerStyle = .capsule
+        config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+        var titleAttr = AttributedString(title)
+        titleAttr.font = Typography.b6.uiFont
+        config.attributedTitle = titleAttr
+        return config
+    }
 
     private lazy var typeButtonStack: UIStackView = {
         let sv = UIStackView(arrangedSubviews: [incomeButton, expenseButton])
@@ -139,9 +139,9 @@ class TransactionContainerViewController: UIViewController {
 
     private lazy var analyzeStatusLabel: AppLabel = {
         let label = AppLabel()
-        label.text = "영수증 인식중"
+        label.text = "내용 인식중"
         label.textColor = .gray10
-        label.typography = .b5
+        label.typography = .b6
         label.textAlignment = .center
         return label
     }()
@@ -255,8 +255,10 @@ class TransactionContainerViewController: UIViewController {
         if current.trGroupId != -1 {
             titleLabel.text = "내역 수정"
             deleteButton.isHidden = false
-            incomeButton.isEnabled = false
-            expenseButton.isEnabled = false
+            // 수정 모드에선 수입/지출 종류 변경만 막고(상호작용 차단), 선택 상태 표시는 유지.
+            // isEnabled=false는 Configuration 버튼을 흐리게 만들어 선택 하이라이트가 사라지므로 쓰지 않는다.
+            incomeButton.isUserInteractionEnabled = false
+            expenseButton.isUserInteractionEnabled = false
             let isIncome = current.transactionInfoList.first?.type == "INCOME"
             isIncomeMode.accept(isIncome)
             if !isIncome {
@@ -363,11 +365,11 @@ class TransactionContainerViewController: UIViewController {
         let selectedBtn = isIncome ? incomeButton : expenseButton
         let deselectedBtn = isIncome ? expenseButton : incomeButton
 
-        selectedBtn.backgroundColor = .gray1
-        selectedBtn.setTitleColor(.gray10, for: .normal)
+        selectedBtn.configuration?.baseBackgroundColor = .gray1
+        selectedBtn.configuration?.baseForegroundColor = .gray10
 
-        deselectedBtn.backgroundColor = .gray9
-        deselectedBtn.setTitleColor(.gray1, for: .normal)
+        deselectedBtn.configuration?.baseBackgroundColor = .gray9
+        deselectedBtn.configuration?.baseForegroundColor = .gray1
     }
 
     private func switchChildVC() {

@@ -11,7 +11,7 @@ final class TooltipView: UIView {
     private let label: UILabel = {
         let label = UILabel()
         label.textColor = .gray1
-        label.font = Typography.b6.uiFont
+        label.font = Typography.b7.uiFont
         label.numberOfLines = 0
         return label
     }()

@@ -70,7 +70,7 @@ class SelectionBoxView: UIView {
             self.titleLabel.typography = .b1
 
             self.subtitleLabel.textColor = .gray2
-            self.subtitleLabel.typography = .b7
+            self.subtitleLabel.typography = .b8
 
             self.checkImageView.image = UIImage(named: "Radio Buttons enabled")
         } else {
@@ -80,7 +80,7 @@ class SelectionBoxView: UIView {
             self.titleLabel.typography = .b3
 
             self.subtitleLabel.textColor = .gray6
-            self.subtitleLabel.typography = .b7
+            self.subtitleLabel.typography = .b8
 
             self.checkImageView.image = UIImage(named: "Radio Buttons disabled")
         }

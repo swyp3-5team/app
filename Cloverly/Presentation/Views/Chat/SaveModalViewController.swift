@@ -37,10 +37,10 @@ class SaveModalViewController: UIViewController {
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             
-            var current = self.viewModel.ledgerMessages.value
+            var current = self.viewModel.messages.value
             guard !current.isEmpty else { return }
             current.removeLast()
-            self.viewModel.ledgerMessages.accept(current)
+            self.viewModel.messages.accept(current)
             
             self.viewModel.isSheetPresent.accept(false)
         }, for: .touchUpInside)
@@ -63,6 +63,13 @@ class SaveModalViewController: UIViewController {
     private let contentValueLabel = AppLabel()
     private let paymentMethodValueLabel = AppLabel()
     private let categoryValueLabel = AppLabel()
+
+    // 수입 등으로 값이 없을 때 행 자체를 숨기기 위한 참조
+    private var emotionRow: UIStackView?
+    private var paymentRow: UIStackView?
+
+    // 저장 요청 진행 중 중복 탭 방지
+    private var isSaving = false
     
     private lazy var saveButton: UIButton = {
         let button = UIButton()
@@ -74,8 +81,12 @@ class SaveModalViewController: UIViewController {
         button.backgroundColor = .green5
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
+            // 중복 탭 방지: 저장 요청이 진행 중이면 무시 (중복 저장/배치 업데이트 크래시 예방)
+            guard !self.isSaving else { return }
+            self.isSaving = true
+
             let parentVC = self.presentingViewController
-            
+
             Task {
                 do {
                     try await self.viewModel.saveTransaction()
@@ -95,10 +106,11 @@ class SaveModalViewController: UIViewController {
                         NotificationCenter.default.post(
                             name: .changeTab,
                             object: nil,
-                            userInfo: ["index": 1]
+                            userInfo: ["index": 2]
                         )
                     }
                 } catch {
+                    self.isSaving = false
                     self.showErrorToast(error)
                 }
             }
@@ -134,6 +146,33 @@ class SaveModalViewController: UIViewController {
             $0.leading.equalToSuperview().offset(20)
             $0.centerY.equalTo(navBarFrameInView.midY)
         }
+
+        updateSheetDetent()
+    }
+
+    private var appliedDetentHeight: CGFloat = 0
+
+    // 마지막 행 ↔ 저장 버튼 간격 (작게 유지). 실기기에서 미세조정 시 이 값만 변경.
+    private let contentToButtonGap: CGFloat = 12
+
+    // 콘텐츠(마지막 행) 하단 기준으로 시트 높이를 재조정. 수입처럼 행이 숨겨지면 그만큼 짧아진다.
+    // 저장 버튼은 bottom-anchored이므로 버튼 위치로 역산하면 순환 의존이 생긴다 → 콘텐츠 기준으로 계산.
+    private func updateSheetDetent() {
+        guard let nav = navigationController,
+              let sheet = nav.sheetPresentationController else { return }
+
+        let contentMaxY = contentStackView.convert(contentStackView.bounds, to: view).maxY
+        let buttonHeight: CGFloat = 56
+        let bottomInset = view.safeAreaInsets.bottom + 16  // configureUI의 저장 버튼 하단 여백(-16)과 일치
+        let height = contentMaxY + contentToButtonGap + buttonHeight + bottomInset
+        guard height > 0, abs(height - appliedDetentHeight) > 0.5 else { return }
+        appliedDetentHeight = height
+
+        sheet.animateChanges {
+            sheet.detents = [.custom(identifier: .init("saveModalFit")) { context in
+                min(height, context.maximumDetentValue)
+            }]
+        }
     }
     
     func configureUI() {
@@ -149,28 +188,30 @@ class SaveModalViewController: UIViewController {
         addInfoRow(title: "금액", valueLabel: amountValueLabel)
         addInfoRow(title: "내용", valueLabel: contentValueLabel)
         addInfoRow(title: "카테고리", valueLabel: categoryValueLabel)
-        addInfoRow(title: "감정", valueLabel: emotionValueLabel)
-        addInfoRow(title: "결제수단", valueLabel: paymentMethodValueLabel)
+        emotionRow = addInfoRow(title: "감정", valueLabel: emotionValueLabel)
+        paymentRow = addInfoRow(title: "결제수단", valueLabel: paymentMethodValueLabel)
         
         subtitleLabel.snp.makeConstraints {
             $0.leading.equalTo(titleLabel.snp.leading)
             $0.top.equalTo(titleLabel.snp.bottom).offset(4)
         }
         
+        // 콘텐츠(행)와 저장 버튼을 위에서 아래로 흐르게 배치해, 시트 높이를 콘텐츠에 맞출 수 있게 한다.
         contentStackView.snp.makeConstraints {
             $0.top.equalTo(subtitleLabel.snp.bottom).offset(24)
             $0.leading.equalToSuperview().offset(20)
-            $0.bottom.equalTo(saveButton.snp.top).offset(-30)
+            $0.trailing.equalToSuperview().offset(-20)
         }
-        
+
         saveButton.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview().inset(20)
-            $0.bottom.equalToSuperview().offset(-34)
+            $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
             $0.height.equalTo(56)
         }
     }
     
-    private func addInfoRow(title: String, valueLabel: AppLabel) {
+    @discardableResult
+    private func addInfoRow(title: String, valueLabel: AppLabel) -> UIStackView {
         let rowStack = UIStackView()
         rowStack.axis = .horizontal
         rowStack.spacing = 20
@@ -194,6 +235,7 @@ class SaveModalViewController: UIViewController {
         rowStack.addArrangedSubview(valueLabel)
 
         contentStackView.addArrangedSubview(rowStack)
+        return rowStack
     }
     
     func bind() {
@@ -208,8 +250,11 @@ class SaveModalViewController: UIViewController {
                 amountValueLabel.text = "\(transactionInfo.totalAmount.withComma)원"
                 contentValueLabel.text = items.isEmpty ? "미입력" : items.map { $0.name }.joined(separator: ", ")
                 categoryValueLabel.text = Array(Set(items.map { $0.categoryName })).joined(separator: ", ")
-                emotionValueLabel.text = transactionInfo.emotion.displayName
-                paymentMethodValueLabel.text = transactionInfo.payment.displayName
+                // 수입 등으로 감정/결제수단이 없으면 해당 행 자체를 숨긴다 (시트 높이는 프레젠트 시 반영)
+                emotionValueLabel.text = transactionInfo.emotion?.displayName ?? "-"
+                paymentMethodValueLabel.text = transactionInfo.payment?.displayName ?? "-"
+                emotionRow?.isHidden = (transactionInfo.emotion == nil)
+                paymentRow?.isHidden = (transactionInfo.payment == nil)
             })
             .disposed(by: disposeBag)
     }

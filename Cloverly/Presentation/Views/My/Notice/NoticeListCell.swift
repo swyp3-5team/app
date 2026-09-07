@@ -22,7 +22,7 @@ class NoticeListCell: UITableViewCell {
     private let dateLabel: AppLabel = {
         let label = AppLabel()
         label.textColor = .gray5
-        label.typography = .b7
+        label.typography = .b8
         return label
     }()
     
