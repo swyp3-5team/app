@@ -683,6 +683,8 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
             ) as! DateHeaderView
 
             header.dateLabel.text = displayedSections[indexPath.section].dateString
+            // 첫 헤더(맨 위)는 위에 이전 채팅이 없으므로 상단 16, 이후 헤더는 30
+            header.setTopInset(indexPath.section == 0 ? DateHeaderView.firstTopInset : DateHeaderView.defaultTopInset)
 
             return header
         }
@@ -693,7 +695,11 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
         if displayedSections.isEmpty {
             return .zero
         }
-        return CGSize(width: collectionView.frame.width, height: 50)
+        // 날짜 헤더 높이 = 상단 여백 + 콘텐츠 높이 + 하단 여백(날짜 ↔ 다음 채팅) 24.
+        // 상단 여백은 첫 헤더 16, 이후 30 (setTopInset과 일치). 콘텐츠 높이는 l1(13pt)×140% 행높이.
+        let topInset = section == 0 ? DateHeaderView.firstTopInset : DateHeaderView.defaultTopInset
+        let contentHeight = ceil(Typography.l1.uiFont.pointSize * 1.4)
+        return CGSize(width: collectionView.frame.width, height: topInset + contentHeight + 24)
     }
 }
 
