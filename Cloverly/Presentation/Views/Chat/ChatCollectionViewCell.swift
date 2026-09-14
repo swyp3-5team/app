@@ -46,7 +46,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
     // .loading 메시지용 어시스턴트 버블 (Lottie 인디케이터)
     private lazy var loadingBubbleView: UIView = {
         let view = UIView()
-        view.backgroundColor = .green10
+        view.backgroundColor = .green11
         view.layer.cornerRadius = 16
         view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
         view.addSubview(loadingAnimationView)
@@ -322,7 +322,7 @@ class ChatCollectionViewCell: UICollectionViewCell {
             timeTrailingConstraint.isActive = false
             sendWidthConstraint.isActive = false
             receiveWidthConstraint.isActive = true
-            messageTextView.backgroundColor = .green10
+            messageTextView.backgroundColor = .green11
             
             messageTextView.layer.maskedCorners = [
                 .layerMinXMinYCorner,
