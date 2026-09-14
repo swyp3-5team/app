@@ -46,19 +46,11 @@ enum Typography {
         }
     }
 
-    // MARK: - Line Spacing
-    var lineSpacing: CGFloat {
-        switch self {
-        case .h1: return 9.6
-        case .h2, .h3: return 8.8
-        case .t1: return 7.2
-        case .b1, .b2, .b3: return 6.4
-        case .b4, .b5: return 6.0
-        case .b6, .b7, .b8: return 5.6
-        case .b9, .l1: return 5.2
-        case .l2, .l3: return 4.8
-        }
-    }
+    // MARK: - Line Height
+    // 디자인 스펙: 전 스타일 행간 140% (= 폰트 크기 × 1.4).
+    // (기존엔 lineSpacing에 폰트크기×0.4를 넣었는데, lineSpacing은 폰트의 자연 행높이 "위에 더"
+    //  얹는 값이라 실제로는 ~160%로 렌더링됐다. 아래 attributedString에서 min/maxLineHeight로 고정한다.)
+    var lineHeightMultiple: CGFloat { 1.4 }
 
     // MARK: - Letter Spacing
     var letterSpacing: CGFloat {
@@ -70,14 +62,21 @@ enum Typography {
 
     // MARK: - AttributedString
     func attributedString(_ text: String, color: UIColor = .label) -> NSAttributedString {
+        let font = uiFont
+        // 140%를 lineSpacing(가산)이 아니라 행높이 자체로 고정 → 폰트 자연 행높이와 무관하게 정확히 140%
+        let lineHeight = font.pointSize * lineHeightMultiple
+
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineSpacing = lineSpacing
+        paragraphStyle.minimumLineHeight = lineHeight
+        paragraphStyle.maximumLineHeight = lineHeight
 
         return NSAttributedString(string: text, attributes: [
-            .font: uiFont,
+            .font: font,
             .kern: letterSpacing,
             .foregroundColor: color,
-            .paragraphStyle: paragraphStyle
+            .paragraphStyle: paragraphStyle,
+            // min/maxLineHeight는 글리프를 라인 박스 하단에 붙이므로, 남는 여백만큼 올려 수직 중앙 정렬
+            .baselineOffset: (lineHeight - font.lineHeight) / 4
         ])
     }
 }
