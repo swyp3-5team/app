@@ -282,39 +282,26 @@ class ChatViewController: UIViewController {
         newWindow.windowLevel = .statusBar + 1
         
         let coachView = CoachMarkView(frame: newWindow.bounds)
-        
+
         var cutouts: [(CGRect, CGFloat)] = []
-        
-        // 상단 Segmented Control
-        if let segFrame = self.segmented.superview?.convert(self.segmented.frame, to: nil) {
-            let finalSegRect = segFrame.insetBy(dx: -10, dy: -11)
-            cutouts.append((finalSegRect, finalSegRect.height / 2))
+
+        // 상단 "가계부 입력" 타이틀 구멍
+        if let titleFrame = titleLabel.superview?.convert(titleLabel.frame, to: nil) {
+            let rect = titleFrame.insetBy(dx: -14, dy: -8)
+            cutouts.append((rect, rect.height / 2))
         }
-        
-        // 버튼들이 포함된 배열
-        let targetButtons = [self.inputBar.receiptButton, self.inputBar.pasteButton]
-        var combinedFrame: CGRect = .null
-        
-        for button in targetButtons {
-            guard let frame = button.superview?.convert(button.frame, to: nil) else { continue }
-            
-            if combinedFrame.isNull {
-                combinedFrame = frame
-            } else {
-                combinedFrame = combinedFrame.union(frame)
-            }
+
+        // 영수증·붙여넣기 버튼의 실제 프레임(윈도우 좌표). 구멍은 둘을 합쳐 하나로 뚫고,
+        // 가이드 화살표는 각 버튼 위에 정확히 오도록 개별 프레임을 넘긴다.
+        // (채팅이 탭이 되며 입력바 위치가 바뀌었으므로 하드코딩 좌표 대신 실제 프레임을 사용)
+        let receiptFrame = inputBar.receiptButton.superview?.convert(inputBar.receiptButton.frame, to: nil)
+        let pasteFrame = inputBar.pasteButton.superview?.convert(inputBar.pasteButton.frame, to: nil)
+
+        if let r = receiptFrame, let p = pasteFrame {
+            let finalBtnRect = r.union(p).insetBy(dx: -6, dy: -6)
+            cutouts.append((finalBtnRect, finalBtnRect.height / 2))
+            coachView.positionBottomGuides(receiptFrame: r, pasteFrame: p)
         }
-        
-        let fixedFrame = CGRect(
-            x: combinedFrame.origin.x,
-            y: UIScreen.main.bounds.height - 78,
-            width: combinedFrame.width,
-            height: combinedFrame.height
-        )
-        
-        let finalBtnRect = fixedFrame.insetBy(dx: -6, dy: -6)
-        
-        cutouts.append((finalBtnRect, finalBtnRect.height / 2))
 
         coachView.setCutouts(cutouts)
         

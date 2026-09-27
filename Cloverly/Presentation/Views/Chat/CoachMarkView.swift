@@ -19,7 +19,7 @@ class CoachMarkView: UIView {
     
     private let topGuideLabel: AppLabel = {
         let label = AppLabel()
-        label.text = "캐릭터와 대화하듯\n가계부를 작성해보세요\nex)"
+        label.text = "캐릭터와 대화하듯\n가계부를 작성해보세요"
         label.textColor = .gray10
         label.typography = .b6
         label.numberOfLines = 0
@@ -115,25 +115,32 @@ class CoachMarkView: UIView {
         closeButton.snp.makeConstraints {
             $0.centerX.centerY.equalToSuperview()
         }
-        
-        leftBottomArrowImageView.snp.makeConstraints {
-            $0.bottom.equalToSuperview().offset(-84)
-            $0.leading.equalToSuperview().offset(44)
+    }
+
+    /// 하단 가이드(영수증/붙여넣기)를 배치. 라벨과 화살표는 한 쌍으로 묶여 함께 이동한다.
+    /// 코치뷰가 윈도우 전체를 덮으므로 snp.top 기준 offset = 절대 y 좌표.
+    /// 좌 여백(leftMargin)/우 여백(rightMargin)만 조정하면 각 쌍이 통째로 이동.
+    func positionBottomGuides(receiptFrame: CGRect, pasteFrame: CGRect) {
+        let leftMargin: CGFloat = 24    // 영수증 쌍: 왼쪽 여백
+
+        // 좌: 영수증 — 화살표(왼쪽 여백 기준) + 그 위 라벨(화살표에 맞춰 함께 이동)
+        leftBottomArrowImageView.snp.remakeConstraints {
+            $0.leading.equalToSuperview().offset(leftMargin)
+            $0.bottom.equalTo(snp.top).offset(receiptFrame.minY - 12)
         }
-        
-        leftBottomGuideLabel.snp.makeConstraints {
+        leftBottomGuideLabel.snp.remakeConstraints {
             $0.leading.equalTo(leftBottomArrowImageView)
             $0.bottom.equalTo(leftBottomArrowImageView.snp.top).offset(-15)
         }
-        
-        rightBottomArrowImageView.snp.makeConstraints {
-            $0.top.equalTo(rightBottomGuideLabel.snp.bottom).offset(15)
-            $0.leading.equalTo(rightBottomGuideLabel.snp.leading)
+
+        // 우: 붙여넣기 — 화살표를 붙여넣기 버튼 위(살짝 오른쪽)에, 라벨은 화살표에 맞춰 함께 이동
+        rightBottomArrowImageView.snp.remakeConstraints {
+            $0.centerX.equalTo(snp.leading).offset(pasteFrame.midX + 12)
+            $0.bottom.equalTo(snp.top).offset(pasteFrame.minY - 12)
         }
-        
-        rightBottomGuideLabel.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-44)
-            $0.bottom.equalToSuperview().offset(-159)
+        rightBottomGuideLabel.snp.remakeConstraints {
+            $0.leading.equalTo(rightBottomArrowImageView)
+            $0.bottom.equalTo(rightBottomArrowImageView.snp.top).offset(-15)
         }
     }
 
