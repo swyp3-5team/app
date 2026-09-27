@@ -90,6 +90,9 @@ class ChatViewController: UIViewController {
     
     var overlayWindow: UIWindow?
 
+    // 인식 중 전체 상호작용을 막는 윈도우 최상단 오버레이 (탭바까지 덮음)
+    private var loadingBlockerView: UIView?
+
     private var interstitialAd: InterstitialAd?
     private let initialMessage: String?
     private let initialImage: UIImage?
@@ -237,6 +240,11 @@ class ChatViewController: UIViewController {
         super.viewWillDisappear(animated)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
     }
+
+    deinit {
+        // 혹시 인식 중 VC가 해제돼도 윈도우에 차단 오버레이가 남지 않도록 정리
+        loadingBlockerView?.removeFromSuperview()
+    }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -270,6 +278,29 @@ class ChatViewController: UIViewController {
         ad.present(from: self)
         UserDefaults.standard.set(Date(), forKey: "chatInterstitialLastShownDate")
         interstitialAd = nil
+    }
+
+    // 인식 중 전체 화면(탭바 포함) 터치 차단. 인디케이터는 채팅의 ... 버블이 담당하므로 오버레이는 투명.
+    private func setInteractionBlocked(_ blocked: Bool) {
+        if blocked {
+            guard loadingBlockerView == nil else { return }
+            // 뷰가 아직 윈도우에 안 붙었을 수 있으므로(홈→채팅 진입 직후) 키 윈도우를 직접 찾는다
+            let window = view.window ?? UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .flatMap { $0.windows }
+                .first { $0.isKeyWindow }
+            guard let window else { return }
+
+            let blocker = UIView(frame: window.bounds)
+            blocker.backgroundColor = .clear
+            blocker.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            blocker.isUserInteractionEnabled = true  // 터치를 흡수해 아래로 전달하지 않음
+            window.addSubview(blocker)
+            loadingBlockerView = blocker
+        } else {
+            loadingBlockerView?.removeFromSuperview()
+            loadingBlockerView = nil
+        }
     }
 
 
@@ -502,19 +533,9 @@ class ChatViewController: UIViewController {
         viewModel.isLoading
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] isLoading in
-                guard let self = self else { return }
-
-                if isLoading {
-                    self.loadingStackView.isHidden = false
-                    self.lottieView.play()
-
-                    // 로딩 중엔 다른 버튼 못 누르게 막기
-                    self.view.isUserInteractionEnabled = false
-                } else {
-                    self.lottieView.stop() // 배터리 절약을 위해 stop
-                    self.loadingStackView.isHidden = true
-                    self.view.isUserInteractionEnabled = true
-                }
+                // 인식 중엔 윈도우 최상단에 터치 차단 오버레이를 올려 탭바 포함 전체 조작 차단.
+                // (인식 진행 표시는 채팅의 ... lottie 버블이 담당)
+                self?.setInteractionBlocked(isLoading)
             })
             .disposed(by: disposeBag)
 
