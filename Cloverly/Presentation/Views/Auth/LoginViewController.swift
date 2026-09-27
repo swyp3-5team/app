@@ -19,16 +19,19 @@ class LoginViewController: UIViewController {
         let label = AppLabel()
         label.text = "오늘의 감정도, 지출도"
         label.textColor = .gray1
-        label.typography = .h2
+        label.typography = .onboardingTitle
+        label.numberOfLines = 0
+        label.textAlignment = .center
         return label
     }()
-    
+
     private let subtitleLabel: AppLabel = {
         let label = AppLabel()
         label.text = "클로버리와 함께 정리해요"
         label.textColor = .gray3
-        label.typography = .b3
+        label.typography = .b2
         label.numberOfLines = 0
+        label.textAlignment = .center
         return label
     }()
     
@@ -102,16 +105,16 @@ class LoginViewController: UIViewController {
         
         titleLabel.snp.makeConstraints {
             $0.top.equalToSuperview().offset(125)
-            $0.leading.equalToSuperview().offset(20)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
-        
+
         subtitleLabel.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(8)
-            $0.leading.equalTo(titleLabel)
+            $0.leading.trailing.equalToSuperview().inset(20)
         }
-        
+
         imageView.snp.makeConstraints {
-            $0.top.equalTo(subtitleLabel.snp.bottom).offset(79)
+            $0.top.equalTo(subtitleLabel.snp.bottom).offset(66)
             $0.leading.trailing.equalToSuperview().inset(20)
         }
         

@@ -42,11 +42,13 @@ class OnboardingViewController: UIPageViewController {
     }
     
     private func setupPages() {
-        let page1 = OnboardingPageController(model: OnboardingModel(title: "대화로 쓰는 가계부", subtitle: "말하듯 입력하면 캐릭터가 정리해줘요", imageName: "onboarding 1"))
+        let page1 = OnboardingPageController(model: OnboardingModel(title: "대화로 쓰는 가계부", subtitle: "채팅하듯 간편하게 내역을 입력하고\n소비할 때의 기분도 함께 남겨요", imageName: "onboarding 1"))
         let page2 = OnboardingPageController(model: OnboardingModel(title: "입력은 더 간편하게", subtitle: "영수증을 찍거나 복사한 텍스트를\n붙여넣으면 자동으로 분류돼요", imageName: "onboarding 2"))
-        let page3 = OnboardingPageController(model: OnboardingModel(title: "예산으로 흐름을 잡아요", subtitle: "하루·주·월 예산을 설정해 관리해요", imageName: "onboarding 3"))
+        let page3 = OnboardingPageController(model: OnboardingModel(title: "영수증 속 세부 품목 등록", subtitle: "AI가 영수증 속 품목과 금액을 하나씩 정리해요\n품목별로 기록하고, 총액은 자동으로 계산돼요", imageName: "onboarding 3"))
+        let page4 = OnboardingPageController(model: OnboardingModel(title: "소비 통계로 돌아보기", subtitle: "기록한 내역부터 카테고리별 지출 통계까지\n어디에 얼마나 썼는지 쉽게 살펴봐요", imageName: "onboarding 4"))
         
-        pages = [page1, page2, page3]
+        
+        pages = [page1, page2, page3, page4]
     }
     
     private func configureUI() {
@@ -59,7 +61,7 @@ class OnboardingViewController: UIPageViewController {
         
         pagecontrol.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.bottom.equalTo(button.snp.top).offset(-20)
+            $0.bottom.equalTo(button.snp.top).offset(-36)
             $0.height.equalTo(10)
         }
         

@@ -11,7 +11,10 @@ enum Typography {
 
     // MARK: - Headline
     case h1, h2, h3
-    
+
+    // MARK: - Onboarding (온보딩 타이틀 전용: Pretendard Bold 26, 행간 140%, 자간 0%)
+    case onboardingTitle
+
     // MARK: - Title
     case t1
 
@@ -27,7 +30,9 @@ enum Typography {
         case .h1: return .customFont(.pretendardSemiBold, size: 24)
         case .h2: return .customFont(.pretendardSemiBold, size: 22)
         case .h3: return .customFont(.pretendardMedium, size: 22)
-            
+
+        case .onboardingTitle: return .customFont(.pretendardBold, size: 26)
+
         case .t1: return .customFont(.pretendardSemiBold, size: 18)
 
         case .b1: return .customFont(.pretendardSemiBold, size: 16)
