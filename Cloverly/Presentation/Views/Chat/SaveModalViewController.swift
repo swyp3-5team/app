@@ -104,7 +104,7 @@ class SaveModalViewController: UIViewController {
                         buttonTitle: "보기 >",
                         bottomOffset: host != nil ? -10 : -127,
                         above: host?.inputBar
-                    ) { [weak self] in
+                    ) {
                         if let nav = parentVC as? UINavigationController {
                             nav.popViewController(animated: true)
                         } else {
