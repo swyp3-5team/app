@@ -22,30 +22,25 @@ final class ChatHistoryStore: @unchecked Sendable {
 
     /// 최신 페이지를 미리 받아 캐시. 이미 받는 중이거나 최근에 받았으면 스킵.
     func prefetch(size: Int = 30, minInterval: TimeInterval = 20) {
-        lock.lock()
-        if isFetching {
-            lock.unlock()
-            return
+        // 스코프 락(withLock)으로 갱신 — async 컨텍스트에서 lock()/unlock() 직접 호출 금지(Swift 6)
+        let shouldFetch: Bool = lock.withLock {
+            if isFetching { return false }
+            if let fetchedAt, Date().timeIntervalSince(fetchedAt) < minInterval { return false }
+            isFetching = true
+            return true
         }
-        if let fetchedAt, Date().timeIntervalSince(fetchedAt) < minInterval {
-            lock.unlock()
-            return
-        }
-        isFetching = true
-        lock.unlock()
+        guard shouldFetch else { return }
 
         Task {
             defer {
-                lock.lock()
-                isFetching = false
-                lock.unlock()
+                lock.withLock { isFetching = false }
             }
             do {
                 let history = try await api.getChatHistory(page: 0, size: size)
-                lock.lock()
-                cached = history
-                fetchedAt = Date()
-                lock.unlock()
+                lock.withLock {
+                    cached = history
+                    fetchedAt = Date()
+                }
             } catch {
                 // 프리페치 실패는 조용히 무시 (진입 시 정상 네트워크 로드로 폴백)
             }
@@ -54,13 +49,13 @@ final class ChatHistoryStore: @unchecked Sendable {
 
     /// 신선한 캐시가 있으면 반환하고 소진한다. 없으면 nil.
     func consume(maxAge: TimeInterval = 120) -> [ChatHistoryResponse]? {
-        lock.lock()
-        defer { lock.unlock() }
-        guard let cached, let fetchedAt, Date().timeIntervalSince(fetchedAt) < maxAge else {
-            return nil
+        lock.withLock { () -> [ChatHistoryResponse]? in
+            guard let cached, let fetchedAt, Date().timeIntervalSince(fetchedAt) < maxAge else {
+                return nil
+            }
+            self.cached = nil
+            self.fetchedAt = nil
+            return cached
         }
-        self.cached = nil
-        self.fetchedAt = nil
-        return cached
     }
 }
