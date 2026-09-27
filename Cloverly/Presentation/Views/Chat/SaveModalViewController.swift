@@ -14,6 +14,8 @@ class SaveModalViewController: UIViewController {
     private let viewModel: ChatViewModel
     private let calendarViewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
+    // 저장 완료 토스트를 입력바(탭바+채팅바) 위에 띄우기 위한 호스트. ChatViewController가 생성 시 주입.
+    weak var toastHost: ChatViewController?
     
     private let titleLabel: AppLabel = {
         let label = AppLabel()
@@ -86,16 +88,22 @@ class SaveModalViewController: UIViewController {
             self.isSaving = true
 
             let parentVC = self.presentingViewController
+            // 토스트는 입력바를 소유한 채팅 VC(host) 위에 직접 띄운다. presentingViewController는
+            // 탭바 컨트롤러로 잡혀 앵커를 못 찾으므로 주입된 toastHost를 사용 (입력바+탭바 위로 올림).
+            let host = self.toastHost
+            let toastVC: UIViewController? = host ?? parentVC
 
             Task {
                 do {
                     try await self.viewModel.saveTransaction()
                     self.calendarViewModel.refreshTrigger.accept(())
                     self.viewModel.isSheetPresent.accept(false)
-                    
-                    parentVC?.showToast(
+
+                    toastVC?.showToast(
                         message: "내역에 저장되었습니다.",
-                        buttonTitle: "보기 >"
+                        buttonTitle: "보기 >",
+                        bottomOffset: host != nil ? -10 : -127,
+                        above: host?.inputBar
                     ) { [weak self] in
                         if let nav = parentVC as? UINavigationController {
                             nav.popViewController(animated: true)

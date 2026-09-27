@@ -24,7 +24,8 @@ class ChatViewController: UIViewController {
     private let disposeBag = DisposeBag()
     private let viewModel = ChatViewModel()
     private let sizingCell = ChatCollectionViewCell()
-    private lazy var inputBar = InputBar(viewModel: viewModel)
+    // 저장 완료 토스트를 이 입력바 위에 띄우기 위해 외부(SaveModal)에서 앵커로 접근
+    lazy var inputBar = InputBar(viewModel: viewModel)
     private var inputBarBottomConstraint: Constraint?
 
     // 이전 페이지 prepend 시 스크롤 위치 보정용
@@ -483,6 +484,7 @@ class ChatViewController: UIViewController {
                 
                 if isPresent {
                     let vc = SaveModalViewController(viewModel: viewModel, calendarViewModel: calendarViewModel)
+                    vc.toastHost = self   // 저장 완료 토스트를 이 화면의 입력바 위에 띄우기 위해 주입
                     let nav = UINavigationController(rootViewController: vc)
                     
                     if let sheet = nav.sheetPresentationController {
