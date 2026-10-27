@@ -62,8 +62,6 @@ class HomeViewController: UIViewController {
         let calendar = Calendar.current
         let now = Date()
         let hour = calendar.component(.hour, from: now)
-        let month = calendar.component(.month, from: now)
-        let isSummer = (6...9).contains(month)
 
         let baseName: String
         switch hour {
@@ -73,7 +71,7 @@ class HomeViewController: UIViewController {
         default:      baseName = "night"
         }
 
-        return isSummer ? "\(baseName)_summer" : baseName
+        return baseName
     }
 
     private var player: AVPlayer?

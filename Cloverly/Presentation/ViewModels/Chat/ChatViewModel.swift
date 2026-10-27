@@ -63,6 +63,9 @@ final class ChatViewModel {
     var canLoadMoreHistory: Bool { hasMoreHistory && !isLoadingHistory }
     
     func sendChat(message: String? = nil, image: UIImage? = nil) {
+        // 인식 진행 중이면 중복 전송 차단 (여러 요청이 겹쳐 SaveModal이 동시에 뜨는 크래시 예방)
+        guard !isLoading.value else { return }
+
         if let msg = message {
             append(Message(kind: .text(msg), chatType: .send))
         }
@@ -75,7 +78,11 @@ final class ChatViewModel {
         let loadingId = UUID()
         append(Message(id: loadingId, kind: .loading, chatType: .receive))
 
+        // 인식 중 전체 상호작용 차단 신호
+        isLoading.accept(true)
+
         Task {
+            defer { isLoading.accept(false) }
             do {
                 let response = try await api.sendChat(message: message, image: image)
 

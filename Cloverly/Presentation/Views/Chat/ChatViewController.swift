@@ -24,7 +24,8 @@ class ChatViewController: UIViewController {
     private let disposeBag = DisposeBag()
     private let viewModel = ChatViewModel()
     private let sizingCell = ChatCollectionViewCell()
-    private lazy var inputBar = InputBar(viewModel: viewModel)
+    // 저장 완료 토스트를 이 입력바 위에 띄우기 위해 외부(SaveModal)에서 앵커로 접근
+    lazy var inputBar = InputBar(viewModel: viewModel)
     private var inputBarBottomConstraint: Constraint?
 
     // 이전 페이지 prepend 시 스크롤 위치 보정용
@@ -88,6 +89,9 @@ class ChatViewController: UIViewController {
     }()
     
     var overlayWindow: UIWindow?
+
+    // 인식 중 전체 상호작용을 막는 윈도우 최상단 오버레이 (탭바까지 덮음)
+    private var loadingBlockerView: UIView?
 
     private var interstitialAd: InterstitialAd?
     private let initialMessage: String?
@@ -236,6 +240,11 @@ class ChatViewController: UIViewController {
         super.viewWillDisappear(animated)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
     }
+
+    deinit {
+        // 혹시 인식 중 VC가 해제돼도 윈도우에 차단 오버레이가 남지 않도록 정리
+        loadingBlockerView?.removeFromSuperview()
+    }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -271,6 +280,29 @@ class ChatViewController: UIViewController {
         interstitialAd = nil
     }
 
+    // 인식 중 전체 화면(탭바 포함) 터치 차단. 인디케이터는 채팅의 ... 버블이 담당하므로 오버레이는 투명.
+    private func setInteractionBlocked(_ blocked: Bool) {
+        if blocked {
+            guard loadingBlockerView == nil else { return }
+            // 뷰가 아직 윈도우에 안 붙었을 수 있으므로(홈→채팅 진입 직후) 키 윈도우를 직접 찾는다
+            let window = view.window ?? UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .flatMap { $0.windows }
+                .first { $0.isKeyWindow }
+            guard let window else { return }
+
+            let blocker = UIView(frame: window.bounds)
+            blocker.backgroundColor = .clear
+            blocker.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            blocker.isUserInteractionEnabled = true  // 터치를 흡수해 아래로 전달하지 않음
+            window.addSubview(blocker)
+            loadingBlockerView = blocker
+        } else {
+            loadingBlockerView?.removeFromSuperview()
+            loadingBlockerView = nil
+        }
+    }
+
 
     func showCoachMark() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
@@ -281,39 +313,26 @@ class ChatViewController: UIViewController {
         newWindow.windowLevel = .statusBar + 1
         
         let coachView = CoachMarkView(frame: newWindow.bounds)
-        
+
         var cutouts: [(CGRect, CGFloat)] = []
-        
-        // 상단 Segmented Control
-        if let segFrame = self.segmented.superview?.convert(self.segmented.frame, to: nil) {
-            let finalSegRect = segFrame.insetBy(dx: -10, dy: -11)
-            cutouts.append((finalSegRect, finalSegRect.height / 2))
+
+        // 상단 "가계부 입력" 타이틀 구멍
+        if let titleFrame = titleLabel.superview?.convert(titleLabel.frame, to: nil) {
+            let rect = titleFrame.insetBy(dx: -14, dy: -8)
+            cutouts.append((rect, rect.height / 2))
         }
-        
-        // 버튼들이 포함된 배열
-        let targetButtons = [self.inputBar.receiptButton, self.inputBar.pasteButton]
-        var combinedFrame: CGRect = .null
-        
-        for button in targetButtons {
-            guard let frame = button.superview?.convert(button.frame, to: nil) else { continue }
-            
-            if combinedFrame.isNull {
-                combinedFrame = frame
-            } else {
-                combinedFrame = combinedFrame.union(frame)
-            }
+
+        // 영수증·붙여넣기 버튼의 실제 프레임(윈도우 좌표). 구멍은 둘을 합쳐 하나로 뚫고,
+        // 가이드 화살표는 각 버튼 위에 정확히 오도록 개별 프레임을 넘긴다.
+        // (채팅이 탭이 되며 입력바 위치가 바뀌었으므로 하드코딩 좌표 대신 실제 프레임을 사용)
+        let receiptFrame = inputBar.receiptButton.superview?.convert(inputBar.receiptButton.frame, to: nil)
+        let pasteFrame = inputBar.pasteButton.superview?.convert(inputBar.pasteButton.frame, to: nil)
+
+        if let r = receiptFrame, let p = pasteFrame {
+            let finalBtnRect = r.union(p).insetBy(dx: -6, dy: -6)
+            cutouts.append((finalBtnRect, finalBtnRect.height / 2))
+            coachView.positionBottomGuides(receiptFrame: r, pasteFrame: p)
         }
-        
-        let fixedFrame = CGRect(
-            x: combinedFrame.origin.x,
-            y: UIScreen.main.bounds.height - 78,
-            width: combinedFrame.width,
-            height: combinedFrame.height
-        )
-        
-        let finalBtnRect = fixedFrame.insetBy(dx: -6, dy: -6)
-        
-        cutouts.append((finalBtnRect, finalBtnRect.height / 2))
 
         coachView.setCutouts(cutouts)
         
@@ -483,6 +502,7 @@ class ChatViewController: UIViewController {
                 
                 if isPresent {
                     let vc = SaveModalViewController(viewModel: viewModel, calendarViewModel: calendarViewModel)
+                    vc.toastHost = self   // 저장 완료 토스트를 이 화면의 입력바 위에 띄우기 위해 주입
                     let nav = UINavigationController(rootViewController: vc)
                     
                     if let sheet = nav.sheetPresentationController {
@@ -513,19 +533,9 @@ class ChatViewController: UIViewController {
         viewModel.isLoading
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] isLoading in
-                guard let self = self else { return }
-
-                if isLoading {
-                    self.loadingStackView.isHidden = false
-                    self.lottieView.play()
-
-                    // 로딩 중엔 다른 버튼 못 누르게 막기
-                    self.view.isUserInteractionEnabled = false
-                } else {
-                    self.lottieView.stop() // 배터리 절약을 위해 stop
-                    self.loadingStackView.isHidden = true
-                    self.view.isUserInteractionEnabled = true
-                }
+                // 인식 중엔 윈도우 최상단에 터치 차단 오버레이를 올려 탭바 포함 전체 조작 차단.
+                // (인식 진행 표시는 채팅의 ... lottie 버블이 담당)
+                self?.setInteractionBlocked(isLoading)
             })
             .disposed(by: disposeBag)
 
@@ -683,6 +693,8 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
             ) as! DateHeaderView
 
             header.dateLabel.text = displayedSections[indexPath.section].dateString
+            // 첫 헤더(맨 위)는 위에 이전 채팅이 없으므로 상단 16, 이후 헤더는 30
+            header.setTopInset(indexPath.section == 0 ? DateHeaderView.firstTopInset : DateHeaderView.defaultTopInset)
 
             return header
         }
@@ -693,7 +705,11 @@ extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSour
         if displayedSections.isEmpty {
             return .zero
         }
-        return CGSize(width: collectionView.frame.width, height: 50)
+        // 날짜 헤더 높이 = 상단 여백 + 콘텐츠 높이 + 하단 여백(날짜 ↔ 다음 채팅) 24.
+        // 상단 여백은 첫 헤더 16, 이후 30 (setTopInset과 일치). 콘텐츠 높이는 l1(13pt)×140% 행높이.
+        let topInset = section == 0 ? DateHeaderView.firstTopInset : DateHeaderView.defaultTopInset
+        let contentHeight = ceil(Typography.l1.uiFont.pointSize * 1.4)
+        return CGSize(width: collectionView.frame.width, height: topInset + contentHeight + 24)
     }
 }
 

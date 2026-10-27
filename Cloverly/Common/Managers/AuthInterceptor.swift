@@ -41,17 +41,17 @@ final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
             return
         }
 
-        lock.lock()
-        // 이 요청의 completion을 대기열에 추가
-        pendingCompletions.append(completion)
-
-        // 이미 다른 요청이 갱신을 진행 중이면 대기만 하고 리턴 (갱신 중복 방지)
-        if isRefreshing {
-            lock.unlock()
-            return
+        // 스코프 락(withLock)으로 대기열 등록 + 갱신 시작 여부 판정
+        // (async 컨텍스트에서 lock()/unlock() 직접 호출 금지 — Swift 6)
+        let shouldRefresh: Bool = lock.withLock {
+            // 이 요청의 completion을 대기열에 추가
+            pendingCompletions.append(completion)
+            // 이미 다른 요청이 갱신을 진행 중이면 대기만 하고 리턴 (갱신 중복 방지)
+            if isRefreshing { return false }
+            isRefreshing = true
+            return true
         }
-        isRefreshing = true
-        lock.unlock()
+        guard shouldRefresh else { return }
 
         Task {
             let success: Bool
@@ -67,11 +67,12 @@ final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
             }
 
             // 대기 중인 모든 요청에 결과를 일괄 적용
-            lock.lock()
-            let completions = pendingCompletions
-            pendingCompletions.removeAll()
-            isRefreshing = false
-            lock.unlock()
+            let completions: [(RetryResult) -> Void] = lock.withLock {
+                let pending = pendingCompletions
+                pendingCompletions.removeAll()
+                isRefreshing = false
+                return pending
+            }
 
             let result: RetryResult = success ? .retry : .doNotRetryWithError(error)
             completions.forEach { $0(result) }
