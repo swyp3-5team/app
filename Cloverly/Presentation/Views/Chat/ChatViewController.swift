@@ -304,6 +304,23 @@ class ChatViewController: UIViewController {
     }
 
 
+    // 방금 저장한 내역의 상세 화면을 연다 (토스트 '보기'에서 호출).
+    // 내역 탭의 상세 진입(ExpenseListViewController)과 동일하게 TransactionContainer를 풀스크린 present.
+    func openTransactionDetail(_ transaction: Transaction) {
+        let transactionViewModel = TransactionViewModel()
+        transactionViewModel.configure(with: transaction)
+
+        let isIncome = transaction.transactionInfoList.first?.type == "INCOME"
+        let mode: ExpenseEntryMode = (!isIncome && transaction.transactionInfoList.count <= 1) ? .single : .multi
+
+        let vc = TransactionContainerViewController(viewModel: transactionViewModel, expenseMode: mode, onComplete: { [weak self] in
+            self?.calendarViewModel.refreshTrigger.accept(())
+        })
+        let nav = UINavigationController(rootViewController: vc)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
+    }
+
     func showCoachMark() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
         

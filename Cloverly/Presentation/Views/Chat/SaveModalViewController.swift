@@ -126,17 +126,22 @@ class SaveModalViewController: UIViewController {
                         bottomOffset: host != nil ? -10 : -127,
                         above: host?.inputBar
                     ) {
-                        if let nav = parentVC as? UINavigationController {
-                            nav.popViewController(animated: true)
+                        // 방금 저장한 내역 상세로 바로 이동. 재조회로 저장 그룹을 찾았으면 상세 present,
+                        // 아직 준비 전이거나 host가 없으면 기존처럼 내역 탭으로 전환.
+                        if let host = host, let saved = self.viewModel.savedTransaction.value {
+                            host.openTransactionDetail(saved)
                         } else {
-                            parentVC?.navigationController?.popViewController(animated: true)
+                            if let nav = parentVC as? UINavigationController {
+                                nav.popViewController(animated: true)
+                            } else {
+                                parentVC?.navigationController?.popViewController(animated: true)
+                            }
+                            NotificationCenter.default.post(
+                                name: .changeTab,
+                                object: nil,
+                                userInfo: ["index": 2]
+                            )
                         }
-                        
-                        NotificationCenter.default.post(
-                            name: .changeTab,
-                            object: nil,
-                            userInfo: ["index": 2]
-                        )
                     }
                 } catch {
                     self.isSaving = false
