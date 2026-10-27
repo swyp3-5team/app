@@ -29,16 +29,15 @@ class SingleExpenseViewController: UIViewController {
     private let nameFilled = BehaviorRelay<Bool>(value: false)
 
     var canSave: Observable<Bool> {
+        // 내용(name)·결제수단은 미입력이어도 저장 가능 (name 비면 "미입력", payment 비면 카드 기본값)
         Observable.combineLatest(
             viewModel.currentTransaction,
             viewModel.selectedCategoryId,
-            viewModel.selectedEmotion,
-            viewModel.selectedPayment,
-            nameFilled
+            viewModel.selectedEmotion
         )
-        .map { transaction, categoryId, emotion, payment, nameIsFilled in
+        .map { transaction, categoryId, emotion in
             guard let t = transaction else { return false }
-            return t.totalAmount > 0 && categoryId != nil && emotion != nil && payment != nil && nameIsFilled
+            return t.totalAmount > 0 && categoryId != nil && emotion != nil
         }
     }
 
@@ -336,7 +335,8 @@ class SingleExpenseViewController: UIViewController {
         guard current.totalAmount > 0 else { return }
 
         let categoryId = viewModel.selectedCategoryId.value ?? 0
-        let name = nameTextField.text ?? ""
+        // 내용은 빈값 그대로 저장하고, 표시할 때만 "미입력"으로 보여준다
+        let name = (nameTextField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
 
         let item = TransactionInfo(
             transactionId: current.transactionInfoList.first?.transactionId,
