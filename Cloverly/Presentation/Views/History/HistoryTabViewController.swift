@@ -14,6 +14,8 @@ import FirebaseAnalytics
 class HistoryTabViewController: TabmanViewController {
     private let viewModel: CalendarViewModel
     private var viewControllers: [UIViewController] = []
+    // 현재 화면 방문 ID (history_feature_clicked의 screen_visit_id 연결용)
+    private var screenVisitId = ""
     var statusBarHeight: CGFloat {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             return windowScene.statusBarManager?.statusBarFrame.height ?? 0
@@ -47,9 +49,21 @@ class HistoryTabViewController: TabmanViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        AnalyticsManager.shared.logScreenView(screenName: "history_tab", screenVisitId: UUID().uuidString)
+        screenVisitId = UUID().uuidString
+        AnalyticsManager.shared.logScreenView(screenName: "history_tab", screenVisitId: screenVisitId)
     }
-    
+
+    // 달력 서브탭(index 1)으로 전환 시 history_feature_clicked(calendar). super 호출로 Tabman 바 동기화 보존.
+    override func pageboyViewController(_ pageboyViewController: PageboyViewController,
+                                        didScrollToPageAt index: PageboyViewController.PageIndex,
+                                        direction: PageboyViewController.NavigationDirection,
+                                        animated: Bool) {
+        super.pageboyViewController(pageboyViewController, didScrollToPageAt: index, direction: direction, animated: animated)
+        if index == 1 {
+            AnalyticsManager.shared.logHistoryFeatureClicked(featureName: .calendar, screenVisitId: screenVisitId)
+        }
+    }
+
     func configureUI() {
         view.addSubview(titleLabel)
         
