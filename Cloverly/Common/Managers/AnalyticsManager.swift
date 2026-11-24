@@ -238,34 +238,35 @@ final class AnalyticsManager {
         ])
     }
 
-    /// 수정 저장 성공 (메모 외 실제 변경이 있을 때, 내역·수정 작업당 1회)
+    /// 수정 저장 성공 (메모 외 실제 변경이 있을 때, 내역·수정 작업당 1회).
+    /// 최초 등록 위치/방식·생성시각은 기존 레코드엔 클라가 알 수 없어 서버 태깅 필요 → 모르면 nil로 생략.
     func logTransactionEditCompleted(recordId: String, saveId: String?, editId: String,
-                                     entrySurface: EntrySurface, inputMethod: InputMethod,
-                                     editEntryPoint: EditEntryPoint, editDelaySeconds: Int) {
+                                     entrySurface: EntrySurface?, inputMethod: InputMethod?,
+                                     editEntryPoint: EditEntryPoint, editDelaySeconds: Int?) {
         var params: [String: Any] = [
             Key.recordId: recordId,
             Key.editId: editId,
-            Key.entrySurface: entrySurface.rawValue,
-            Key.inputMethod: inputMethod.rawValue,
-            Key.editEntryPoint: editEntryPoint.rawValue,
-            Key.editDelaySeconds: editDelaySeconds
+            Key.editEntryPoint: editEntryPoint.rawValue
         ]
         if let saveId { params[Key.saveId] = saveId }
+        if let entrySurface { params[Key.entrySurface] = entrySurface.rawValue }
+        if let inputMethod { params[Key.inputMethod] = inputMethod.rawValue }
+        if let editDelaySeconds { params[Key.editDelaySeconds] = editDelaySeconds }
         log(Event.transactionEditCompleted, parameters: params)
     }
 
     /// 수정 저장 성공 시 실제 변경한 항목 종류마다 1회
     func logTransactionFieldEdited(recordId: String, saveId: String?, editId: String, fieldName: EditFieldName,
-                                   editDelaySeconds: Int, entrySurface: EntrySurface, inputMethod: InputMethod) {
+                                   editDelaySeconds: Int?, entrySurface: EntrySurface?, inputMethod: InputMethod?) {
         var params: [String: Any] = [
             Key.recordId: recordId,
             Key.editId: editId,
-            Key.fieldName: fieldName.rawValue,
-            Key.editDelaySeconds: editDelaySeconds,
-            Key.entrySurface: entrySurface.rawValue,
-            Key.inputMethod: inputMethod.rawValue
+            Key.fieldName: fieldName.rawValue
         ]
         if let saveId { params[Key.saveId] = saveId }
+        if let editDelaySeconds { params[Key.editDelaySeconds] = editDelaySeconds }
+        if let entrySurface { params[Key.entrySurface] = entrySurface.rawValue }
+        if let inputMethod { params[Key.inputMethod] = inputMethod.rawValue }
         log(Event.transactionFieldEdited, parameters: params)
     }
 }

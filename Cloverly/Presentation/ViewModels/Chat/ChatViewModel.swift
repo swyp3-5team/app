@@ -62,8 +62,9 @@ final class ChatViewModel {
     // 진행 중인 입력 시도. chat_message_sent~ai_result_shown~저장/취소를 attempt_id로 연결.
     private(set) var currentAttempt: InputAttempt?
 
-    // 마지막 저장 작업 ID (save_toast_shown/clicked 연결용)
+    // 마지막 저장 작업 ID/시각 (save_toast 연결 + 즉시수정 edit_delay 계산용)
     private(set) var lastSaveId: String?
+    private(set) var lastSaveAt: Date?
 
     // 히스토리 페이징 (page 0 = 최신 페이지, 각 페이지는 오름차순)
     private let pageSize = 30
@@ -162,6 +163,7 @@ final class ChatViewModel {
         // 저장 이벤트 (save_id로 생성/토스트 이벤트를 연결)
         let saveId = UUID().uuidString
         lastSaveId = saveId
+        lastSaveAt = Date()
         let itemCount = info.transactions.count
         let attempt = currentAttempt
         AnalyticsManager.shared.logTransactionSaved(

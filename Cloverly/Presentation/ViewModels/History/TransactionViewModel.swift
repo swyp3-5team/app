@@ -17,6 +17,15 @@ final class TransactionViewModel {
     // 수동 입력 시도 컨텍스트 (manual_entry_started에서 설정, 저장/수정 이벤트에 연결)
     var manualAttempt: InputAttempt?
 
+    // 수정 이벤트용: 수정 전 원본 스냅샷 + 최초 등록 origin 컨텍스트
+    // (origin 위치/방식/생성시각은 '저장→토스트→상세→수정' 즉시수정 흐름에서만 알 수 있음. 기타 진입은 nil → 생략)
+    private var originalTransaction: Transaction?
+    var editEntryPoint: EditEntryPoint = .historyList
+    var editOriginSaveId: String?
+    var editOriginEntrySurface: EntrySurface?
+    var editOriginInputMethod: InputMethod?
+    var editOriginCreatedAt: Date?
+
     let currentTransaction: BehaviorRelay<Transaction?>
     let selectedEmotion: BehaviorRelay<Emotion?>
     let selectedPayment: BehaviorRelay<Payment?>
@@ -41,12 +50,14 @@ final class TransactionViewModel {
 
     func configure(with transaction: Transaction? = nil) {
         if let t = transaction {
+            originalTransaction = t   // 수정 전 원본 (변경 필드 감지용)
             currentTransaction.accept(t)
             selectedEmotion.accept(t.emotion)
             selectedPayment.accept(t.payment)
             selectedCategoryId.accept(t.transactionInfoList.first?.categoryId)
             incomeCategoryName = t.transactionInfoList.first?.categoryName ?? ""
         } else {
+            originalTransaction = nil
             currentTransaction.accept(Transaction(
                 trGroupId: -1,
                 transactionDate: Date().toServerFormat,
@@ -135,6 +146,7 @@ final class TransactionViewModel {
 
         if current.trGroupId != -1 {
             try await transactionAPI.updateTransaction(transaction: current)
+            emitEditEvents(current: current)
         } else {
             let transactionDTOs = current.transactionInfoList.map { info in
                 TransactionDTO(name: info.name, amount: info.amount, categoryName: info.categoryName)
@@ -181,6 +193,45 @@ final class TransactionViewModel {
                 )
             }
         }
+    }
+
+    // 수정 저장 성공 시, 원본 대비 실제 변경된(메모 제외) 항목이 있으면 수정 이벤트 발화
+    private func emitEditEvents(current: Transaction) {
+        guard let original = originalTransaction else { return }
+        let fields = changedFields(from: original, to: current)
+        guard !fields.isEmpty else { return }   // 메모만 변경/무변경 제외
+
+        let editId = UUID().uuidString
+        let recordId = String(current.trGroupId)
+        // 생성시각을 아는 경우(저장→토스트 즉시수정)만 지연 계산, 아니면 nil(서버 필요)
+        let delay: Int? = editOriginCreatedAt.map { max(0, Int(Date().timeIntervalSince($0))) }
+
+        AnalyticsManager.shared.logTransactionEditCompleted(
+            recordId: recordId, saveId: editOriginSaveId, editId: editId,
+            entrySurface: editOriginEntrySurface, inputMethod: editOriginInputMethod,
+            editEntryPoint: editEntryPoint, editDelaySeconds: delay
+        )
+        for field in fields {
+            AnalyticsManager.shared.logTransactionFieldEdited(
+                recordId: recordId, saveId: editOriginSaveId, editId: editId, fieldName: field,
+                editDelaySeconds: delay, entrySurface: editOriginEntrySurface, inputMethod: editOriginInputMethod
+            )
+        }
+    }
+
+    private func changedFields(from old: Transaction, to new: Transaction) -> [EditFieldName] {
+        var fields: [EditFieldName] = []
+        if old.transactionDate != new.transactionDate { fields.append(.date) }
+        if old.emotion != new.emotion { fields.append(.emotion) }
+        if old.payment != new.payment { fields.append(.paymentMethod) }
+        if old.totalAmount != new.totalAmount { fields.append(.amount) }
+        if old.transactionInfoList.map({ $0.name }) != new.transactionInfoList.map({ $0.name }) { fields.append(.content) }
+        if old.transactionInfoList.map({ $0.categoryId }) != new.transactionInfoList.map({ $0.categoryId }) { fields.append(.category) }
+        if !fields.contains(.amount),
+           old.transactionInfoList.map({ $0.amount }) != new.transactionInfoList.map({ $0.amount }) {
+            fields.append(.amount)
+        }
+        return fields
     }
 
     func analyzeReceipt(image: UIImage) async throws -> TransactionInfoDTO {

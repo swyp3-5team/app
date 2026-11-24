@@ -311,6 +311,12 @@ class ChatViewController: UIViewController {
     func openTransactionDetail(_ transaction: Transaction) {
         let transactionViewModel = TransactionViewModel()
         transactionViewModel.configure(with: transaction)
+        // 저장→토스트→상세 즉시수정 흐름: 최초 등록 origin을 넘겨 edit 이벤트에 위치/방식/지연 포함
+        transactionViewModel.editEntryPoint = .toast
+        transactionViewModel.editOriginSaveId = viewModel.lastSaveId
+        transactionViewModel.editOriginEntrySurface = viewModel.currentAttempt?.entrySurface
+        transactionViewModel.editOriginInputMethod = viewModel.currentAttempt?.inputMethod
+        transactionViewModel.editOriginCreatedAt = viewModel.lastSaveAt
 
         let isIncome = transaction.transactionInfoList.first?.type == "INCOME"
         let mode: ExpenseEntryMode = (!isIncome && transaction.transactionInfoList.count <= 1) ? .single : .multi
