@@ -147,9 +147,7 @@ final class ChatViewModel {
         
         try await api.saveTransaction(requestBody: requestBody)
         
-        Analytics.logEvent("transaction_saved", parameters: [
-            "source": "chat"
-        ])
+        AnalyticsManager.shared.logTransactionSaved(source: "chat")
         
         append(Message(kind: .text(chatResponse.value?.message ?? "저장 완료"), chatType: .receive))
 

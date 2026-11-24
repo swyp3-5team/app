@@ -146,7 +146,7 @@ final class TransactionViewModel {
             )
             try await transactionAPI.saveTransaction(requestBody: requestBody)
 
-            Analytics.logEvent("transaction_saved", parameters: ["source": "manual"])
+            AnalyticsManager.shared.logTransactionSaved(source: "manual")
         }
     }
 
