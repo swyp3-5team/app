@@ -123,7 +123,12 @@ final class TransactionViewModel {
     }
 
     func saveTransaction(isIncome: Bool) async throws {
-        guard let current = currentTransaction.value else { return }
+        guard var current = currentTransaction.value else { return }
+
+        // 지출인데 결제수단 미선택이면 카드 기본값으로 저장 (저장/수정 양쪽에 적용)
+        if !isIncome && current.payment == nil {
+            current.payment = .card
+        }
 
         if current.trGroupId != -1 {
             try await transactionAPI.updateTransaction(transaction: current)

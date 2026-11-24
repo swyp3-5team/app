@@ -73,6 +73,27 @@ class SaveModalViewController: UIViewController {
     // 저장 요청 진행 중 중복 탭 방지
     private var isSaving = false
     
+    // 왼쪽 버튼: 저장하지 않고 다시 입력하러 돌아가기 (X 취소와 동일 동작)
+    private lazy var reEnterButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("다시 입력하기", for: .normal)
+        button.setTitleColor(.gray1, for: .normal)
+        button.titleLabel?.font = Typography.b1.uiFont   // 저장 버튼과 동일 타이포
+        button.layer.cornerRadius = 8
+        button.clipsToBounds = true
+        // 이 버튼 테두리만 #CFCFCF (토큰에 없는 값이라 직접 지정, 207/255 ≈ 0.8118)
+        button.layer.borderColor = UIColor(red: 207.0/255.0, green: 207.0/255.0, blue: 207.0/255.0, alpha: 1).cgColor
+        button.layer.borderWidth = 1
+        button.addAction(UIAction { [weak self] _ in
+            guard let self = self else { return }
+            var current = self.viewModel.messages.value
+            if !current.isEmpty { current.removeLast() }
+            self.viewModel.messages.accept(current)
+            self.viewModel.isSheetPresent.accept(false)
+        }, for: .touchUpInside)
+        return button
+    }()
+
     private lazy var saveButton: UIButton = {
         let button = UIButton()
         button.setTitle("저장", for: .normal)
@@ -105,17 +126,22 @@ class SaveModalViewController: UIViewController {
                         bottomOffset: host != nil ? -10 : -127,
                         above: host?.inputBar
                     ) {
-                        if let nav = parentVC as? UINavigationController {
-                            nav.popViewController(animated: true)
+                        // 방금 저장한 내역 상세로 바로 이동. 재조회로 저장 그룹을 찾았으면 상세 present,
+                        // 아직 준비 전이거나 host가 없으면 기존처럼 내역 탭으로 전환.
+                        if let host = host, let saved = self.viewModel.savedTransaction.value {
+                            host.openTransactionDetail(saved)
                         } else {
-                            parentVC?.navigationController?.popViewController(animated: true)
+                            if let nav = parentVC as? UINavigationController {
+                                nav.popViewController(animated: true)
+                            } else {
+                                parentVC?.navigationController?.popViewController(animated: true)
+                            }
+                            NotificationCenter.default.post(
+                                name: .changeTab,
+                                object: nil,
+                                userInfo: ["index": 2]
+                            )
                         }
-                        
-                        NotificationCenter.default.post(
-                            name: .changeTab,
-                            object: nil,
-                            userInfo: ["index": 2]
-                        )
                     }
                 } catch {
                     self.isSaving = false
@@ -190,6 +216,7 @@ class SaveModalViewController: UIViewController {
         view.addSubview(titleLabel)
         view.addSubview(subtitleLabel)
         view.addSubview(contentStackView)
+        view.addSubview(reEnterButton)
         view.addSubview(saveButton)
         
         addInfoRow(title: "날짜", valueLabel: dateValueLabel)
@@ -211,8 +238,17 @@ class SaveModalViewController: UIViewController {
             $0.trailing.equalToSuperview().offset(-20)
         }
 
+        // 좌: 다시 입력하기 / 우: 저장 — 동일 너비로 나눠 배치
+        reEnterButton.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(20)
+            $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
+            $0.height.equalTo(56)
+            $0.trailing.equalTo(saveButton.snp.leading).offset(-11)
+            $0.width.equalTo(saveButton.snp.width)
+        }
+
         saveButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.trailing.equalToSuperview().offset(-20)
             $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
             $0.height.equalTo(56)
         }

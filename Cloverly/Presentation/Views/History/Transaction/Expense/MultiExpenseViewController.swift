@@ -29,14 +29,14 @@ class MultiExpenseViewController: UIViewController {
     let requestSingleMode = PublishRelay<Void>()
 
     var canSave: Observable<Bool> {
+        // 결제수단은 미선택이어도 저장 가능 (비면 카드 기본값)
         Observable.combineLatest(
             viewModel.currentTransaction,
-            viewModel.selectedEmotion,
-            viewModel.selectedPayment
+            viewModel.selectedEmotion
         )
-        .map { transaction, emotion, payment in
+        .map { transaction, emotion in
             guard let t = transaction else { return false }
-            return !t.transactionInfoList.isEmpty && emotion != nil && payment != nil
+            return !t.transactionInfoList.isEmpty && emotion != nil
         }
     }
 

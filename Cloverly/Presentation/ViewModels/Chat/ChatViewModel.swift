@@ -55,6 +55,10 @@ final class ChatViewModel {
     let errorRelay = PublishRelay<AppError>()
     let didSaveTransaction = PublishRelay<Void>()
 
+    // 저장 직후 재조회로 찾아둔 '방금 저장한 그룹' (토스트 '보기'에서 상세로 바로 열기 위함)
+    private let transactionAPI = TransactionAPI()
+    let savedTransaction = BehaviorRelay<Transaction?>(value: nil)
+
     // 히스토리 페이징 (page 0 = 최신 페이지, 각 페이지는 오름차순)
     private let pageSize = 30
     private var currentPage = 0
@@ -150,6 +154,21 @@ final class ChatViewModel {
         append(Message(kind: .text(chatResponse.value?.message ?? "저장 완료"), chatType: .receive))
 
         didSaveTransaction.accept(())
+
+        // 서버가 저장 응답에 그룹 ID를 주지 않으므로, 해당 월을 재조회해 방금 저장한 그룹을 찾아둔다.
+        // (토스트 '보기'를 누를 때까지 토스트가 떠 있는 동안 백그라운드로 준비 — 저장 완료/토스트는 지연 안 됨)
+        savedTransaction.accept(nil)
+        let savedDate = info.transactionDate
+        Task { [weak self] in
+            guard let self else { return }
+            let yearMonth = String(savedDate.prefix(7))   // "yyyy-MM"
+            guard let groups = try? await self.transactionAPI.getTransactions(yearMonth: yearMonth) else { return }
+            // 같은 날짜 중 가장 최근(trGroupId 최대) 그룹 = 방금 저장분
+            let candidate = groups
+                .filter { $0.transactionDate == savedDate }
+                .max(by: { $0.trGroupId < $1.trGroupId })
+            self.savedTransaction.accept(candidate)
+        }
     }
     
     // 최초 진입: 최신 페이지(page 0) 로드 후 하단 고정.
