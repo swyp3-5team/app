@@ -65,6 +65,9 @@ class ExpenseListViewController: UIViewController {
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             transactionViewModel.configure()
+            let attempt = InputAttempt(entrySurface: .historyTab, inputMethod: .manual)
+            transactionViewModel.manualAttempt = attempt
+            AnalyticsManager.shared.logManualEntryStarted(attempt: attempt, entryType: .multiple, entryTrigger: .calendarAddButton)
             let vc = TransactionContainerViewController(viewModel: transactionViewModel, onComplete: { [weak self] in
                 self?.viewModel.refreshTrigger.accept(())
             })

@@ -189,6 +189,13 @@ class RecordViewController: UIViewController {
         return button
     }()
     
+    // 수동 입력 시작: 시도 컨텍스트 설정 + manual_entry_started (진입점은 내역 탭 플로팅 +)
+    private func startManualEntry(entryType: EntryType) {
+        let attempt = InputAttempt(entrySurface: .historyTab, inputMethod: .manual)
+        transactionViewModel.manualAttempt = attempt
+        AnalyticsManager.shared.logManualEntryStarted(attempt: attempt, entryType: entryType, entryTrigger: .floatingAddButton)
+    }
+
     private lazy var addButton: UIButton = {
         let button = UIButton()
         button.setTitle("내역 추가", for: .normal)
@@ -197,6 +204,7 @@ class RecordViewController: UIViewController {
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
             transactionViewModel.configure()
+            self.startManualEntry(entryType: .multiple)
             let vc = TransactionContainerViewController(viewModel: transactionViewModel, onComplete: { [weak self] in
                 self?.viewModel.refreshTrigger.accept(())
             })
@@ -204,7 +212,7 @@ class RecordViewController: UIViewController {
         }, for: .touchUpInside)
         return button
     }()
-    
+
     private lazy var bannerView: AdFitBannerAdView = {
         let banner = AdFitBannerAdView(clientId: "DAN-VlURa9fxNUcIMzSd", adUnitSize: "320x100")
         banner.rootViewController = self
@@ -239,6 +247,7 @@ class RecordViewController: UIViewController {
             ) { [weak self] in
                 guard let self = self else { return }
                 transactionViewModel.configure()
+                self.startManualEntry(entryType: .single)
                 let vc = TransactionContainerViewController(viewModel: transactionViewModel, expenseMode: .single, onComplete: { [weak self] in
                     self?.viewModel.refreshTrigger.accept(())
                 })
@@ -251,6 +260,7 @@ class RecordViewController: UIViewController {
             ) { [weak self] in
                 guard let self = self else { return }
                 transactionViewModel.configure()
+                self.startManualEntry(entryType: .multiple)
                 let vc = TransactionContainerViewController(viewModel: transactionViewModel, onComplete: { [weak self] in
                     self?.viewModel.refreshTrigger.accept(())
                 })

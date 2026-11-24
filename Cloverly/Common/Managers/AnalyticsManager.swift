@@ -34,6 +34,36 @@ enum IncomeExpense: String {
     case expense
 }
 
+/// 수동 입력 진입점.
+enum EntryTrigger: String {
+    case floatingAddButton = "floating_add_button"
+    case calendarAddButton = "calendar_add_button"
+}
+
+/// 내역 탭 기능 버튼.
+enum FeatureName: String {
+    case statistics
+    case calendar
+}
+
+/// 수정 진입점.
+enum EditEntryPoint: String {
+    case toast
+    case historyList = "history_list"
+    case calendar
+    case other
+}
+
+/// 수정된 항목 종류 (메모 제외).
+enum EditFieldName: String {
+    case amount
+    case emotion
+    case date
+    case content
+    case category
+    case paymentMethod = "payment_method"
+}
+
 /// 하나의 입력 시도(전송~결과~저장/취소)를 잇는 컨텍스트.
 struct InputAttempt {
     let id: String
@@ -65,8 +95,10 @@ final class AnalyticsManager {
         static let transactionRecordCreated = "transaction_record_created"
         static let saveToastShown = "save_toast_shown"
         static let saveToastHistoryClicked = "save_toast_history_clicked"
-        // Phase 4~: manual_entry_started, transaction_edit_completed,
-        //           transaction_field_edited, history_feature_clicked ...
+        static let manualEntryStarted = "manual_entry_started"
+        static let historyFeatureClicked = "history_feature_clicked"
+        static let transactionEditCompleted = "transaction_edit_completed"
+        static let transactionFieldEdited = "transaction_field_edited"
     }
 
     // MARK: - 속성키
@@ -85,8 +117,13 @@ final class AnalyticsManager {
         static let incomeExpense = "income_expense"
         static let isFirstRecord = "is_first_record"
         static let isFirstExpense = "is_first_expense"
-        // Phase 4~: edit_id, screen_visit_id, field_name, edit_entry_point,
-        //           edit_delay_seconds, entry_trigger, feature_name ...
+        static let entryTrigger = "entry_trigger"
+        static let featureName = "feature_name"
+        static let screenVisitId = "screen_visit_id"
+        static let editId = "edit_id"
+        static let fieldName = "field_name"
+        static let editEntryPoint = "edit_entry_point"
+        static let editDelaySeconds = "edit_delay_seconds"
     }
 
     /// is_first_record/is_first_expense는 전체 이력 기준 판별이라 서버 몫.
@@ -173,5 +210,62 @@ final class AnalyticsManager {
     /// AI 결과를 저장하지 않고 취소 (시도당 1회)
     func logResultCancelled(_ attempt: InputAttempt) {
         log(Event.resultCancelled, parameters: attemptParams(attempt))
+    }
+
+    // MARK: - 수동 입력 / 화면 / 수정 (Phase 4~5)
+
+    /// 직접 입력 화면을 새로 열었을 때
+    func logManualEntryStarted(attempt: InputAttempt, entryType: EntryType, entryTrigger: EntryTrigger) {
+        var params = attemptParams(attempt)
+        params[Key.entryType] = entryType.rawValue
+        params[Key.entryTrigger] = entryTrigger.rawValue
+        log(Event.manualEntryStarted, parameters: params)
+    }
+
+    /// 내역 탭의 통계/달력 버튼 클릭
+    func logHistoryFeatureClicked(featureName: FeatureName, screenVisitId: String) {
+        log(Event.historyFeatureClicked, parameters: [
+            Key.featureName: featureName.rawValue,
+            Key.screenVisitId: screenVisitId
+        ])
+    }
+
+    /// 화면 표시 (screen_visit_id 포함). screen_name은 기존 화면 보고와 일관 매핑.
+    func logScreenView(screenName: String, screenVisitId: String) {
+        log(Event.screenView, parameters: [
+            Key.screenName: screenName,
+            Key.screenVisitId: screenVisitId
+        ])
+    }
+
+    /// 수정 저장 성공 (메모 외 실제 변경이 있을 때, 내역·수정 작업당 1회)
+    func logTransactionEditCompleted(recordId: String, saveId: String?, editId: String,
+                                     entrySurface: EntrySurface, inputMethod: InputMethod,
+                                     editEntryPoint: EditEntryPoint, editDelaySeconds: Int) {
+        var params: [String: Any] = [
+            Key.recordId: recordId,
+            Key.editId: editId,
+            Key.entrySurface: entrySurface.rawValue,
+            Key.inputMethod: inputMethod.rawValue,
+            Key.editEntryPoint: editEntryPoint.rawValue,
+            Key.editDelaySeconds: editDelaySeconds
+        ]
+        if let saveId { params[Key.saveId] = saveId }
+        log(Event.transactionEditCompleted, parameters: params)
+    }
+
+    /// 수정 저장 성공 시 실제 변경한 항목 종류마다 1회
+    func logTransactionFieldEdited(recordId: String, saveId: String?, editId: String, fieldName: EditFieldName,
+                                   editDelaySeconds: Int, entrySurface: EntrySurface, inputMethod: InputMethod) {
+        var params: [String: Any] = [
+            Key.recordId: recordId,
+            Key.editId: editId,
+            Key.fieldName: fieldName.rawValue,
+            Key.editDelaySeconds: editDelaySeconds,
+            Key.entrySurface: entrySurface.rawValue,
+            Key.inputMethod: inputMethod.rawValue
+        ]
+        if let saveId { params[Key.saveId] = saveId }
+        log(Event.transactionFieldEdited, parameters: params)
     }
 }
