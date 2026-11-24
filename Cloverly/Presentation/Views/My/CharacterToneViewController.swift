@@ -57,6 +57,9 @@ class CharacterToneViewController: UIViewController {
             title: "목표지향형",
             subtitle: "“이 지출이 어떤 의미인지 같이 정리해볼까?”"
         )
+
+        boxB.isUserInteractionEnabled = false
+        boxB.alpha = 0.4
     }
     
     func bind() {
