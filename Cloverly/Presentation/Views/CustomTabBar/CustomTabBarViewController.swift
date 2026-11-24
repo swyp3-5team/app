@@ -91,8 +91,12 @@ class CustomTabBarViewController: UITabBarController {
     }
     
     func configureUI() {
-        tabBar.isHidden = true
-        
+        // UITabBar 자체(tabBar.isHidden)가 아니라 컨트롤러 레벨 API로 숨긴다. (iOS 18.0+)
+        // iOS 26+의 새 floating 탭바는 숨겨도 하단 safe area를 예약하는데,
+        // setTabBarHidden은 그 예약 inset까지 제거해줘 하단 inset이 34로 복원된다.
+        // (tabBar.isHidden은 시각적으로만 숨겨 iOS 27에서 하단이 90을 초과 → 탭바 위 간격 발생)
+        setTabBarHidden(true, animated: false)
+
         view.addSubview(customTabBar)
         additionalSafeAreaInsets.bottom = 90 - 34
         
