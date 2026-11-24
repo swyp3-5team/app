@@ -43,10 +43,13 @@ class SaveModalViewController: UIViewController {
             guard !current.isEmpty else { return }
             current.removeLast()
             self.viewModel.messages.accept(current)
-            
+
+            if let attempt = self.viewModel.currentAttempt {
+                AnalyticsManager.shared.logResultCancelled(attempt)
+            }
             self.viewModel.isSheetPresent.accept(false)
         }, for: .touchUpInside)
-        
+
         return button
     }()
     
@@ -89,6 +92,10 @@ class SaveModalViewController: UIViewController {
             var current = self.viewModel.messages.value
             if !current.isEmpty { current.removeLast() }
             self.viewModel.messages.accept(current)
+
+            if let attempt = self.viewModel.currentAttempt {
+                AnalyticsManager.shared.logResultCancelled(attempt)
+            }
             self.viewModel.isSheetPresent.accept(false)
         }, for: .touchUpInside)
         return button

@@ -71,12 +71,13 @@ class CustomTabBarViewController: UITabBarController {
 
     // 홈에서 입력한 내용을 채팅 탭으로 전달하며 이동. 채팅 VC를 새로 만들어 교체해
     // 기존 initialMessage/initialImage 전송 흐름을 그대로 재사용한다.
-    func routeToChatTab(message: String? = nil, image: UIImage? = nil, interstitialAd: InterstitialAd? = nil) {
+    func routeToChatTab(message: String? = nil, image: UIImage? = nil, inputMethod: InputMethod = .text, interstitialAd: InterstitialAd? = nil) {
         let chatVC = ChatViewController(
             calendarViewModel: calendarViewModel,
             interstitialAd: interstitialAd,
             initialMessage: message,
-            initialImage: image
+            initialImage: image,
+            initialInputMethod: inputMethod
         )
 
         if var vcs = viewControllers, vcs.count > 1 {

@@ -59,6 +59,9 @@ final class ChatViewModel {
     private let transactionAPI = TransactionAPI()
     let savedTransaction = BehaviorRelay<Transaction?>(value: nil)
 
+    // 진행 중인 입력 시도. chat_message_sent~ai_result_shown~저장/취소를 attempt_id로 연결.
+    private(set) var currentAttempt: InputAttempt?
+
     // 히스토리 페이징 (page 0 = 최신 페이지, 각 페이지는 오름차순)
     private let pageSize = 30
     private var currentPage = 0
@@ -66,9 +69,15 @@ final class ChatViewModel {
     private var hasMoreHistory = true
     var canLoadMoreHistory: Bool { hasMoreHistory && !isLoadingHistory }
     
-    func sendChat(message: String? = nil, image: UIImage? = nil) {
+    func sendChat(message: String? = nil, image: UIImage? = nil,
+                  entrySurface: EntrySurface = .chatTab, inputMethod: InputMethod = .text) {
         // 인식 진행 중이면 중복 전송 차단 (여러 요청이 겹쳐 SaveModal이 동시에 뜨는 크래시 예방)
         guard !isLoading.value else { return }
+
+        // 입력 시도 컨텍스트 생성 + 전송 이벤트
+        let attempt = InputAttempt(entrySurface: entrySurface, inputMethod: inputMethod)
+        currentAttempt = attempt
+        AnalyticsManager.shared.logChatMessageSent(attempt)
 
         if let msg = message {
             append(Message(kind: .text(msg), chatType: .send))

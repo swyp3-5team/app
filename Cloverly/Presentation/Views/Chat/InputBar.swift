@@ -12,6 +12,8 @@ import SnapKit
 
 class InputBar: UIView {
     private let viewModel: ChatViewModel
+    // 현재 작성 중인 메시지에 붙여넣기가 포함됐는지 (전송 시 text vs text_paste 구분)
+    private var didPaste = false
     private let disposeBag = DisposeBag()
     private var textViewHeightConstraint: Constraint?
     
@@ -87,6 +89,7 @@ class InputBar: UIView {
             
             textView.becomeFirstResponder()
             textView.paste(nil)
+            self.didPaste = true
         }, for: .touchUpInside)
         return button
     }()
@@ -193,14 +196,15 @@ class InputBar: UIView {
             guard let self = self else { return }
             
             let inputText = self.textView.text ?? ""
-            self.viewModel.sendChat(message: inputText)
-            
+            self.viewModel.sendChat(message: inputText, entrySurface: .chatTab, inputMethod: self.didPaste ? .textPaste : .text)
+            self.didPaste = false
+
             textView.text = ""
             placeholderLabel.isHidden = false
             updateTextViewHeight()
-            
+
             heightUpdateNeeded.accept(())
-            
+
             textView.resignFirstResponder()
         }, for: .touchUpInside)
     }
@@ -234,6 +238,8 @@ extension InputBar: UITextViewDelegate {
     
     func textViewDidChange(_ textView: UITextView) {
         placeholderLabel.isHidden = !textView.text.isEmpty
+        // 입력을 모두 지우면 붙여넣기 표시도 초기화
+        if textView.text.isEmpty { didPaste = false }
     }
 }
 
@@ -241,7 +247,8 @@ extension InputBar: UITextPasteDelegate {
     func textPasteConfigurationSupporting(_ textPasteConfigurationSupporting: any UITextPasteConfigurationSupporting, combineItemAttributedStrings itemStrings: [NSAttributedString], for textRange: UITextRange) -> NSAttributedString {
         let text = itemStrings.first?.string ?? ""
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
+        didPaste = true
         return NSAttributedString(string: trimmed)
     }
 }

@@ -17,6 +17,8 @@ class HomeViewController: UIViewController {
     private let calendarViewModel: CalendarViewModel
     private let disposeBag = DisposeBag()
     private var preloadedInterstitialAd: InterstitialAd?
+    // 홈 입력창에 붙여넣기 버튼을 사용했는지 (전송 시 text vs text_paste 구분)
+    private var didPasteHomeInput = false
     private var inputContainerBottomConstraint: Constraint?
     private var inputCapsuleBottomConstraint: Constraint?
     private let inputContainerBaseOffset: CGFloat = 20
@@ -403,6 +405,12 @@ class HomeViewController: UIViewController {
             .bind(to: sendButton.rx.isEnabled)
             .disposed(by: disposeBag)
 
+        inputTextField.rx.text.orEmpty
+            .subscribe(onNext: { [weak self] in
+                if $0.isEmpty { self?.didPasteHomeInput = false }
+            })
+            .disposed(by: disposeBag)
+
         sendButton.rx.tap
             .subscribe(onNext: { [weak self] in
                 self?.sendAndPushChat()
@@ -416,12 +424,15 @@ class HomeViewController: UIViewController {
         let text = inputTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !text.isEmpty else { return }
 
+        let method: InputMethod = didPasteHomeInput ? .textPaste : .text
+        didPasteHomeInput = false
+
         inputTextField.text = ""
         sendButton.isEnabled = false
         inputTextField.resignFirstResponder()
 
         (tabBarController as? CustomTabBarViewController)?
-            .routeToChatTab(message: text, interstitialAd: preloadedInterstitialAd)
+            .routeToChatTab(message: text, inputMethod: method, interstitialAd: preloadedInterstitialAd)
         preloadedInterstitialAd = nil
     }
 
@@ -429,24 +440,25 @@ class HomeViewController: UIViewController {
         guard let text = UIPasteboard.general.string, !text.isEmpty else { return }
         // insertText로 넣으면 editingChanged가 발생해 전송 버튼 활성화 바인딩이 갱신됨
         inputTextField.insertText(text)
+        didPasteHomeInput = true
     }
 
     private func presentReceiptPicker() {
         let picker = ReceiptPickerViewController()
-        picker.onPickImage = { [weak self] image in
-            self?.pushChatWithImage(image)
+        picker.onPickImage = { [weak self] image, inputMethod in
+            self?.pushChatWithImage(image, inputMethod: inputMethod)
         }
         picker.modalPresentationStyle = .fullScreen
         present(picker, animated: true)
     }
 
-    private func pushChatWithImage(_ image: UIImage) {
+    private func pushChatWithImage(_ image: UIImage, inputMethod: InputMethod) {
         inputTextField.text = ""
         sendButton.isEnabled = false
         inputTextField.resignFirstResponder()
 
         (tabBarController as? CustomTabBarViewController)?
-            .routeToChatTab(image: image, interstitialAd: preloadedInterstitialAd)
+            .routeToChatTab(image: image, inputMethod: inputMethod, interstitialAd: preloadedInterstitialAd)
         preloadedInterstitialAd = nil
     }
 

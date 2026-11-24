@@ -96,6 +96,7 @@ class ChatViewController: UIViewController {
     private var interstitialAd: InterstitialAd?
     private let initialMessage: String?
     private let initialImage: UIImage?
+    private let initialInputMethod: InputMethod   // 홈에서 넘어온 초기 전송의 입력 방식
     private var pendingAdAfterSave = false
 
     private lazy var imagePicker: UIImagePickerController = {
@@ -161,11 +162,12 @@ class ChatViewController: UIViewController {
         return stack
     }()
     
-    init(calendarViewModel: CalendarViewModel, interstitialAd: InterstitialAd? = nil, initialMessage: String? = nil, initialImage: UIImage? = nil) {
+    init(calendarViewModel: CalendarViewModel, interstitialAd: InterstitialAd? = nil, initialMessage: String? = nil, initialImage: UIImage? = nil, initialInputMethod: InputMethod = .text) {
         self.calendarViewModel = calendarViewModel
         self.interstitialAd = interstitialAd
         self.initialMessage = initialMessage
         self.initialImage = initialImage
+        self.initialInputMethod = initialInputMethod
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -189,9 +191,9 @@ class ChatViewController: UIViewController {
             seededFromPrefetch = viewModel.seedPrefetchedHistory()
             viewModel.selectedIndex.accept(0)
             if let message = trimmed, !message.isEmpty {
-                viewModel.sendChat(message: message)
+                viewModel.sendChat(message: message, entrySurface: .home, inputMethod: initialInputMethod)
             } else if let initialImage {
-                viewModel.sendChat(image: initialImage)
+                viewModel.sendChat(image: initialImage, entrySurface: .home, inputMethod: initialInputMethod)
             }
         } else {
             // 일반 진입: 히스토리 로딩 동안 스켈레톤 표시
@@ -518,6 +520,9 @@ class ChatViewController: UIViewController {
                 guard let self = self else { return }
                 
                 if isPresent {
+                    if let attempt = viewModel.currentAttempt {
+                        AnalyticsManager.shared.logAiResultShown(attempt)
+                    }
                     let vc = SaveModalViewController(viewModel: viewModel, calendarViewModel: calendarViewModel)
                     vc.toastHost = self   // 저장 완료 토스트를 이 화면의 입력바 위에 띄우기 위해 주입
                     let nav = UINavigationController(rootViewController: vc)
@@ -735,8 +740,8 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
     func presentReceiptPicker() {
         dismissKeyboard()
         let picker = ReceiptPickerViewController()
-        picker.onPickImage = { [weak self] image in
-            self?.viewModel.sendChat(image: image)
+        picker.onPickImage = { [weak self] image, inputMethod in
+            self?.viewModel.sendChat(image: image, entrySurface: .chatTab, inputMethod: inputMethod)
         }
         picker.modalPresentationStyle = .fullScreen
         present(picker, animated: true)
@@ -751,7 +756,7 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
         dismiss(animated: true)
         
         if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage{
-            self.viewModel.sendChat(image: image)
+            self.viewModel.sendChat(image: image, entrySurface: .chatTab, inputMethod: .camera)
         }
     }
     
@@ -782,7 +787,7 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
             provider.loadObject(ofClass: UIImage.self) { image, error in
                 DispatchQueue.main.async {
                     if let image = image as? UIImage {
-                        self.viewModel.sendChat(image: image)
+                        self.viewModel.sendChat(image: image, entrySurface: .chatTab, inputMethod: .gallery)
                     }
                 }
             }

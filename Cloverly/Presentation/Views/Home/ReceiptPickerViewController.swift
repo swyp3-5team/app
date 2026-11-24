@@ -13,7 +13,7 @@ import SnapKit
 
 final class ReceiptPickerViewController: UIViewController {
     /// 이미지 선택(사진 or 카메라) 완료 콜백. 시트가 닫힌 뒤 호출된다.
-    var onPickImage: ((UIImage) -> Void)?
+    var onPickImage: ((UIImage, InputMethod) -> Void)?
 
     private let imageManager = PHCachingImageManager()
     private var assets: PHFetchResult<PHAsset>?
@@ -279,13 +279,13 @@ final class ReceiptPickerViewController: UIViewController {
             guard let self else { return }
             let isDegraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
             guard let image, !isDegraded else { return }
-            DispatchQueue.main.async { self.finish(with: image) }
+            DispatchQueue.main.async { self.finish(with: image, source: .gallery) }
         }
     }
 
-    private func finish(with image: UIImage) {
+    private func finish(with image: UIImage, source: InputMethod) {
         dismiss(animated: true) { [weak self] in
-            self?.onPickImage?(image)
+            self?.onPickImage?(image, source)
         }
     }
 }
@@ -339,7 +339,7 @@ extension ReceiptPickerViewController: UIImagePickerControllerDelegate, UINaviga
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
         picker.dismiss(animated: true) { [weak self] in
             guard let self, let image = info[.originalImage] as? UIImage else { return }
-            self.finish(with: image)
+            self.finish(with: image, source: .camera)
         }
     }
 
