@@ -22,6 +22,18 @@ enum InputMethod: String {
     case manual
 }
 
+/// 생성/입력 종류 (단일 1건 / 여러 품목).
+enum EntryType: String {
+    case single
+    case multiple
+}
+
+/// 수입/지출.
+enum IncomeExpense: String {
+    case income
+    case expense
+}
+
 /// 하나의 입력 시도(전송~결과~저장/취소)를 잇는 컨텍스트.
 struct InputAttempt {
     let id: String
@@ -50,10 +62,11 @@ final class AnalyticsManager {
         static let chatMessageSent = "chat_message_sent"
         static let aiResultShown = "ai_result_shown"
         static let resultCancelled = "result_cancelled"
-        // Phase 3~: manual_entry_started, transaction_record_created,
-        //           save_toast_shown, save_toast_history_clicked,
-        //           transaction_edit_completed, transaction_field_edited,
-        //           history_feature_clicked ...
+        static let transactionRecordCreated = "transaction_record_created"
+        static let saveToastShown = "save_toast_shown"
+        static let saveToastHistoryClicked = "save_toast_history_clicked"
+        // Phase 4~: manual_entry_started, transaction_edit_completed,
+        //           transaction_field_edited, history_feature_clicked ...
     }
 
     // MARK: - 속성키
@@ -64,20 +77,69 @@ final class AnalyticsManager {
         static let entrySurface = "entry_surface"
         static let inputMethod = "input_method"
         static let attemptId = "attempt_id"
-        // Phase 3~: entry_type, save_id, record_id, edit_id, toast_id,
-        //           screen_visit_id, item_count, is_first_record, is_first_expense ...
+        static let entryType = "entry_type"
+        static let saveId = "save_id"
+        static let recordId = "record_id"
+        static let toastId = "toast_id"
+        static let itemCount = "item_count"
+        static let incomeExpense = "income_expense"
+        static let isFirstRecord = "is_first_record"
+        static let isFirstExpense = "is_first_expense"
+        // Phase 4~: edit_id, screen_visit_id, field_name, edit_entry_point,
+        //           edit_delay_seconds, entry_trigger, feature_name ...
     }
+
+    /// is_first_record/is_first_expense는 전체 이력 기준 판별이라 서버 몫.
+    /// 클라는 추정(false) 대신 unknown으로 보내 최초 집계에서 제외되게 한다.
+    static let unknownValue = "unknown"
 
     // MARK: - 공통 로깅
     func log(_ event: String, parameters: [String: Any]? = nil) {
         Analytics.logEvent(event, parameters: parameters)
     }
 
-    // MARK: - 기존 이벤트 (Phase 1 이관, 동작 동일)
+    // MARK: - 저장 (Phase 3)
 
-    /// 내역 저장 성공. source: "chat" | "manual" (Phase 3에서 entry_surface 등으로 확장 예정)
-    func logTransactionSaved(source: String) {
-        log(Event.transactionSaved, parameters: [Key.source: source])
+    /// 새 내역 저장 성공 (저장 작업당 1회, 수정 제외).
+    /// - attemptId: AI 입력이면 해당 시도 ID, 수동 입력이면 manual_entry_started 시도 ID (없으면 nil)
+    /// - isFirstRecord/isFirstExpense: 서버가 전체 이력 기준 판별해야 정확 → 클라는 unknown 전송
+    func logTransactionSaved(entrySurface: EntrySurface, inputMethod: InputMethod, entryType: EntryType,
+                             attemptId: String?, saveId: String, itemCount: Int) {
+        var params: [String: Any] = [
+            Key.entrySurface: entrySurface.rawValue,
+            Key.inputMethod: inputMethod.rawValue,
+            Key.entryType: entryType.rawValue,
+            Key.saveId: saveId,
+            Key.itemCount: itemCount,
+            Key.isFirstRecord: Self.unknownValue,
+            Key.isFirstExpense: Self.unknownValue
+        ]
+        if let attemptId { params[Key.attemptId] = attemptId }
+        log(Event.transactionSaved, parameters: params)
+    }
+
+    /// 새 내역 생성 (record_id당 1회, 수정 제외). record_id는 서버 그룹 ID(trGroupId).
+    func logTransactionRecordCreated(recordId: String, saveId: String, attemptId: String?,
+                                     entrySurface: EntrySurface, inputMethod: InputMethod, incomeExpense: IncomeExpense) {
+        var params: [String: Any] = [
+            Key.recordId: recordId,
+            Key.saveId: saveId,
+            Key.entrySurface: entrySurface.rawValue,
+            Key.inputMethod: inputMethod.rawValue,
+            Key.incomeExpense: incomeExpense.rawValue
+        ]
+        if let attemptId { params[Key.attemptId] = attemptId }
+        log(Event.transactionRecordCreated, parameters: params)
+    }
+
+    /// 저장 완료 토스트 표시.
+    func logSaveToastShown(saveId: String, toastId: String) {
+        log(Event.saveToastShown, parameters: [Key.saveId: saveId, Key.toastId: toastId])
+    }
+
+    /// 저장 토스트의 보기·내역 버튼 클릭.
+    func logSaveToastHistoryClicked(saveId: String, toastId: String) {
+        log(Event.saveToastHistoryClicked, parameters: [Key.saveId: saveId, Key.toastId: toastId])
     }
 
     /// 화면 조회. (Phase 4에서 screen_visit_id 포함 커스텀 screen_view로 확장 예정)

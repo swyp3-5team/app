@@ -14,6 +14,9 @@ final class TransactionViewModel {
     private let transactionAPI = TransactionAPI()
     private let chatAPI = ChatAPI()
 
+    // 수동 입력 시도 컨텍스트 (manual_entry_started에서 설정, 저장/수정 이벤트에 연결)
+    var manualAttempt: InputAttempt?
+
     let currentTransaction: BehaviorRelay<Transaction?>
     let selectedEmotion: BehaviorRelay<Emotion?>
     let selectedPayment: BehaviorRelay<Payment?>
@@ -146,7 +149,37 @@ final class TransactionViewModel {
             )
             try await transactionAPI.saveTransaction(requestBody: requestBody)
 
-            AnalyticsManager.shared.logTransactionSaved(source: "manual")
+            // 저장 이벤트 (수동 입력: history_tab / manual)
+            let saveId = UUID().uuidString
+            let itemCount = current.transactionInfoList.count
+            let attempt = manualAttempt
+            AnalyticsManager.shared.logTransactionSaved(
+                entrySurface: .historyTab,
+                inputMethod: .manual,
+                entryType: itemCount <= 1 ? .single : .multiple,
+                attemptId: attempt?.id,
+                saveId: saveId,
+                itemCount: itemCount
+            )
+
+            // record_id(trGroupId) 확보용 재조회 후 생성 이벤트
+            let savedDate = current.transactionDate
+            let income: IncomeExpense = isIncome ? .income : .expense
+            let api = transactionAPI
+            Task {
+                let yearMonth = String(savedDate.prefix(7))
+                guard let groups = try? await api.getTransactions(yearMonth: yearMonth),
+                      let candidate = groups.filter({ $0.transactionDate == savedDate }).max(by: { $0.trGroupId < $1.trGroupId })
+                else { return }
+                AnalyticsManager.shared.logTransactionRecordCreated(
+                    recordId: String(candidate.trGroupId),
+                    saveId: saveId,
+                    attemptId: attempt?.id,
+                    entrySurface: .historyTab,
+                    inputMethod: .manual,
+                    incomeExpense: income
+                )
+            }
         }
     }
 

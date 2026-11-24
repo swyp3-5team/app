@@ -127,12 +127,23 @@ class SaveModalViewController: UIViewController {
                     self.calendarViewModel.refreshTrigger.accept(())
                     self.viewModel.isSheetPresent.accept(false)
 
+                    // 저장 완료 토스트 표시 이벤트 (save_id ↔ toast_id 연결)
+                    let toastId = UUID().uuidString
+                    let saveId = self.viewModel.lastSaveId
+                    if let saveId {
+                        AnalyticsManager.shared.logSaveToastShown(saveId: saveId, toastId: toastId)
+                    }
+
                     toastVC?.showToast(
                         message: "내역에 저장되었습니다.",
                         buttonTitle: "보기 >",
                         bottomOffset: host != nil ? -10 : -127,
                         above: host?.inputBar
                     ) {
+                        // 토스트 보기 버튼 클릭 이벤트
+                        if let saveId {
+                            AnalyticsManager.shared.logSaveToastHistoryClicked(saveId: saveId, toastId: toastId)
+                        }
                         // 방금 저장한 내역 상세로 바로 이동. 재조회로 저장 그룹을 찾았으면 상세 present,
                         // 아직 준비 전이거나 host가 없으면 기존처럼 내역 탭으로 전환.
                         if let host = host, let saved = self.viewModel.savedTransaction.value {

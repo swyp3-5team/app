@@ -62,6 +62,9 @@ final class ChatViewModel {
     // 진행 중인 입력 시도. chat_message_sent~ai_result_shown~저장/취소를 attempt_id로 연결.
     private(set) var currentAttempt: InputAttempt?
 
+    // 마지막 저장 작업 ID (save_toast_shown/clicked 연결용)
+    private(set) var lastSaveId: String?
+
     // 히스토리 페이징 (page 0 = 최신 페이지, 각 페이지는 오름차순)
     private let pageSize = 30
     private var currentPage = 0
@@ -155,15 +158,27 @@ final class ChatViewModel {
         )
         
         try await api.saveTransaction(requestBody: requestBody)
-        
-        AnalyticsManager.shared.logTransactionSaved(source: "chat")
-        
+
+        // 저장 이벤트 (save_id로 생성/토스트 이벤트를 연결)
+        let saveId = UUID().uuidString
+        lastSaveId = saveId
+        let itemCount = info.transactions.count
+        let attempt = currentAttempt
+        AnalyticsManager.shared.logTransactionSaved(
+            entrySurface: attempt?.entrySurface ?? .chatTab,
+            inputMethod: attempt?.inputMethod ?? .text,
+            entryType: itemCount <= 1 ? .single : .multiple,
+            attemptId: attempt?.id,
+            saveId: saveId,
+            itemCount: itemCount
+        )
+
         append(Message(kind: .text(chatResponse.value?.message ?? "저장 완료"), chatType: .receive))
 
         didSaveTransaction.accept(())
 
         // 서버가 저장 응답에 그룹 ID를 주지 않으므로, 해당 월을 재조회해 방금 저장한 그룹을 찾아둔다.
-        // (토스트 '보기'를 누를 때까지 토스트가 떠 있는 동안 백그라운드로 준비 — 저장 완료/토스트는 지연 안 됨)
+        // (토스트 '보기' 준비 + record_id=trGroupId 확보. 저장 완료/토스트는 지연 안 됨)
         savedTransaction.accept(nil)
         let savedDate = info.transactionDate
         Task { [weak self] in
@@ -175,6 +190,19 @@ final class ChatViewModel {
                 .filter { $0.transactionDate == savedDate }
                 .max(by: { $0.trGroupId < $1.trGroupId })
             self.savedTransaction.accept(candidate)
+
+            // 재조회로 확보한 실제 그룹 ID로 생성 이벤트 (record_id = trGroupId)
+            if let candidate {
+                let income: IncomeExpense = (candidate.transactionInfoList.first?.type == "INCOME") ? .income : .expense
+                AnalyticsManager.shared.logTransactionRecordCreated(
+                    recordId: String(candidate.trGroupId),
+                    saveId: saveId,
+                    attemptId: attempt?.id,
+                    entrySurface: attempt?.entrySurface ?? .chatTab,
+                    inputMethod: attempt?.inputMethod ?? .text,
+                    incomeExpense: income
+                )
+            }
         }
     }
     
