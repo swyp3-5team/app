@@ -15,6 +15,8 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
     private let viewModel: CalendarViewModel
     private let transactionViewModel: TransactionViewModel
     private let disposeBag = DisposeBag()
+    // 현재 화면 방문 ID (history_feature_clicked의 screen_visit_id 연결용)
+    private var screenVisitId = ""
 
     init(viewModel: CalendarViewModel, transactionViewModel: TransactionViewModel) {
         self.viewModel = viewModel
@@ -82,6 +84,7 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         
         button.addAction(UIAction { [weak self] _ in
             guard let self = self else { return }
+            AnalyticsManager.shared.logHistoryFeatureClicked(featureName: .statistics, screenVisitId: self.screenVisitId)
             let vc = StatsViewController(viewModel: viewModel)
             self.navigationController?.pushViewController(vc, animated: true)
         }, for: .touchUpInside)
@@ -184,6 +187,12 @@ class CalendarViewController: UIViewController, FSCalendarDataSource, FSCalendar
         super.viewDidLoad()
         configureUI()
         bind()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        screenVisitId = UUID().uuidString
+        AnalyticsManager.shared.logScreenView(screenName: "history_calendar", screenVisitId: screenVisitId)
     }
     
     func configureUI() {

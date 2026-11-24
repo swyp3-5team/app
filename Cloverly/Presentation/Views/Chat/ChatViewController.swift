@@ -250,7 +250,8 @@ class ChatViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-    
+        AnalyticsManager.shared.logScreenView(screenName: "chat_tab", screenVisitId: UUID().uuidString)
+
         if !UserDefaults.standard.bool(forKey: "hasSeenCoachMark") {
             showCoachMark()
             UserDefaults.standard.set(true, forKey: "hasSeenCoachMark")

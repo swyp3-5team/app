@@ -47,7 +47,7 @@ class HistoryTabViewController: TabmanViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        AnalyticsManager.shared.logScreenView(screenName: "history", screenClass: "HistoryTabViewController")
+        AnalyticsManager.shared.logScreenView(screenName: "history_tab", screenVisitId: UUID().uuidString)
     }
     
     func configureUI() {

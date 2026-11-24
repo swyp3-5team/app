@@ -184,6 +184,11 @@ class TransactionContainerViewController: UIViewController {
         navigationController?.interactivePopGestureRecognizer?.delegate = self
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        AnalyticsManager.shared.logScreenView(screenName: "transaction_detail", screenVisitId: UUID().uuidString)
+    }
+
     private var isModal: Bool {
         navigationController?.viewControllers.first === self
     }

@@ -281,6 +281,7 @@ class HomeViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        AnalyticsManager.shared.logScreenView(screenName: "home", screenVisitId: UUID().uuidString)
         player?.play()
         // 채팅 진입(특히 홈→영수증 전송) 시 즉시 표시하도록 최신 히스토리를 미리 받아둔다
         ChatHistoryStore.shared.prefetch()

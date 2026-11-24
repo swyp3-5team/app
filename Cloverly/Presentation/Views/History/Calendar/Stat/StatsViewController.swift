@@ -99,7 +99,7 @@ class StatsViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        AnalyticsManager.shared.logScreenView(screenName: "statistics", screenClass: "StatsViewController")
+        AnalyticsManager.shared.logScreenView(screenName: "statistics", screenVisitId: UUID().uuidString)
     }
     
     func configureUI() {

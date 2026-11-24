@@ -70,9 +70,14 @@ class MyPageViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         configureUI()
         bind()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        AnalyticsManager.shared.logScreenView(screenName: "my_page", screenVisitId: UUID().uuidString)
     }
     
     func configureUI() {
