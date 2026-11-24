@@ -135,7 +135,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             message: "새로운 버전이 출시되었어요. 지금 바로 업데이트 해보세요!",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "다음", style: .cancel) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: "다음에", style: .cancel) { [weak self] _ in
             self?.isShowingUpdateAlert = false
             if let storeVersion { AppUpdateManager.shared.skipOptional(storeVersion: storeVersion) }
         })
